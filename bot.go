@@ -49,7 +49,7 @@ func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
 		if c, ok := zeroBot.echo.Load(rsp.Get("echo").String()); ok {
-			if ch, ok := c.(chan APIResponse);ok {
+			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
 				ch <- APIResponse{ // 发送api调用响应
 					Status:  rsp.Get("status").Str,
@@ -63,5 +63,3 @@ func handleResponse(response []byte) {
 		fmt.Println(rsp.String())
 	}
 }
-
-

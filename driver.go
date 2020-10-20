@@ -9,12 +9,12 @@ import (
 )
 
 // 连接服务器
-func connectWebsocketServer(url, token string) *websocket.Conn {
+func connectWebsocketServer(url, token string) *websocket.Conn { // todo: 断线重连
 	var err error
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
-		"User-Agent":    []string{"Zero/0.0.1"},
+		"User-Agent":    []string{"ZeroBot/0.0.1"},
 	}
 	if token != "" {
 		header["Authorization"] = []string{"Bear " + token}
