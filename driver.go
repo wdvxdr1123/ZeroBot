@@ -1,7 +1,6 @@
 package ZeroBot
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -47,7 +46,6 @@ func sendChannel(c *websocket.Conn, ch <-chan []byte) {
 	for rawMsg := range ch {
 		err := c.WriteMessage(websocket.TextMessage, rawMsg)
 		if err != nil {
-			fmt.Println(err)
 			return
 		}
 	}

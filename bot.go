@@ -21,8 +21,8 @@ var zeroBot Bot
 func Run(addr, token string) {
 	zeroBot.sending = make(chan []byte)
 	zeroBot.conn = connectWebsocketServer(addr, token)
-	listenEvent(zeroBot.conn, handleResponse)
-	sendChannel(zeroBot.conn, zeroBot.sending)
+	go listenEvent(zeroBot.conn, handleResponse)
+	go sendChannel(zeroBot.conn, zeroBot.sending)
 }
 
 func sendAndWait(request WebSocketRequest) (APIResponse, error) {
@@ -30,6 +30,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	zeroBot.echo.Store(request.Echo, ch)
 	defer zeroBot.echo.Delete(request.Echo)
 	data, err := json.Marshal(request)
+	fmt.Println(string(data))
 	if err != nil {
 		return APIResponse{}, err
 	}
@@ -61,5 +62,11 @@ func handleResponse(response []byte) {
 		}
 	} else { // todo：事件
 		fmt.Println(rsp.String())
+		event := rsp.Map()
+		go processEvent(event)
 	}
+}
+
+func processEvent(event Event) {
+	// todo: handle
 }

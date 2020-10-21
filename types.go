@@ -3,6 +3,7 @@ package ZeroBot
 import "github.com/tidwall/gjson"
 
 type Params map[string]interface{}
+type Event map[string]gjson.Result
 
 // 调用api的返回
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
