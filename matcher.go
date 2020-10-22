@@ -68,7 +68,7 @@ func runMatcher(matcher *Matcher, event Event) {
 func (m *Matcher) Get(event Event, prompt string) string {
 	ch := make(chan string)
 	Send(event, prompt)
-	tempMatcherList.Store(getSeq(), &Matcher{
+	tempMatcherList.Store(getSeq(), &Matcher{ //Fixme: this block the map too long
 		State: map[string]interface{}{},
 		Rules: []Rule{func(ev Event) bool {
 			if tp, ok := ev["post_type"]; !ok || tp.String() != "message" {

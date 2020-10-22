@@ -64,8 +64,7 @@ func handleResponse(response []byte) {
 				}
 			}
 		}
-	} else { // todo：事件
-		fmt.Println(rsp.String())
+	} else {
 		event := rsp.Map()
 		go processEvent(event)
 	}
@@ -79,12 +78,12 @@ func processEvent(event Event) {
 				return true
 			}
 		}
-		matcher.run(event)
+		go matcher.run(event)
 		tempMatcherList.Delete(key)
 		return true
 	})
 	for _, v := range matcherList {
-		runMatcher(v, event)
+		go runMatcher(v, event)
 	}
 }
 

@@ -246,10 +246,10 @@ func GetGroupMemberList(groupId int64) gjson.Result {
 
 // 获取群荣誉信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_honor_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E8%8D%A3%E8%AA%89%E4%BF%A1%E6%81%AF
-func GetGroupHonorInfo(groupId int64,type_ string) gjson.Result {
+func GetGroupHonorInfo(groupId int64, type_ string) gjson.Result {
 	return CallAction("get_group_honor_info", Params{
 		"group_id": groupId,
-		"type": type_,
+		"type":     type_,
 	})
 }
 
@@ -257,7 +257,7 @@ func GetGroupHonorInfo(groupId int64,type_ string) gjson.Result {
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_record-%E8%8E%B7%E5%8F%96%E8%AF%AD%E9%9F%B3
 func GetRecord(file string, outFormat string) gjson.Result {
 	return CallAction("get_record", Params{
-		"file": file,
+		"file":       file,
 		"out_format": outFormat,
 	})
 }
