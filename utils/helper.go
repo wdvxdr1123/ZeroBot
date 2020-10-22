@@ -23,12 +23,3 @@ func RandomString(l int) string {
 func RandInt(min int, max int) int {
 	return min + rand.Intn(max-min)
 }
-
-// 拷贝字典
-func CopyMap(src map[interface{}]interface{}) map[interface{}]interface{} {
-	dst := make(map[interface{}]interface{})
-	for k, v := range src {
-		dst[k] = v
-	}
-	return dst
-}

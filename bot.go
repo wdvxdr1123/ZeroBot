@@ -17,9 +17,9 @@ type Bot struct {
 }
 
 var (
-	zeroBot  Bot
-	seq      uint64 = 0
-	seqMap   sync.Map
+	zeroBot Bot
+	seq     uint64 = 0
+	seqMap  sync.Map
 )
 
 func Run(addr, token string) {
@@ -72,7 +72,20 @@ func handleResponse(response []byte) {
 }
 
 func processEvent(event Event) {
-	// todo: handle
+	tempMatcherList.Range(func(key, value interface{}) bool {
+		matcher := value.(*Matcher)
+		for _, v := range matcher.Rules {
+			if v(event) == false {
+				return true
+			}
+		}
+		matcher.run(event)
+		tempMatcherList.Delete(key)
+		return true
+	})
+	for _, v := range matcherList {
+		runMatcher(v, event)
+	}
 }
 
 func getSeq() uint64 {

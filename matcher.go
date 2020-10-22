@@ -1,70 +1,121 @@
 package ZeroBot
 
 import (
-	"sort"
 	"sync"
 )
 
-type Rule func(Event) bool
+type (
+	Response uint8
+	Rule     func(event Event) bool
+	Handler  func(event Event, matcher *Matcher) Response
+)
+
+const (
+	SuccessResponse Response = iota
+	RejectResponse
+	FinishResponse
+)
 
 type Matcher struct {
-	sync.RWMutex // todo: 并发安全
-	Priority     int64
-	Block        bool
-	State        State
-	Rules        []Rule
-	isTemp       bool
+	State    State
+	Rules    []Rule
+	handlers []Handler
 }
 
-// 所有匹配器列表
-var MatcherList []*Matcher //todo: 替换为并发安全的链表
+var (
+	// 所有匹配器列表
+	matcherList     = make([]*Matcher, 0)
+	tempMatcherList = sync.Map{}
+)
 
 type State map[string]interface{}
 
-func addMatcher(matcher *Matcher) {
-	MatcherList = append(MatcherList, matcher)
-	sort.Slice(MatcherList, func(i, j int) bool { // 按照优先级排序
-		return MatcherList[i].Priority < MatcherList[j].Priority
-	})
+func addTempMatcher(matcher *Matcher) {
+	tempMatcherList.Store(getSeq(), matcher)
 }
 
-func On(priority int64, block bool, defaultState State, rules ...Rule) *Matcher {
+func On(rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Priority: priority,
-		Block:    block,
-		State:    defaultState,
+		State:    map[string]interface{}{},
 		Rules:    rules,
-		isTemp:   false,
+		handlers: []Handler{},
 	}
-	if MatcherList != nil {
-		MatcherList = []*Matcher{}
-	}
+	matcherList = append(matcherList, matcher)
 	return matcher
 }
 
-func (m *Matcher) run(event Event) error {
-	for _, rule := range m.Rules {
-		if rule(event) == false {
-			// return
+func (m *Matcher) run(event Event) {
+	for _, handler := range m.handlers {
+		switch handler(event, m) {
+		case SuccessResponse:
+			continue
+		case FinishResponse:
+			return
 		}
 	}
-	// 满足所有条件，创建一个新会话
-	panic("impl me")
 }
 
-func (m *Matcher) Get() string {
+func runMatcher(matcher *Matcher, event Event) {
+	for _, rule := range matcher.Rules {
+		if rule(event) == false {
+			return
+		}
+	}
+	m := matcher.copy()
+	go m.run(event)
+}
+
+func (m *Matcher) Get(event Event, prompt string) string {
 	ch := make(chan string)
-	seqMap.Store(getSeq(),ch)
-	// todo:处理
-	return<-ch
+	Send(event, prompt)
+	tempMatcherList.Store(getSeq(), &Matcher{
+		State: map[string]interface{}{},
+		Rules: []Rule{func(ev Event) bool {
+			if tp, ok := ev["post_type"]; !ok || tp.String() != "message" {
+				return false
+			}
+			return ev["user_id"].Int() == event["user_id"].Int()
+		}},
+		handlers: []Handler{
+			func(ev Event, m *Matcher) Response {
+				ch <- ev["raw_message"].String()
+				return SuccessResponse
+			},
+		},
+	})
+	return <-ch
 }
 
 func (m *Matcher) copy() *Matcher {
+	newHandlers := make([]Handler, len(m.handlers))
+	copy(newHandlers, m.handlers) // 复制
 	return &Matcher{
-		Priority: m.Priority,
-		Block:    m.Block,
-		State:    m.State, // Fixme:copy
+		State:    copyState(m.State),
 		Rules:    m.Rules,
-		isTemp:   m.isTemp,
+		handlers: newHandlers,
 	}
+}
+
+// 拷贝字典
+func copyState(src State) State {
+	dst := make(State)
+	for k, v := range src {
+		dst[k] = v
+	}
+	return dst
+}
+
+func (m *Matcher) Handle(handler Handler) *Matcher {
+	m.handlers = append(m.handlers, handler)
+	return m
+}
+
+func (m *Matcher) Got(name, prompt string, handler Handler) *Matcher {
+	m.handlers = append(m.handlers, func(event Event, matcher *Matcher) Response {
+		if _, ok := matcher.State[name]; ok == false {
+			matcher.State[name] = m.Get(event, prompt)
+		}
+		return handler(event, matcher)
+	})
+	return m
 }
