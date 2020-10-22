@@ -10,7 +10,7 @@ func TestRun(t *testing.T) {
 			return false
 		}
 		return event["raw_message"].Str == "复读"
-	}).Got("echo","请输入复读内容",func(event Event, matcher *Matcher) Response {
+	}).Got("echo", "请输入复读内容", func(event Event, matcher *Matcher) Response {
 		Send(event, matcher.State["echo"])
 		return SuccessResponse
 	})
