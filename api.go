@@ -2,7 +2,6 @@ package ZeroBot
 
 import (
 	"github.com/tidwall/gjson"
-	"github.com/wdvxdr1123/ZeroBot/utils"
 )
 
 // 先就这样吧，后面看看有什么优美的方案
@@ -10,7 +9,7 @@ func (_ *Bot) CallAction(action string, params Params) gjson.Result {
 	req := WebSocketRequest{
 		Action: action,
 		Params: params,
-		Echo:   utils.RandomString(8),
+		Echo:   getSeq(),
 	}
 	rsp, err := sendAndWait(req)
 	if err == nil {

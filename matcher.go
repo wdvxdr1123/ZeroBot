@@ -9,15 +9,15 @@ type Rule func(Event) bool
 
 type Matcher struct {
 	sync.RWMutex // todo: 并发安全
-	Priority int64
-	Block    bool
-	State    State
-	Rules    []Rule
-	isTemp   bool
+	Priority     int64
+	Block        bool
+	State        State
+	Rules        []Rule
+	isTemp       bool
 }
 
-// 所有匹配器列表  todo: 优先级,阻塞
-var MatcherList []*Matcher
+// 所有匹配器列表
+var MatcherList []*Matcher //todo: 替换为并发安全的链表
 
 type State map[string]interface{}
 
@@ -52,11 +52,18 @@ func (m *Matcher) run(event Event) error {
 	panic("impl me")
 }
 
+func (m *Matcher) Get() string {
+	ch := make(chan string)
+	seqMap.Store(getSeq(),ch)
+	// todo:处理
+	return<-ch
+}
+
 func (m *Matcher) copy() *Matcher {
 	return &Matcher{
 		Priority: m.Priority,
 		Block:    m.Block,
-		State:    m.State,// Fixme:copy
+		State:    m.State, // Fixme:copy
 		Rules:    m.Rules,
 		isTemp:   m.isTemp,
 	}

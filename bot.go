@@ -7,16 +7,20 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type Bot struct {
 	conn    *websocket.Conn
 	sending chan []byte
-	echo    sync.Map
 }
 
-var zeroBot Bot
+var (
+	zeroBot  Bot
+	seq      uint64 = 0
+	seqMap   sync.Map
+)
 
 func Run(addr, token string) {
 	zeroBot.sending = make(chan []byte)
@@ -27,8 +31,8 @@ func Run(addr, token string) {
 
 func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	ch := make(chan APIResponse)
-	zeroBot.echo.Store(request.Echo, ch)
-	defer zeroBot.echo.Delete(request.Echo)
+	seqMap.Store(request.Echo, ch)
+	defer seqMap.Delete(request.Echo)
 	data, err := json.Marshal(request)
 	fmt.Println(string(data))
 	if err != nil {
@@ -49,14 +53,14 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
-		if c, ok := zeroBot.echo.Load(rsp.Get("echo").String()); ok {
+		if c, ok := seqMap.Load(rsp.Get("echo").Int()); ok {
 			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
 				ch <- APIResponse{ // 发送api调用响应
 					Status:  rsp.Get("status").Str,
 					Data:    rsp.Get("data"),
 					RetCode: rsp.Get("retcode").Int(),
-					Echo:    rsp.Get("echo").Str,
+					Echo:    rsp.Get("echo").Uint(),
 				}
 			}
 		}
@@ -69,4 +73,8 @@ func handleResponse(response []byte) {
 
 func processEvent(event Event) {
 	// todo: handle
+}
+
+func getSeq() uint64 {
+	return atomic.AddUint64(&seq, 1)
 }

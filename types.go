@@ -11,7 +11,7 @@ type APIResponse struct {
 	Status  string       `json:"status"`
 	Data    gjson.Result `json:"data"`
 	RetCode int64        `json:"retcode"`
-	Echo    string       `json:"echo"`
+	Echo    uint64       `json:"echo"`
 }
 
 // 调用ws服务器api
@@ -19,7 +19,7 @@ type APIResponse struct {
 type WebSocketRequest struct {
 	Action string `json:"action"`
 	Params Params `json:"params"`
-	Echo   string `json:"echo"`
+	Echo   uint64 `json:"echo"`
 }
 
 // User is a user on QQ.
