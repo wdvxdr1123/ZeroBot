@@ -1,6 +1,12 @@
 package ZeroBot
 
-import "github.com/tidwall/gjson"
+import (
+	"github.com/tidwall/gjson"
+	"github.com/wdvxdr1123/ZeroBot/message"
+	"strconv"
+)
+
+// Modified from https://github.com/catsworld/qq-bot-api
 
 type Params map[string]interface{}
 type Event map[string]gjson.Result
@@ -41,4 +47,63 @@ type User struct {
 	AnonymousID   int64  `json:"anonymous_id" anonymous:"id"`
 	AnonymousName string `json:"anonymous_name" anonymous:"name"`
 	AnonymousFlag string `json:"anonymous_flag" anonymous:"flag"`
+}
+
+// Update is an update response, from GetUpdates.
+type Update struct {
+	Time          int64            `json:"time"`
+	PostType      string           `json:"post_type"`
+	MessageType   string           `json:"message_type"`
+	SubType       string           `json:"sub_type"`
+	MessageID     int64            `json:"message_id"`
+	GroupID       int64            `json:"group_id"`
+	UserID        int64            `json:"user_id"`
+	RawMessage    string           `json:"raw_message"` // raw_message is always string
+	Anonymous     interface{}      `json:"anonymous"`
+	AnonymousFlag string           `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
+	Event         string           `json:"event"`
+	NoticeType    string           `json:"notice_type"` // This field is deprecated and will get removed, see #11
+	OperatorID    int64            `json:"operator_id"`
+	File          *File            `json:"file"`
+	RequestType   string           `json:"request_type"`
+	Flag          string           `json:"flag"`
+	Comment       string           `json:"comment"` // This field is used for Request Event
+	Message       *message.Message `json:"-"`       // Message parsed
+	Sender        *User            `json:"sender"`
+}
+
+type File struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Size  int64  `json:"size"`
+	BusID int64  `json:"busid"`
+}
+
+type Group struct {
+	ID   int64  `json:"group_id"`
+	Name string `json:"group_name"`
+}
+
+// Name displays a simple text version of a user.
+func (u *User) Name() string {
+	if u.AnonymousName != "" {
+		return u.AnonymousName
+	}
+	if u.Card != "" {
+		return u.Card
+	}
+	if u.NickName != "" {
+		return u.NickName
+	}
+	return strconv.FormatInt(u.ID, 10)
+}
+
+// String displays a simple text version of a user.
+// It is normally a user's card, but falls back to a nickname as available.
+func (u *User) String() string {
+	p := ""
+	if u.Title != "" {
+		p = "[" + u.Title + "]"
+	}
+	return p + u.Name()
 }
