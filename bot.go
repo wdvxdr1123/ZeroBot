@@ -21,7 +21,14 @@ var (
 	sending = make(chan []byte)
 )
 
+func init() {
+	PluginPool = []IPlugin{} // 初始化
+}
+
 func Run(addr, token string) {
+	for _, plugin := range PluginPool {
+		plugin.Start() // 加载插件
+	}
 	zeroBot.conn = connectWebsocketServer(addr, token)
 	go listenEvent(zeroBot.conn, handleResponse)
 	go sendChannel(zeroBot.conn, sending)

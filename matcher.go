@@ -23,8 +23,9 @@ type Matcher struct {
 }
 
 var (
-	// 所有匹配器列表
-	matcherList     = make([]*Matcher, 0)
+	// 所有主匹配器列表
+	matcherList = make([]*Matcher, 0)
+	// 临时匹配器
 	tempMatcherList = sync.Map{}
 )
 
@@ -34,6 +35,7 @@ func addTempMatcher(matcher *Matcher) {
 	tempMatcherList.Store(getSeq(), matcher)
 }
 
+// 添加新的主匹配器
 func On(rules ...Rule) *Matcher {
 	var matcher = &Matcher{
 		State:    map[string]interface{}{},
@@ -70,12 +72,10 @@ func (m *Matcher) Get(event Event, prompt string) string {
 	Send(event, prompt)
 	tempMatcherList.Store(getSeq(), &Matcher{
 		State: map[string]interface{}{},
-		Rules: []Rule{func(ev Event) bool {
-			if tp, ok := ev["post_type"]; !ok || tp.String() != "message" {
-				return false
-			}
-			return ev["user_id"].Int() == event["user_id"].Int()
-		}},
+		Rules: []Rule{
+			IsMessage(),
+			CheckUser(event["user_id"].Int()),
+		},
 		handlers: []Handler{
 			func(ev Event, m *Matcher) Response {
 				ch <- ev["raw_message"].String()
@@ -120,4 +120,24 @@ func (m *Matcher) Got(name, prompt string, handler Handler) *Matcher {
 		return handler(event, matcher)
 	})
 	return m
+}
+
+func OnMessage(rules ...Rule) *Matcher {
+	return On(append(rules, IsMessage())...)
+}
+
+func OnNotice(rules ...Rule) *Matcher {
+	return On(append(rules, IsNotice())...)
+}
+
+func OnRequest(rules ...Rule) *Matcher {
+	return On(append(rules, IsRequest())...)
+}
+
+func OnMetaEvent(rules ...Rule) *Matcher {
+	return On(append(rules,IsMetaEvent())...)
+}
+
+func OnPrefix(strings ...string) *Matcher {
+	return OnMessage(IsPrefix(strings...))
 }

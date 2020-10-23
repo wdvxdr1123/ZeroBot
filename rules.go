@@ -9,10 +9,15 @@ func IsMessage() func(event Event) bool {
 	}
 }
 
-// 是否含有前缀
-func IsPrefix(prefix string) func(event Event) bool {
+// 是否含有前缀,使用时请确保该事件为消息事件
+func IsPrefix(prefixs ...string) func(event Event) bool {
 	return func(event Event) bool {
-		return IsMessage()(event) && strings.HasPrefix(event["raw_message"].Str, prefix)
+		for _, prefix := range prefixs {
+			if strings.HasPrefix(event["raw_message"].Str, prefix) { // 只要有一个前缀就行了
+				return true
+			}
+		}
+		return false
 	}
 }
 
@@ -37,8 +42,9 @@ func IsMetaEvent() func(event Event) bool {
 	}
 }
 
-func IsUserId(userId int64) func(event Event) bool {
+func CheckUser(userId int64) func(event Event) bool {
 	return func(event Event) bool {
 		return event["user_id"].Int() == userId
 	}
 }
+
