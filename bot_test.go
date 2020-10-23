@@ -1,10 +1,24 @@
 package ZeroBot
 
 import (
+	"net/http"
+	"net/http/pprof"
 	"testing"
 )
 
+const (
+	pprofAddr string = ":7890"
+)
+
+func StartHTTPDebuger() {
+	pprofHandler := http.NewServeMux()
+	pprofHandler.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	server := &http.Server{Addr: pprofAddr, Handler: pprofHandler}
+	go server.ListenAndServe()
+}
+
 func TestRun(t *testing.T) {
+	go StartHTTPDebuger()
 	On(func(event Event) bool {
 		if tp, ok := event["post_type"]; !ok || tp.String() != "message" {
 			return false

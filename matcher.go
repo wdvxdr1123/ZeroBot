@@ -62,13 +62,13 @@ func runMatcher(matcher *Matcher, event Event) {
 		}
 	}
 	m := matcher.copy()
-	go m.run(event)
+	m.run(event)
 }
 
 func (m *Matcher) Get(event Event, prompt string) string {
 	ch := make(chan string)
 	Send(event, prompt)
-	tempMatcherList.Store(getSeq(), &Matcher{ //Fixme: this block the map too long
+	tempMatcherList.Store(getSeq(), &Matcher{
 		State: map[string]interface{}{},
 		Rules: []Rule{func(ev Event) bool {
 			if tp, ok := ev["post_type"]; !ok || tp.String() != "message" {
@@ -105,11 +105,13 @@ func copyState(src State) State {
 	return dst
 }
 
+// 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, handler)
 	return m
 }
 
+// 判断State是否含有"name"键，若无则向用户索取
 func (m *Matcher) Got(name, prompt string, handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(event Event, matcher *Matcher) Response {
 		if _, ok := matcher.State[name]; ok == false {

@@ -3,7 +3,6 @@ package ZeroBot
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
 	"sync"
@@ -12,21 +11,20 @@ import (
 )
 
 type Bot struct {
-	conn    *websocket.Conn
-	sending chan []byte
+	conn *websocket.Conn
 }
 
 var (
 	zeroBot Bot
 	seq     uint64 = 0
 	seqMap  sync.Map
+	sending = make(chan []byte)
 )
 
 func Run(addr, token string) {
-	zeroBot.sending = make(chan []byte)
 	zeroBot.conn = connectWebsocketServer(addr, token)
 	go listenEvent(zeroBot.conn, handleResponse)
-	go sendChannel(zeroBot.conn, zeroBot.sending)
+	go sendChannel(zeroBot.conn, sending)
 }
 
 func sendAndWait(request WebSocketRequest) (APIResponse, error) {
@@ -34,11 +32,10 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	seqMap.Store(request.Echo, ch)
 	defer seqMap.Delete(request.Echo)
 	data, err := json.Marshal(request)
-	fmt.Println(string(data))
 	if err != nil {
 		return APIResponse{}, err
 	}
-	zeroBot.sending <- data
+	sending <- data
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
@@ -53,7 +50,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
-		if c, ok := seqMap.Load(rsp.Get("echo").Int()); ok {
+		if c, ok := seqMap.Load(rsp.Get("echo").Uint()); ok {
 			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
 				ch <- APIResponse{ // 发送api调用响应
@@ -71,6 +68,7 @@ func handleResponse(response []byte) {
 }
 
 func processEvent(event Event) {
+	// todo: preprocess event
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
