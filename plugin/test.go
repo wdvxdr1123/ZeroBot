@@ -1,6 +1,8 @@
 package plugin
 
-import "github.com/wdvxdr1123/ZeroBot"
+import (
+	"github.com/wdvxdr1123/ZeroBot"
+)
 
 func init() {
 	a := testPlugin{}
@@ -22,7 +24,7 @@ func (testPlugin) Start() { // 插件主体
 	ZeroBot.OnPrefix([]string{"复读", "echo", "fudu"}, ZeroBot.OnlyToMe()).
 		Got("echo", "请输入复读内容",
 			func(event ZeroBot.Event, matcher *ZeroBot.Matcher) ZeroBot.Response {
-				ZeroBot.Send(event, matcher.State["echo"])
+				event.Message.Reply(matcher.State["echo"])
 				return ZeroBot.SuccessResponse
 			},
 		)

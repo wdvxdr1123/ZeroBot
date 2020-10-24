@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -27,7 +28,7 @@ var (
 
 func init() {
 	PluginPool = []IPlugin{} // 初始化
-	zeroBot.nicknames = []string{"xcw","镜华","小仓唯"}
+	zeroBot.nicknames = []string{"xcw", "镜华", "小仓唯"}
 }
 
 func Run(addr, token string) {
@@ -137,18 +138,45 @@ func preprocessMessageEvent(e *Event) {
 	}
 	// 处理是否at机器人
 	e.Message.IsToMe = false
-	for _,m := range e.Message.Raw {
+	for _, m := range e.Message.Raw {
 		if m.Type == "at" {
 			e.Message.IsToMe = e.Message.IsToMe || (m.Data["qq"] == zeroBot.id)
 		}
 	}
-	for _,nickname := range zeroBot.nicknames {
-		if strings.HasPrefix(e.Message.StringMessage,nickname) {
+	for _, nickname := range zeroBot.nicknames {
+		if strings.HasPrefix(e.Message.StringMessage, nickname) {
 			e.Message.IsToMe = true
 			e.Message.StringMessage = e.Message.StringMessage[len(nickname):]
 			return
 		}
 	}
+}
+
+// 快捷撤回
+func (m *Message) Delete() {
+	DeleteMessage(m.MessageId)
+}
+
+func (m *Message) send(s message.Message) int64 {
+	if m.MessageType == "group" {
+		return SendGroupMessage(m.From, s)
+	} else {
+		return SendPrivateMessage(m.From, s)
+	}
+}
+
+// 快捷回复
+func (m *Message) Reply(msg interface{}) int64 {
+	var sending = message.Message{}
+	switch e := msg.(type) {
+	case message.Message:
+		sending = append(message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10))}, e...)
+	case message.MessageSegment:
+		sending = message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10)), e}
+	case string:
+		sending = append(message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10))}, message.ParseMessageFromString(e)...)
+	}
+	return m.send(sending)
 }
 
 func getSeq() uint64 {
