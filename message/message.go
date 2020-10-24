@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -11,8 +12,24 @@ type Message []MessageSegment
 
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type MessageSegment struct {
-	Type string                 `json:"type"`
-	Data map[string]interface{} `json:"data"`
+	Type string            `json:"type"`
+	Data map[string]string `json:"data"`
+}
+
+// EncodeCQText escapes special characters in a non-media plain message.
+func EscapeCQText(str string) string {
+	str = strings.Replace(str, "&", "&amp;", -1)
+	str = strings.Replace(str, "[", "&#91;", -1)
+	str = strings.Replace(str, "]", "&#93;", -1)
+	return str
+}
+
+// DecodeCQText unescapes special characters in a non-media plain message.
+func UnescapeCQText(str string) string {
+	str = strings.Replace(str, "&#93;", "]", -1)
+	str = strings.Replace(str, "&#91;", "[", -1)
+	str = strings.Replace(str, "&amp;", "&", -1)
+	return str
 }
 
 // EscapeCQCodeText escapes special characters in a cqcode value.
@@ -49,7 +66,7 @@ func (m MessageSegment) CQCode() string {
 func Text(text string) MessageSegment {
 	return MessageSegment{
 		Type: "text",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"text": text,
 		},
 	}
@@ -60,8 +77,8 @@ func Text(text string) MessageSegment {
 func Face(id int64) MessageSegment {
 	return MessageSegment{
 		Type: "face",
-		Data: map[string]interface{}{
-			"id": id,
+		Data: map[string]string{
+			"id": strconv.FormatInt(id, 10),
 		},
 	}
 }
@@ -71,7 +88,7 @@ func Face(id int64) MessageSegment {
 func Image(file string) MessageSegment {
 	return MessageSegment{
 		Type: "image",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"file": file,
 		},
 	}
@@ -82,7 +99,7 @@ func Image(file string) MessageSegment {
 func Record(file string) MessageSegment {
 	return MessageSegment{
 		Type: "record",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"file": file,
 		},
 	}
@@ -93,7 +110,7 @@ func Record(file string) MessageSegment {
 func At(qq string) MessageSegment {
 	return MessageSegment{
 		Type: "at",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"qq": qq,
 		},
 	}
@@ -104,7 +121,7 @@ func At(qq string) MessageSegment {
 func Music(type_ string, id string) MessageSegment {
 	return MessageSegment{
 		Type: "music",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"type": type_,
 			"id":   id,
 		},
@@ -116,7 +133,7 @@ func Music(type_ string, id string) MessageSegment {
 func CustomMusic(subType, url, audio, title string) MessageSegment {
 	return MessageSegment{
 		Type: "music",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"type":     "custom",
 			"sub_type": subType,
 			"url":      url,
@@ -131,7 +148,7 @@ func CustomMusic(subType, url, audio, title string) MessageSegment {
 func Reply(id string) MessageSegment {
 	return MessageSegment{
 		Type: "reply",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"id": id,
 		},
 	}
@@ -142,7 +159,7 @@ func Reply(id string) MessageSegment {
 func Forward(id string) MessageSegment {
 	return MessageSegment{
 		Type: "forward",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"id": id,
 		},
 	}
@@ -153,7 +170,7 @@ func Forward(id string) MessageSegment {
 func Node(id string) MessageSegment {
 	return MessageSegment{
 		Type: "node",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"id": id,
 		},
 	}
@@ -164,7 +181,7 @@ func Node(id string) MessageSegment {
 func XML(data string) MessageSegment {
 	return MessageSegment{
 		Type: "xml",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"data": data,
 		},
 	}
@@ -175,7 +192,7 @@ func XML(data string) MessageSegment {
 func JSON(data string) MessageSegment {
 	return MessageSegment{
 		Type: "json",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"data": data,
 		},
 	}

@@ -1,6 +1,7 @@
 package ZeroBot
 
 import (
+	"encoding/json"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"strconv"
@@ -49,8 +50,8 @@ type User struct {
 	AnonymousFlag string `json:"anonymous_flag" anonymous:"flag"`
 }
 
-// Update is an update response, from GetUpdates.
-type Update struct {
+// Event
+type Events struct {
 	Time          int64            `json:"time"`
 	PostType      string           `json:"post_type"`
 	MessageType   string           `json:"message_type"`
@@ -70,6 +71,7 @@ type Update struct {
 	Comment       string           `json:"comment"` // This field is used for Request Event
 	Message       *message.Message `json:"-"`       // Message parsed
 	Sender        *User            `json:"sender"`
+	NativeMessage json.RawMessage  `json:"message"`
 }
 
 type File struct {
