@@ -2,7 +2,6 @@ package message
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -74,11 +73,11 @@ func Text(text string) MessageSegment {
 
 // QQ 表情
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#qq-%E8%A1%A8%E6%83%85
-func Face(id int64) MessageSegment {
+func Face(id string) MessageSegment {
 	return MessageSegment{
 		Type: "face",
 		Data: map[string]string{
-			"id": strconv.FormatInt(id, 10),
+			"id": id,
 		},
 	}
 }

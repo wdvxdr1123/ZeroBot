@@ -11,7 +11,7 @@ type PluginInfo struct {
 var PluginPool []IPlugin
 
 // 插件
-type IPlugin interface{
+type IPlugin interface {
 	// 获取插件信息
 	GetPluginInfo() PluginInfo
 	// 开启工作

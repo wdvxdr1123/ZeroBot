@@ -69,13 +69,14 @@ func handleResponse(response []byte) {
 			}
 		}
 	} else {
-		event := rsp.Map()
-		go processEvent(event)
+		go processEvent(response)
 	}
 }
 
-func processEvent(event Event) {
+func processEvent(response []byte) {
 	// todo: preprocess event
+	var event Event
+	_ = json.Unmarshal(response, &event)
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
@@ -90,6 +91,10 @@ func processEvent(event Event) {
 	for _, v := range matcherList {
 		go runMatcher(v, event)
 	}
+}
+
+func preprocess() {
+
 }
 
 func getSeq() uint64 {

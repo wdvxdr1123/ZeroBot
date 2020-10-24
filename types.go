@@ -10,7 +10,6 @@ import (
 // Modified from https://github.com/catsworld/qq-bot-api
 
 type Params map[string]interface{}
-type Event map[string]gjson.Result
 
 // 调用api的返回
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
@@ -51,7 +50,7 @@ type User struct {
 }
 
 // Event
-type Events struct {
+type Event struct {
 	Time          int64            `json:"time"`
 	PostType      string           `json:"post_type"`
 	MessageType   string           `json:"message_type"`

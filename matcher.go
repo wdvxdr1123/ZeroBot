@@ -74,11 +74,11 @@ func (m *Matcher) Get(event Event, prompt string) string {
 		State: map[string]interface{}{},
 		Rules: []Rule{
 			IsMessage(),
-			CheckUser(event["user_id"].Int()),
+			CheckUser(event.UserID),
 		},
 		handlers: []Handler{
 			func(ev Event, m *Matcher) Response {
-				ch <- ev["raw_message"].String()
+				ch <- ev.RawMessage
 				return SuccessResponse
 			},
 		},
@@ -135,7 +135,7 @@ func OnRequest(rules ...Rule) *Matcher {
 }
 
 func OnMetaEvent(rules ...Rule) *Matcher {
-	return On(append(rules,IsMetaEvent())...)
+	return On(append(rules, IsMetaEvent())...)
 }
 
 func OnPrefix(strings ...string) *Matcher {

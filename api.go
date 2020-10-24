@@ -24,10 +24,10 @@ func CallAction(action string, params Params) gjson.Result {
 
 // 快捷发送
 func Send(event Event, message interface{}) {
-	if groupID, ok := event["group_id"]; ok {
-		SendGroupMessage(groupID.Int(), message)
-	} else if userId, ok := event["user_id"]; ok {
-		SendPrivateMessage(userId.Int(), message)
+	if event.GroupID != 0 {
+		SendGroupMessage(event.GroupID, message)
+	} else if event.UserID != 0 {
+		SendPrivateMessage(event.UserID, message)
 	}
 }
 

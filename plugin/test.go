@@ -9,7 +9,7 @@ func init() {
 
 type testPlugin struct{}
 
-func (testPlugin)GetPluginInfo() ZeroBot.PluginInfo {
+func (testPlugin) GetPluginInfo() ZeroBot.PluginInfo {
 	return ZeroBot.PluginInfo{
 		Author:     "wdvxdr1123",
 		PluginName: "test",
@@ -18,7 +18,7 @@ func (testPlugin)GetPluginInfo() ZeroBot.PluginInfo {
 	}
 }
 
-func (testPlugin)Start() {
+func (testPlugin) Start() {
 	ZeroBot.OnPrefix("复读", "echo", "fudu").
 		Got("echo", "请输入复读内容",
 			func(event ZeroBot.Event, matcher *ZeroBot.Matcher) ZeroBot.Response {
