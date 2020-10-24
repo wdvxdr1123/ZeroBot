@@ -27,6 +27,7 @@ var (
 
 func init() {
 	PluginPool = []IPlugin{} // 初始化
+	zeroBot.nicknames = []string{"xcw","镜华","小仓唯"}
 }
 
 func Run(addr, token string) {
@@ -93,7 +94,6 @@ func processEvent(response []byte) {
 	if event.PostType == "message" {
 		preprocessMessageEvent(&event)
 	}
-
 	// run Matchers
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
@@ -143,7 +143,11 @@ func preprocessMessageEvent(e *Event) {
 		}
 	}
 	for _,nickname := range zeroBot.nicknames {
-		e.Message.IsToMe = e.Message.IsToMe || (strings.HasPrefix(e.Message.StringMessage,nickname))
+		if strings.HasPrefix(e.Message.StringMessage,nickname) {
+			e.Message.IsToMe = true
+			e.Message.StringMessage = e.Message.StringMessage[len(nickname):]
+			return
+		}
 	}
 }
 

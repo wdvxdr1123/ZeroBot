@@ -3,7 +3,6 @@ package message
 import (
 	"github.com/tidwall/gjson"
 	"regexp"
-	"strings"
 )
 
 // Modified from https://github.com/catsworld/qq-bot-api
@@ -87,63 +86,6 @@ func ParseMessageFromString(str string) Message {
 		m = append(m, Text(str[si:]))
 	}
 	return m
-}
-
-//todo: modify this command system
-
-// IsCommand indicates whether a Message is a command.
-// If #StrictCommand is true, only messages start with #CommandPrefix will be regard as command.
-func (m *Message) IsCommand() bool {
-	str := m.CQString()
-	return IsCommand(str)
-}
-
-// Command parses a command message and returns the command with command arguments.
-// In a StrictCommand mode, the initial #CommandPrefix in a command will be stripped off.
-func (m *Message) Command() (cmd string, args []string) {
-	str := m.CQString()
-	return Command(str)
-}
-
-// IsCommand indicates whether a string is a command.
-// If #StrictCommand is true, only strings start with #CommandPrefix will be regard as command.
-func IsCommand(str string) bool {
-	if len(str) == 0 {
-		return false
-	}
-	if StrictCommand && (len(str) < len(CommandPrefix) || str[:len(CommandPrefix)] != CommandPrefix) {
-		return false
-	}
-	return true
-}
-
-// Command parses a command string and returns the command with command arguments.
-// In a StrictCommand mode, the initial #CommandPrefix in a command will be stripped off.
-func Command(str string) (cmd string, args []string) {
-	lcp := len(CommandPrefix)
-	str = strings.Replace(str, `\\`, `\0x5c`, -1)
-	str = strings.Replace(str, `\"`, `\0x22`, -1)
-	str = strings.Replace(str, `\'`, `\0x27`, -1)
-	strs := regexp.MustCompile(`'[\s\S]*?'|"[\s\S]*?"|\S*\[CQ:[\s\S]*?\]\S*|\S+`).FindAllString(str, -1)
-	if len(strs) == 0 || len(strs[0]) == 0 {
-		return
-	}
-	if StrictCommand {
-		if len(strs[0]) < lcp || strs[0][:lcp] != CommandPrefix {
-			return
-		}
-		cmd = strs[0][lcp:]
-	} else {
-		cmd = strs[0]
-	}
-	for _, arg := range strs[1:] {
-		arg = strings.Trim(arg, `'"`)
-		arg = strings.Replace(arg, `\0x27`, `'`, -1)
-		arg = strings.Replace(arg, `\0x22`, `"`, -1)
-		arg = strings.Replace(arg, `\0x5c`, `\`, -1)
-		args = append(args, arg)
-	}
-	return
 }
 
 // CQString returns the CQEncoded string. All media in the message will be converted

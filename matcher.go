@@ -138,6 +138,17 @@ func OnMetaEvent(rules ...Rule) *Matcher {
 	return On(append(rules, IsMetaEvent())...)
 }
 
-func OnPrefix(strings ...string) *Matcher {
-	return OnMessage(IsPrefix(strings...))
+// 前缀触发器
+func OnPrefix(prefix []string, rules ...Rule) *Matcher {
+	return OnMessage(append(rules, IsPrefix(prefix...))...)
+}
+
+// 后缀触发器
+func OnSuffix(suffix []string, rules ...Rule) *Matcher {
+	return OnMessage(append(rules, IsSuffix(suffix...))...)
+}
+
+// 命令触发器
+func OnCommand(commands []string, rules ...Rule) *Matcher {
+	return OnMessage(append(rules, IsCommand(commands...))...)
 }

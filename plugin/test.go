@@ -4,12 +4,12 @@ import "github.com/wdvxdr1123/ZeroBot"
 
 func init() {
 	a := testPlugin{}
-	ZeroBot.RegisterPlugin(a)
+	ZeroBot.RegisterPlugin(a) // 注册插件
 }
 
 type testPlugin struct{}
 
-func (testPlugin) GetPluginInfo() ZeroBot.PluginInfo {
+func (testPlugin) GetPluginInfo() ZeroBot.PluginInfo { // 返回插件信息
 	return ZeroBot.PluginInfo{
 		Author:     "wdvxdr1123",
 		PluginName: "test",
@@ -18,8 +18,8 @@ func (testPlugin) GetPluginInfo() ZeroBot.PluginInfo {
 	}
 }
 
-func (testPlugin) Start() {
-	ZeroBot.OnPrefix("复读", "echo", "fudu").
+func (testPlugin) Start() { // 插件主体
+	ZeroBot.OnPrefix([]string{"复读", "echo", "fudu"}, ZeroBot.OnlyToMe()).
 		Got("echo", "请输入复读内容",
 			func(event ZeroBot.Event, matcher *ZeroBot.Matcher) ZeroBot.Response {
 				ZeroBot.Send(event, matcher.State["echo"])
