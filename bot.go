@@ -5,13 +5,17 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
+	"github.com/wdvxdr1123/ZeroBot/message"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 type Bot struct {
-	conn *websocket.Conn
+	conn      *websocket.Conn
+	id        string
+	nicknames []string
 }
 
 var (
@@ -34,6 +38,7 @@ func Run(addr, token string) {
 	go sendChannel(zeroBot.conn, sending)
 }
 
+// send message to server and return the response from server.
 func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	ch := make(chan APIResponse)
 	seqMap.Store(request.Echo, ch)
@@ -54,6 +59,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	}
 }
 
+// handle the message from server.
 func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
@@ -74,9 +80,21 @@ func handleResponse(response []byte) {
 }
 
 func processEvent(response []byte) {
-	// todo: preprocess event
 	var event Event
 	_ = json.Unmarshal(response, &event)
+	switch event.PostType { // process DetailType
+	case "message":
+		event.DetailType = event.MessageType
+	case "notice":
+		event.DetailType = event.NoticeType
+	case "request":
+		event.DetailType = event.RequestType
+	}
+	if event.PostType == "message" {
+		preprocessMessageEvent(&event)
+	}
+
+	// run Matchers
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
@@ -93,8 +111,40 @@ func processEvent(response []byte) {
 	}
 }
 
-func preprocess() {
-
+func preprocessMessageEvent(e *Event) {
+	msg := message.ParseMessage(e.NativeMessage)
+	e.Message = &Message{
+		Raw: msg,
+		StringMessage: func() string { // process StringMessage
+			str := ""
+			for _, m := range msg {
+				if m.Type == "text" {
+					str += m.Data["text"]
+				}
+			}
+			return str
+		}(),
+		MessageId: e.MessageID,
+		Sender:    e.Sender,
+		From: func() int64 {
+			if e.MessageType == "group" {
+				return e.GroupID
+			} else {
+				return e.UserID
+			}
+		}(),
+		MessageType: e.MessageType,
+	}
+	// 处理是否at机器人
+	e.Message.IsToMe = false
+	for _,m := range e.Message.Raw {
+		if m.Type == "at" {
+			e.Message.IsToMe = e.Message.IsToMe || (m.Data["qq"] == zeroBot.id)
+		}
+	}
+	for _,nickname := range zeroBot.nicknames {
+		e.Message.IsToMe = e.Message.IsToMe || (strings.HasPrefix(e.Message.StringMessage,nickname))
+	}
 }
 
 func getSeq() uint64 {

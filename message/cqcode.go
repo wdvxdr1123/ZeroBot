@@ -3,6 +3,7 @@ package message
 import (
 	"github.com/tidwall/gjson"
 	"regexp"
+	"strings"
 )
 
 // Modified from https://github.com/catsworld/qq-bot-api
@@ -12,6 +13,14 @@ var (
 	typeReg  = regexp.MustCompile(`\[CQ:(\w+)`)
 	paramReg = regexp.MustCompile(`,([\w\-.]+?)=([^,\]]+)`)
 )
+
+// StrictCommand indicates that whether a command must start with a specified command prefix, default to "/".
+// See function #Command
+var StrictCommand = false
+
+// CommandPrefix is the prefix to identify a message as a command.
+// See function #Command
+var CommandPrefix = "/"
 
 // ParseMessage parses msg, which might have 2 types, string or array,
 // depending on the configuration of cqhttp, to a Message.
@@ -46,7 +55,7 @@ func ParseMessageFromArray(msgs gjson.Result) Message {
 		})
 		return true
 	})
-	return Message{}
+	return message
 }
 
 // ParseMessageSegmentsFromString parses msg as type string to a sort of MessageSegment.
@@ -80,7 +89,7 @@ func ParseMessageFromString(str string) Message {
 	return m
 }
 
-/*todo: modify this command system
+//todo: modify this command system
 
 // IsCommand indicates whether a Message is a command.
 // If #StrictCommand is true, only messages start with #CommandPrefix will be regard as command.
@@ -136,7 +145,6 @@ func Command(str string) (cmd string, args []string) {
 	}
 	return
 }
-*/
 
 // CQString returns the CQEncoded string. All media in the message will be converted
 // to its CQCode.

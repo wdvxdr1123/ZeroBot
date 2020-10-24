@@ -51,26 +51,37 @@ type User struct {
 
 // Event
 type Event struct {
-	Time          int64            `json:"time"`
-	PostType      string           `json:"post_type"`
-	MessageType   string           `json:"message_type"`
-	SubType       string           `json:"sub_type"`
-	MessageID     int64            `json:"message_id"`
-	GroupID       int64            `json:"group_id"`
-	UserID        int64            `json:"user_id"`
-	RawMessage    string           `json:"raw_message"` // raw_message is always string
-	Anonymous     interface{}      `json:"anonymous"`
-	AnonymousFlag string           `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
-	Event         string           `json:"event"`
-	NoticeType    string           `json:"notice_type"` // This field is deprecated and will get removed, see #11
-	OperatorID    int64            `json:"operator_id"`
-	File          *File            `json:"file"`
-	RequestType   string           `json:"request_type"`
-	Flag          string           `json:"flag"`
-	Comment       string           `json:"comment"` // This field is used for Request Event
-	Message       *message.Message `json:"-"`       // Message parsed
-	Sender        *User            `json:"sender"`
-	NativeMessage json.RawMessage  `json:"message"`
+	Time          int64           `json:"time"`
+	PostType      string          `json:"post_type"`
+	DetailType    string          `json:"-"`
+	MessageType   string          `json:"message_type"`
+	SubType       string          `json:"sub_type"`
+	MessageID     int64           `json:"message_id"`
+	GroupID       int64           `json:"group_id"`
+	UserID        int64           `json:"user_id"`
+	RawMessage    string          `json:"raw_message"` // raw_message is always string
+	Anonymous     interface{}     `json:"anonymous"`
+	AnonymousFlag string          `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
+	Event         string          `json:"event"`
+	NoticeType    string          `json:"notice_type"` // This field is deprecated and will get removed, see #11
+	OperatorID    int64           `json:"operator_id"` // This field is used for Notice Event
+	File          *File           `json:"file"`
+	RequestType   string          `json:"request_type"`
+	Flag          string          `json:"flag"`
+	Comment       string          `json:"comment"` // This field is used for Request Event
+	Message       *Message        `json:"-"`       // Message parsed
+	Sender        *User           `json:"sender"`
+	NativeMessage json.RawMessage `json:"message"`
+}
+
+type Message struct {
+	Raw           message.Message
+	StringMessage string `json:"-"` // Message only contains string
+	MessageId     int64
+	Sender        *User
+	From          int64
+	IsToMe        bool
+	MessageType   string
 }
 
 type File struct {
