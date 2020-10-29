@@ -60,7 +60,7 @@ func (m MessageSegment) CQCode() string {
 	return cqcode + "]"
 }
 
-func (m Message)StringMessage() string { // process StringMessage
+func (m Message) StringMessage() string { // process StringMessage
 	str := ""
 	for _, msg := range m {
 		if msg.Type == "text" {
@@ -69,7 +69,6 @@ func (m Message)StringMessage() string { // process StringMessage
 	}
 	return str
 }
-
 
 // 纯文本
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC

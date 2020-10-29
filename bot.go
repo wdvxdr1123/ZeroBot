@@ -99,7 +99,7 @@ func processEvent(response []byte) {
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
-			if v(event) == false {
+			if v(event, matcher.defaultState) == false {
 				return true
 			}
 		}
@@ -115,10 +115,10 @@ func processEvent(response []byte) {
 func preprocessMessageEvent(e *Event) {
 	msg := message.ParseMessage(e.NativeMessage)
 	e.Message = &Message{
-		Raw: msg,
+		Raw:           msg,
 		StringMessage: msg.StringMessage(),
-		MessageId: e.MessageID,
-		Sender:    e.Sender,
+		MessageId:     e.MessageID,
+		Sender:        e.Sender,
 		From: func() int64 {
 			if e.MessageType == "group" {
 				return e.GroupID

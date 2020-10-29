@@ -74,9 +74,9 @@ func GetMessage(messageId int64) Message {
 		"message_id": messageId,
 	})
 	m := Message{
-		Raw:           message.ParseMessage([]byte(rsp.Get("message").Raw)),
-		MessageId:     rsp.Get("message_id").Int(),
-		MessageType:   rsp.Get("message_type").String(),
+		Raw:         message.ParseMessage([]byte(rsp.Get("message").Raw)),
+		MessageId:   rsp.Get("message_id").Int(),
+		MessageType: rsp.Get("message_type").String(),
 	}
 	m.StringMessage = m.Raw.StringMessage()
 	err := json.Unmarshal([]byte(rsp.Get("sender").Raw), m.Sender)
