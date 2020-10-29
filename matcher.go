@@ -6,7 +6,7 @@ import (
 
 type (
 	Response uint8
-	Rule     func(event Event) bool
+	Rule     func(event Event, state State) bool
 	Handler  func(event Event, matcher *Matcher) Response
 )
 
@@ -17,9 +17,10 @@ const (
 )
 
 type Matcher struct {
-	State    State
-	Rules    []Rule
-	handlers []Handler
+	State        State
+	Rules        []Rule
+	defaultState State
+	handlers     []Handler
 }
 
 var (
@@ -59,7 +60,8 @@ func (m *Matcher) run(event Event) {
 
 func runMatcher(matcher *Matcher, event Event) {
 	for _, rule := range matcher.Rules {
-		if rule(event) == false {
+		var state = copyState(matcher.defaultState)
+		if rule(event, state) == false {
 			return
 		}
 	}
