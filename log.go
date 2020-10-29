@@ -1,0 +1,5 @@
+package ZeroBot
+
+func init() {
+
+}

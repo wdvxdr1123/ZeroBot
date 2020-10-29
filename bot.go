@@ -116,15 +116,7 @@ func preprocessMessageEvent(e *Event) {
 	msg := message.ParseMessage(e.NativeMessage)
 	e.Message = &Message{
 		Raw: msg,
-		StringMessage: func() string { // process StringMessage
-			str := ""
-			for _, m := range msg {
-				if m.Type == "text" {
-					str += m.Data["text"]
-				}
-			}
-			return str
-		}(),
+		StringMessage: msg.StringMessage(),
 		MessageId: e.MessageID,
 		Sender:    e.Sender,
 		From: func() int64 {

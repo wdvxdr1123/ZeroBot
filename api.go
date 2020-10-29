@@ -1,7 +1,9 @@
 package ZeroBot
 
 import (
+	"encoding/json"
 	"github.com/tidwall/gjson"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 // todo:impl more action
@@ -67,11 +69,21 @@ func DeleteMessage(messageId int64) {
 
 // 获取消息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
-func GetMessage(messageId int64) gjson.Result {
+func GetMessage(messageId int64) Message {
 	rsp := CallAction("get_msg", Params{
 		"message_id": messageId,
 	})
-	return rsp
+	m := Message{
+		Raw:           message.ParseMessage([]byte(rsp.Get("message").Raw)),
+		MessageId:     rsp.Get("message_id").Int(),
+		MessageType:   rsp.Get("message_type").String(),
+	}
+	m.StringMessage = m.Raw.StringMessage()
+	err := json.Unmarshal([]byte(rsp.Get("sender").Raw), m.Sender)
+	if err != nil {
+		return Message{}
+	}
+	return m
 }
 
 // 获取合并转发消息
