@@ -1,4 +1,4 @@
-package ZeroBot
+package zero
 
 // 插件信息
 type PluginInfo struct {

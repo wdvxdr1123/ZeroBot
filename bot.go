@@ -1,4 +1,4 @@
-package ZeroBot
+package zero
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type Bot struct {
+type bot struct {
 	conn          *websocket.Conn
 	id            string
 	nicknames     []string
@@ -28,7 +28,7 @@ type Option struct {
 }
 
 var (
-	zeroBot Bot
+	zeroBot bot
 	seq     uint64 = 0
 	seqMap  sync.Map
 	sending = make(chan []byte)

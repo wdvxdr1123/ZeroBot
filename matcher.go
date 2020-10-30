@@ -1,4 +1,4 @@
-package ZeroBot
+package zero
 
 import (
 	"sync"

@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	ZeroBot.Run("ws://127.0.0.1:6700", "")
+	zero.Run("ws://127.0.0.1:6700", "")
 	select {}
 }
