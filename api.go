@@ -74,11 +74,10 @@ func GetMessage(messageId int64) Message {
 		"message_id": messageId,
 	})
 	m := Message{
-		Raw:         message.ParseMessage([]byte(rsp.Get("message").Raw)),
+		Elements:         message.ParseMessage([]byte(rsp.Get("message").Raw)),
 		MessageId:   rsp.Get("message_id").Int(),
 		MessageType: rsp.Get("message_type").String(),
 	}
-	m.StringMessage = m.Raw.StringMessage()
 	err := json.Unmarshal([]byte(rsp.Get("sender").Raw), m.Sender)
 	if err != nil {
 		return Message{}
@@ -225,11 +224,14 @@ func GetFriendList() gjson.Result {
 
 // 获取群信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E4%BF%A1%E6%81%AF
-func GetGroupInfo(groupId int64, noCache bool) gjson.Result {
-	return CallAction("get_group_info", Params{
+func GetGroupInfo(groupId int64, noCache bool) Group {
+	rsp := CallAction("get_group_info", Params{
 		"group_id": groupId,
 		"no_cache": noCache,
 	})
+	group := Group{}
+	_ = json.Unmarshal([]byte(rsp.Raw), &group)
+	return group
 }
 
 // 获取群列表

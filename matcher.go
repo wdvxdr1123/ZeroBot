@@ -20,7 +20,6 @@ type Matcher struct {
 	Type_        string
 	State        State
 	Rules        []Rule
-	defaultState State
 	handlers     []Handler
 }
 
@@ -51,6 +50,7 @@ func On(type_ string, rules ...Rule) *Matcher {
 
 func (m *Matcher) run(event Event) {
 	for _, handler := range m.handlers {
+		m.handlers = m.handlers[1:] // delete the handling handler
 		switch handler(m, event, m.State) {
 		case SuccessResponse:
 			continue
@@ -65,8 +65,7 @@ func runMatcher(matcher *Matcher, event Event) {
 		return
 	}
 	for _, rule := range matcher.Rules {
-		var state = copyState(matcher.defaultState)
-		if rule(event, state) == false {
+		if rule(event, matcher.State) == false {
 			return
 		}
 	}
@@ -122,7 +121,17 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
 		if _, ok := matcher.State[key]; ok == false {
+			tempMatcherList.Store(
+				getSeq(),
+				&Matcher{
+					Type_:        "message",
+					State:        m.State,
+					Rules:        []Rule{CheckUser(event.UserID)},
+					handlers:     nil,
+				},
+			)
 			matcher.State[key] = m.Get(event, prompt) //todo fix Event
+			return FinishResponse
 		}
 		return handler(matcher, event, matcher.State)
 	})

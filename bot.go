@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -108,7 +107,7 @@ func processEvent(response []byte) {
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
-			if v(event, matcher.defaultState) == false {
+			if v(event, matcher.State) == false {
 				return true
 			}
 		}
@@ -122,62 +121,32 @@ func processEvent(response []byte) {
 }
 
 func preprocessMessageEvent(e *Event) {
-	msg := message.ParseMessage(e.NativeMessage)
-	e.Message = &Message{
-		Raw:           msg,
-		StringMessage: msg.StringMessage(),
-		MessageId:     e.MessageID,
-		Sender:        e.Sender,
-		From: func() int64 {
-			if e.MessageType == "group" {
-				return e.GroupID
-			} else {
-				return e.UserID
+	e.Message = message.ParseMessage(e.NativeMessage)
+
+	func(){ // 处理是否at机器人
+		e.IsToMe = false
+		for _, m := range e.Message {
+			if m.Type == "at" {
+				e.IsToMe = e.IsToMe || (m.Data["qq"] == zeroBot.id)
 			}
-		}(),
-		MessageType: e.MessageType,
-	}
-	// 处理是否at机器人
-	e.Message.IsToMe = false
-	for _, m := range e.Message.Raw {
-		if m.Type == "at" {
-			e.Message.IsToMe = e.Message.IsToMe || (m.Data["qq"] == zeroBot.id)
 		}
-	}
-	for _, nickname := range zeroBot.nicknames {
-		if strings.HasPrefix(e.Message.StringMessage, nickname) {
-			e.Message.IsToMe = true
-			e.Message.StringMessage = e.Message.StringMessage[len(nickname):]
+		if e.Message[0].Type != "text" {
 			return
 		}
-	}
+		text := e.Message[0].Data["text"]
+		for _, nickname := range zeroBot.nicknames {
+			if strings.HasPrefix(text, nickname) {
+				e.IsToMe = true
+				e.Message[0].Data["text"] = text[len(nickname):]
+				return
+			}
+		}
+	}()
 }
 
 // 快捷撤回
 func (m *Message) Delete() {
 	DeleteMessage(m.MessageId)
-}
-
-func (m *Message) send(s message.Message) int64 {
-	if m.MessageType == "group" {
-		return SendGroupMessage(m.From, s)
-	} else {
-		return SendPrivateMessage(m.From, s)
-	}
-}
-
-// 快捷回复
-func (m *Message) Reply(msg interface{}) int64 {
-	var sending = message.Message{}
-	switch e := msg.(type) {
-	case message.Message:
-		sending = append(message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10))}, e...)
-	case message.MessageSegment:
-		sending = message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10)), e}
-	case string:
-		sending = append(message.Message{message.Reply(strconv.FormatInt(m.MessageId, 10))}, message.ParseMessageFromString(e)...)
-	}
-	return m.send(sending)
 }
 
 func getSeq() uint64 {

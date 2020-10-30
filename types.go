@@ -69,19 +69,17 @@ type Event struct {
 	RequestType   string          `json:"request_type"`
 	Flag          string          `json:"flag"`
 	Comment       string          `json:"comment"` // This field is used for Request Event
-	Message       *Message        `json:"-"`       // Message parsed
+	Message       message.Message `json:"-"`       // Message parsed
 	Sender        *User           `json:"sender"`
 	NativeMessage json.RawMessage `json:"message"`
+	IsToMe        bool            `json:"-"`
 }
 
 type Message struct {
-	Raw           message.Message
-	StringMessage string `json:"-"` // Message only contains string
-	MessageId     int64
-	Sender        *User
-	From          int64
-	IsToMe        bool
-	MessageType   string
+	Elements    message.Message
+	MessageId   int64
+	Sender      *User
+	MessageType string
 }
 
 type File struct {
@@ -92,8 +90,10 @@ type File struct {
 }
 
 type Group struct {
-	ID   int64  `json:"group_id"`
-	Name string `json:"group_name"`
+	ID             int64  `json:"group_id"`
+	Name           string `json:"group_name"`
+	MemberCount    int64  `json:"member_count"`
+	MaxMemberCount int64  `json:"max_member_count"`
 }
 
 // Name displays a simple text version of a user.

@@ -13,14 +13,6 @@ var (
 	paramReg = regexp.MustCompile(`,([\w\-.]+?)=([^,\]]+)`)
 )
 
-// StrictCommand indicates that whether a command must start with a specified command prefix, default to "/".
-// See function #Command
-var StrictCommand = false
-
-// CommandPrefix is the prefix to identify a message as a command.
-// See function #Command
-var CommandPrefix = "/"
-
 // ParseMessage parses msg, which might have 2 types, string or array,
 // depending on the configuration of cqhttp, to a Message.
 // msg is the value of key "message" of the data unmarshalled from the
@@ -91,7 +83,7 @@ func ParseMessageFromString(str string) Message {
 // CQString returns the CQEncoded string. All media in the message will be converted
 // to its CQCode.
 func (m Message) CQString() string {
-	var str string
+	var str = ""
 	for _, media := range m {
 		if media.Type != "text" {
 			str += media.CQCode()
