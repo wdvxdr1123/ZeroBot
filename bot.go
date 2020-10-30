@@ -14,9 +14,17 @@ import (
 )
 
 type Bot struct {
-	conn      *websocket.Conn
-	id        string
-	nicknames []string
+	conn          *websocket.Conn
+	id            string
+	nicknames     []string
+	commandPrefix string
+}
+
+type Option struct {
+	Host          string   `json:"host"`
+	AccessToken   string   `json:"access_token"`
+	NickName      []string `json:"nickname"`
+	CommandPrefix string   `json:"command_prefix"`
 }
 
 var (
@@ -38,6 +46,7 @@ func Run(addr, token string) {
 	zeroBot.conn = connectWebsocketServer(addr, token)
 	go listenEvent(zeroBot.conn, handleResponse)
 	go sendChannel(zeroBot.conn, sending)
+	zeroBot.id = GetLoginInfo().Get("user_id").String()
 }
 
 // send message to server and return the response from server.
@@ -56,7 +65,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 			return APIResponse{}, errors.New("channel closed")
 		}
 		return rsp, nil
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
 		return APIResponse{}, errors.New("timed out")
 	}
 }

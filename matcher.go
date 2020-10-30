@@ -7,7 +7,7 @@ import (
 type (
 	Response uint8
 	Rule     func(event Event, state State) bool
-	Handler  func(event Event, matcher *Matcher) Response
+	Handler  func(matcher *Matcher, event Event, state State) Response
 )
 
 const (
@@ -17,6 +17,7 @@ const (
 )
 
 type Matcher struct {
+	Type_        string
 	State        State
 	Rules        []Rule
 	defaultState State
@@ -37,8 +38,9 @@ func addTempMatcher(matcher *Matcher) {
 }
 
 // 添加新的主匹配器
-func On(rules ...Rule) *Matcher {
+func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
+		Type_:    type_,
 		State:    map[string]interface{}{},
 		Rules:    rules,
 		handlers: []Handler{},
@@ -49,7 +51,7 @@ func On(rules ...Rule) *Matcher {
 
 func (m *Matcher) run(event Event) {
 	for _, handler := range m.handlers {
-		switch handler(event, m) {
+		switch handler(m, event, m.State) {
 		case SuccessResponse:
 			continue
 		case FinishResponse:
@@ -59,6 +61,9 @@ func (m *Matcher) run(event Event) {
 }
 
 func runMatcher(matcher *Matcher, event Event) {
+	if event.PostType != matcher.Type_ {
+		return
+	}
 	for _, rule := range matcher.Rules {
 		var state = copyState(matcher.defaultState)
 		if rule(event, state) == false {
@@ -73,13 +78,13 @@ func (m *Matcher) Get(event Event, prompt string) string {
 	ch := make(chan string)
 	Send(event, prompt)
 	tempMatcherList.Store(getSeq(), &Matcher{
+		Type_: "message",
 		State: map[string]interface{}{},
 		Rules: []Rule{
-			IsMessage(),
 			CheckUser(event.UserID),
 		},
 		handlers: []Handler{
-			func(ev Event, m *Matcher) Response {
+			func(_ *Matcher, ev Event, _ State) Response {
 				ch <- ev.RawMessage
 				return SuccessResponse
 			},
@@ -114,30 +119,30 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 }
 
 // 判断State是否含有"name"键，若无则向用户索取
-func (m *Matcher) Got(name, prompt string, handler Handler) *Matcher {
-	m.handlers = append(m.handlers, func(event Event, matcher *Matcher) Response {
-		if _, ok := matcher.State[name]; ok == false {
-			matcher.State[name] = m.Get(event, prompt)
+func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
+	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
+		if _, ok := matcher.State[key]; ok == false {
+			matcher.State[key] = m.Get(event, prompt) //todo fix Event
 		}
-		return handler(event, matcher)
+		return handler(matcher, event, matcher.State)
 	})
 	return m
 }
 
 func OnMessage(rules ...Rule) *Matcher {
-	return On(append(rules, IsMessage())...)
+	return On("message", rules...)
 }
 
 func OnNotice(rules ...Rule) *Matcher {
-	return On(append(rules, IsNotice())...)
+	return On("notice", rules...)
 }
 
 func OnRequest(rules ...Rule) *Matcher {
-	return On(append(rules, IsRequest())...)
+	return On("request", rules...)
 }
 
 func OnMetaEvent(rules ...Rule) *Matcher {
-	return On(append(rules, IsMetaEvent())...)
+	return On("meta_event", rules...)
 }
 
 // 前缀触发器

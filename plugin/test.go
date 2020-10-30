@@ -23,7 +23,7 @@ func (testPlugin) GetPluginInfo() ZeroBot.PluginInfo { // 返回插件信息
 func (testPlugin) Start() { // 插件主体
 	ZeroBot.OnPrefix([]string{"复读", "echo", "fudu"}, ZeroBot.OnlyToMe()).
 		Got("echo", "请输入复读内容",
-			func(event ZeroBot.Event, matcher *ZeroBot.Matcher) ZeroBot.Response {
+			func(matcher *ZeroBot.Matcher, event ZeroBot.Event, state ZeroBot.State) ZeroBot.Response {
 				event.Message.Reply(matcher.State["echo"])
 				return ZeroBot.SuccessResponse
 			},

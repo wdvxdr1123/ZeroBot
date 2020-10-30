@@ -19,9 +19,9 @@ func StartHTTPDebuger() {
 
 func TestRun(t *testing.T) {
 	go StartHTTPDebuger()
-	On(func(event Event) bool {
-		return event.PostType == "message" && event.RawMessage == "复读"
-	}).Got("echo", "请输入复读内容", func(event Event, matcher *Matcher) Response {
+	On("message", func(event Event, state State) bool {
+		return event.RawMessage == "复读"
+	}).Got("echo", "请输入复读内容", func(matcher *Matcher, event Event, state State) Response {
 		Send(event, matcher.State["echo"])
 		return SuccessResponse
 	})
