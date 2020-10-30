@@ -3,6 +3,7 @@ package zero
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -17,13 +18,16 @@ type bot struct {
 	id            string
 	nicknames     []string
 	commandPrefix string
+	SuperUsers    []string
 }
 
 type Option struct {
 	Host          string   `json:"host"`
+	Port          string   `json:"port"`
 	AccessToken   string   `json:"access_token"`
 	NickName      []string `json:"nickname"`
 	CommandPrefix string   `json:"command_prefix"`
+	SuperUsers    []string `json:"super_users"`
 }
 
 var (
@@ -35,14 +39,19 @@ var (
 
 func init() {
 	PluginPool = []IPlugin{} // 初始化
-	zeroBot.nicknames = []string{"xcw", "镜华", "小仓唯"}
+	zeroBot.nicknames = []string{}
 }
 
-func Run(addr, token string) {
+func Run(option Option) {
 	for _, plugin := range PluginPool {
 		plugin.Start() // 加载插件
 	}
-	zeroBot.conn = connectWebsocketServer(addr, token)
+	zeroBot.nicknames = option.NickName
+	zeroBot.commandPrefix = option.CommandPrefix
+	zeroBot.SuperUsers = option.SuperUsers
+
+	zeroBot.conn = connectWebsocketServer(fmt.Sprint(option.Host, ":", option.Port), option.AccessToken)
+
 	go listenEvent(zeroBot.conn, handleResponse)
 	go sendChannel(zeroBot.conn, sending)
 	zeroBot.id = GetLoginInfo().Get("user_id").String()
@@ -123,7 +132,7 @@ func processEvent(response []byte) {
 func preprocessMessageEvent(e *Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
 
-	func(){ // 处理是否at机器人
+	func() { // 处理是否at机器人
 		e.IsToMe = false
 		for _, m := range e.Message {
 			if m.Type == "at" {

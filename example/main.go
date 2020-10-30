@@ -6,6 +6,12 @@ import (
 )
 
 func main() {
-	zero.Run("ws://127.0.0.1:6700", "")
+	zero.Run(zero.Option{
+		Host:          "127.0.0.1",
+		Port:          "6700",
+		AccessToken:   "",
+		NickName:      []string{"xcw", "镜华", "小仓唯"},
+		CommandPrefix: "",
+	})
 	select {}
 }

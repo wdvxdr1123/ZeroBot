@@ -52,6 +52,12 @@ func IsCommand(commands ...string) func(event Event, state State) bool {
 			return false
 		}
 		firstMessage := event.Message[0].Data["text"]
+		if strings.HasPrefix(firstMessage, zeroBot.commandPrefix) {
+			event.Message[0].Data["text"] = firstMessage[len(zeroBot.commandPrefix):]
+			firstMessage = event.Message[0].Data["text"]
+		} else {
+			return false
+		}
 		for _, prefix := range commands {
 			if strings.HasPrefix(firstMessage, prefix) { // 只要有一个前缀就行了
 				state["command"] = prefix

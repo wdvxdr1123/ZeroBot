@@ -17,10 +17,10 @@ const (
 )
 
 type Matcher struct {
-	Type_        string
-	State        State
-	Rules        []Rule
-	handlers     []Handler
+	Type_    string
+	State    State
+	Rules    []Rule
+	handlers []Handler
 }
 
 var (
@@ -124,10 +124,10 @@ func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 			tempMatcherList.Store(
 				getSeq(),
 				&Matcher{
-					Type_:        "message",
-					State:        m.State,
-					Rules:        []Rule{CheckUser(event.UserID)},
-					handlers:     nil,
+					Type_:    "message",
+					State:    m.State,
+					Rules:    []Rule{CheckUser(event.UserID)},
+					handlers: nil,
 				},
 			)
 			matcher.State[key] = m.Get(event, prompt) //todo fix Event

@@ -74,7 +74,7 @@ func GetMessage(messageId int64) Message {
 		"message_id": messageId,
 	})
 	m := Message{
-		Elements:         message.ParseMessage([]byte(rsp.Get("message").Raw)),
+		Elements:    message.ParseMessage([]byte(rsp.Get("message").Raw)),
 		MessageId:   rsp.Get("message_id").Int(),
 		MessageType: rsp.Get("message_type").String(),
 	}

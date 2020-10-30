@@ -25,6 +25,12 @@ func TestRun(t *testing.T) {
 		Send(event, matcher.State["echo"])
 		return SuccessResponse
 	})
-	Run("ws://127.0.0.1:6700", "")
+	Run(Option{
+		Host:          "127.0.0.1",
+		Port:          "6700",
+		AccessToken:   "",
+		NickName:      []string{"xcw", "镜华", "小仓唯"},
+		CommandPrefix: "",
+	})
 	select {}
 }
