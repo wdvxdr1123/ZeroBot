@@ -32,10 +32,6 @@ var (
 
 type State map[string]interface{}
 
-func addTempMatcher(matcher *Matcher) {
-	tempMatcherList.Store(getSeq(), matcher)
-}
-
 // 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
@@ -55,6 +51,16 @@ func (m *Matcher) run(event Event) {
 		case SuccessResponse:
 			continue
 		case FinishResponse:
+			return
+		case RejectResponse:
+			tempMatcherList.Store(getSeq(), &Matcher{
+				Type_: "message",
+				State: m.State,
+				Rules: []Rule{
+					CheckUser(event.UserID),
+				},
+				handlers: append([]Handler{handler}, m.handlers...),
+			})
 			return
 		}
 	}
@@ -119,22 +125,32 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 
 // 判断State是否含有"name"键，若无则向用户索取
 func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
-	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
-		if _, ok := matcher.State[key]; ok == false {
-			tempMatcherList.Store(
-				getSeq(),
-				&Matcher{
+	m.handlers = append(
+		m.handlers,
+		// Got Handler
+		func(matcher *Matcher, event Event, state State) Response {
+			if _, ok := matcher.State[key]; ok == false {
+				// send message to notify the user
+				if prompt != "" {
+					Send(event, prompt)
+				}
+
+				gotKeyHandler := func(matcher *Matcher, event Event, state State) Response {
+					state[key] = event.RawMessage
+					return SuccessResponse
+				}
+				// add temp matcher to got and process the left handlers
+				tempMatcherList.Store(getSeq(), &Matcher{
 					Type_:    "message",
-					State:    m.State,
+					State:    matcher.State,
 					Rules:    []Rule{CheckUser(event.UserID)},
-					handlers: nil,
-				},
-			)
-			matcher.State[key] = m.Get(event, prompt) //todo fix Event
-			return FinishResponse
-		}
-		return handler(matcher, event, matcher.State)
-	})
+					handlers: append([]Handler{gotKeyHandler}, m.handlers...),
+				})
+				return FinishResponse
+			}
+			return handler(matcher, event, matcher.State)
+		},
+	)
 	return m
 }
 
@@ -168,3 +184,7 @@ func OnSuffix(suffix []string, rules ...Rule) *Matcher {
 func OnCommand(commands []string, rules ...Rule) *Matcher {
 	return OnMessage(append(rules, IsCommand(commands...))...)
 }
+
+// todo OnRegex
+// todo OnKeyword
+// todo OnFullMatch

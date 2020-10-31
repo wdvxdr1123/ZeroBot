@@ -21,7 +21,7 @@ func (testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 }
 
 func (testPlugin) Start() { // 插件主体
-	zero.OnPrefix([]string{"复读", "echo", "fudu"}, zero.OnlyToMe()).
+	zero.OnPrefix([]string{"复读", "echo", "fudu"}, zero.OnlyToMe).
 		Got(
 			"echo",
 			"请输入复读内容",
