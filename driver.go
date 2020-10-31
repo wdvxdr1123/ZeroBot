@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -24,6 +25,13 @@ func connectWebsocketServer(url, token string) *websocket.Conn { // todo: 断线
 		time.Sleep(2 * time.Second) // 等待两秒后重新连接
 		conn, _, err = websocket.DefaultDialer.Dial(url, header)
 	}
+	go listenEvent(conn, handleResponse)
+
+	// 处理goroutine 泄露
+	close(sending)
+	sending = make(chan []byte)
+	go sendChannel(conn, sending)
+
 	return conn
 }
 
@@ -39,6 +47,11 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 			go handler(payload) // 处理事件
 		}
 	}
+	time.Sleep(time.Millisecond * time.Duration(3))
+	go func() {
+		op := zeroBot.option
+		zeroBot.conn = connectWebsocketServer(fmt.Sprint(op.Host, ":", op.Port), op.AccessToken)
+	}()
 }
 
 func sendChannel(c *websocket.Conn, ch <-chan []byte) {

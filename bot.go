@@ -15,6 +15,7 @@ import (
 
 type bot struct {
 	conn          *websocket.Conn
+	option		Option
 	id            string
 	nicknames     []string
 	commandPrefix string
@@ -46,14 +47,13 @@ func Run(option Option) {
 	for _, plugin := range PluginPool {
 		plugin.Start() // 加载插件
 	}
+	zeroBot.option = option
 	zeroBot.nicknames = option.NickName
 	zeroBot.commandPrefix = option.CommandPrefix
 	zeroBot.SuperUsers = option.SuperUsers
 
 	zeroBot.conn = connectWebsocketServer(fmt.Sprint(option.Host, ":", option.Port), option.AccessToken)
 
-	go listenEvent(zeroBot.conn, handleResponse)
-	go sendChannel(zeroBot.conn, sending)
 	zeroBot.id = GetLoginInfo().Get("user_id").String()
 }
 
