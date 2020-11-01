@@ -9,7 +9,7 @@ import (
 )
 
 // 连接服务器
-func connectWebsocketServer(url, token string) *websocket.Conn { // todo: 断线重连
+func connectWebsocketServer(url, token string) *websocket.Conn {
 	var err error
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
 	header := http.Header{
@@ -31,7 +31,7 @@ func connectWebsocketServer(url, token string) *websocket.Conn { // todo: 断线
 	close(sending)
 	sending = make(chan []byte)
 	go sendChannel(conn, sending)
-
+	log.Infof("连接Websocket服务器: %v 成功", url)
 	return conn
 }
 
@@ -50,7 +50,7 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 	time.Sleep(time.Millisecond * time.Duration(3))
 	go func() {
 		op := zeroBot.option
-		zeroBot.conn = connectWebsocketServer(fmt.Sprint(op.Host, ":", op.Port), op.AccessToken)
+		zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port), op.AccessToken)
 	}()
 }
 

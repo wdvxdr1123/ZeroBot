@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"strings"
@@ -67,6 +68,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 		return APIResponse{}, err
 	}
 	sending <- data
+	log.Debug("向服务器发送请求: ", string(data))
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
@@ -82,6 +84,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
+		log.Debug("接收到API调用返回: ", strings.TrimSpace(string(response)))
 		if c, ok := seqMap.Load(rsp.Get("echo").Uint()); ok {
 			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
@@ -94,6 +97,7 @@ func handleResponse(response []byte) {
 			}
 		}
 	} else {
+		log.Debug("接收到事件: ", string(response))
 		go processEvent(response)
 	}
 }

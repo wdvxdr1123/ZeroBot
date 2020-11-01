@@ -2,11 +2,11 @@ package zero
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-// todo:impl more action
 // 先就这样吧，后面看看有什么优美的方案
 func CallAction(action string, params Params) gjson.Result {
 	req := WebSocketRequest{
@@ -17,10 +17,12 @@ func CallAction(action string, params Params) gjson.Result {
 	rsp, err := sendAndWait(req)
 	if err == nil {
 		if rsp.RetCode != 0 {
+			log.Errorf("调用 API: %v 时出现错误, RetCode: %", action, rsp.RetCode)
 			return gjson.Result{}
 		}
 		return rsp.Data
 	}
+	log.Errorf("调用 API: %v 时出现错误", err)
 	return gjson.Result{}
 }
 
@@ -288,4 +290,46 @@ func GetImage(file string) gjson.Result {
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_status-%E8%8E%B7%E5%8F%96%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81
 func GetVersionInfo() gjson.Result {
 	return CallAction("get_version_info", Params{})
+}
+
+// Expand API
+
+// 设置群头像
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%AE%BE%E7%BD%AE%E7%BE%A4%E5%A4%B4%E5%83%8F
+func SetGroupPortrait(groupID int64, file string) {
+	CallAction("set_group_portrait", Params{
+		"group_id": groupID,
+		"file":     file,
+	})
+}
+
+// 图片OCR
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E5%9B%BE%E7%89%87ocr
+func OCRImage(file string) gjson.Result {
+	return CallAction(".ocr_image", Params{
+		"file": file,
+	})
+}
+
+// 发送合并转发(群)
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E5%9B%BE%E7%89%87ocr
+func SendGroupForwardMessage(groupID int64, message message.Message) gjson.Result {
+	return CallAction("send_group_forward_msg", Params{
+		"group_id": groupID,
+		"message":  message,
+	})
+}
+
+// 获取群系统消息
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF
+func GetGroupSystemMessage() gjson.Result {
+	return CallAction("get_group_system_msg", Params{})
+}
+
+// 获取中文分词
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D
+func GetWordSlices(content string) gjson.Result {
+	return CallAction(".get_word_slices", Params{
+		"content": content,
+	})
 }

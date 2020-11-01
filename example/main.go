@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/wdvxdr1123/ZeroBot"
-	_ "github.com/wdvxdr1123/ZeroBot/plugin"
+	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
 
 func main() {
@@ -10,8 +10,9 @@ func main() {
 		Host:          "127.0.0.1",
 		Port:          "6700",
 		AccessToken:   "",
-		NickName:      []string{"xcw", "镜华", "小仓唯"},
+		NickName:      []string{"xcw"},
 		CommandPrefix: "",
+		SuperUsers:    []string{"123456"},
 	})
 	select {}
 }

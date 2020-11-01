@@ -1,5 +1,7 @@
 package zero
 
+import log "github.com/sirupsen/logrus"
+
 // 插件信息
 type PluginInfo struct {
 	Author     string // 作者
@@ -19,5 +21,13 @@ type IPlugin interface {
 }
 
 func RegisterPlugin(plugin IPlugin) {
+	info := plugin.GetPluginInfo()
+	log.Infof(
+		"加载插件: %v [作者] %v [版本] %v [说明] %v",
+		info.PluginName,
+		info.Author,
+		info.Version,
+		info.Details,
+	)
 	PluginPool = append(PluginPool, plugin)
 }

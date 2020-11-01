@@ -1,4 +1,4 @@
-package plugin
+package repeat
 
 import (
 	"github.com/wdvxdr1123/ZeroBot"

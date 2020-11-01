@@ -175,6 +175,19 @@ func Node(id string) MessageSegment {
 	}
 }
 
+// 自定义合并转发节点
+// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
+func CustomNode(nickname string, userId string,content string) MessageSegment {
+	return MessageSegment{
+		Type: "node",
+		Data: map[string]string{
+			"user_id":  userId,
+			"nickname": nickname,
+			"content":  content,
+		},
+	}
+}
+
 // XML 消息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#xml-%E6%B6%88%E6%81%AF
 func XML(data string) MessageSegment {
@@ -193,6 +206,42 @@ func JSON(data string) MessageSegment {
 		Type: "json",
 		Data: map[string]string{
 			"data": data,
+		},
+	}
+}
+
+// Expand CQCode
+
+// 群礼物
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E7%A4%BC%E7%89%A9
+func Gift(userId string, giftId string) MessageSegment {
+	return MessageSegment{
+		Type: "gift",
+		Data: map[string]string{
+			"qq": userId,
+			"id": giftId,
+		},
+	}
+}
+
+// 戳一戳
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%88%B3%E4%B8%80%E6%88%B3
+func Poke(userId string) MessageSegment {
+	return MessageSegment{
+		Type: "poke",
+		Data: map[string]string{
+			"qq": userId,
+		},
+	}
+}
+
+// 文本转语音
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%96%87%E6%9C%AC%E8%BD%AC%E8%AF%AD%E9%9F%B3
+func TTS(text string) MessageSegment {
+	return MessageSegment{
+		Type: "tts",
+		Data: map[string]string{
+			"text": text,
 		},
 	}
 }
