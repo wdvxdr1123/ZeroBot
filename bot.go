@@ -15,7 +15,7 @@ import (
 
 type bot struct {
 	conn          *websocket.Conn
-	option		Option
+	option        Option
 	id            string
 	nicknames     []string
 	commandPrefix string
@@ -52,7 +52,7 @@ func Run(option Option) {
 	zeroBot.commandPrefix = option.CommandPrefix
 	zeroBot.SuperUsers = option.SuperUsers
 
-	zeroBot.conn = connectWebsocketServer(fmt.Sprint(option.Host, ":", option.Port), option.AccessToken)
+	zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
 
 	zeroBot.id = GetLoginInfo().Get("user_id").String()
 }
@@ -134,14 +134,19 @@ func preprocessMessageEvent(e *Event) {
 
 	func() { // 处理是否at机器人
 		e.IsToMe = false
-		for _, m := range e.Message {
+		for i, m := range e.Message {
 			if m.Type == "at" {
-				e.IsToMe = e.IsToMe || (m.Data["qq"] == zeroBot.id)
+				if m.Data["qq"] == zeroBot.id {
+					e.IsToMe = true
+					e.Message = append(e.Message[:i], e.Message[i+1:]...)
+					return
+				}
 			}
 		}
 		if e.Message[0].Type != "text" {
 			return
 		}
+		e.Message[0].Data["text"] = strings.TrimSpace(e.Message[0].Data["text"]) // Trim!
 		text := e.Message[0].Data["text"]
 		for _, nickname := range zeroBot.nicknames {
 			if strings.HasPrefix(text, nickname) {
@@ -151,6 +156,8 @@ func preprocessMessageEvent(e *Event) {
 			}
 		}
 	}()
+
+	e.Message[0].Data["text"] = strings.TrimSpace(e.Message[0].Data["text"]) // Trim Again!
 }
 
 // 快捷撤回

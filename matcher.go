@@ -172,19 +172,40 @@ func OnMetaEvent(rules ...Rule) *Matcher {
 
 // 前缀触发器
 func OnPrefix(prefix []string, rules ...Rule) *Matcher {
-	return OnMessage(append(rules, IsPrefix(prefix...))...)
+	return OnMessage(append([]Rule{PrefixRule(prefix...)}, rules...)...)
 }
 
 // 后缀触发器
 func OnSuffix(suffix []string, rules ...Rule) *Matcher {
-	return OnMessage(append(rules, IsSuffix(suffix...))...)
+	return OnMessage(append([]Rule{SuffixRule(suffix...)}, rules...)...)
 }
 
 // 命令触发器
 func OnCommand(commands []string, rules ...Rule) *Matcher {
-	return OnMessage(append(rules, IsCommand(commands...))...)
+	return OnMessage(append([]Rule{CommandRule(commands...)}, rules...)...)
 }
 
-// todo OnRegex
-// todo OnKeyword
-// todo OnFullMatch
+// 正则触发器
+func OnRegex(regexPattern string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{RegexRule(regexPattern)}, rules...)...)
+}
+
+// 关键词触发器
+func OnKeyword(keyword string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{KeywordRule(keyword)}, rules...)...)
+}
+
+// 完全匹配触发器
+func OnFullMatch(src string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{FullMatchRule(src)}, rules...)...)
+}
+
+// 完全匹配触发器组
+func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{FullMatchRule(src...)}, rules...)...)
+}
+
+// 关键词触发器组
+func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{KeywordRule(keywords...)}, rules...)...)
+}

@@ -1,12 +1,13 @@
 package zero
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 // 是否含有前缀
-func IsPrefix(prefixes ...string) func(event Event, state State) bool {
+func PrefixRule(prefixes ...string) func(event Event, state State) bool {
 	return func(event Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
 			return false
@@ -21,8 +22,8 @@ func IsPrefix(prefixes ...string) func(event Event, state State) bool {
 	}
 }
 
-// 是否含有后缀
-func IsSuffix(prefixes ...string) func(event Event, state State) bool {
+// 是否含有后缀 todo
+func SuffixRule(prefixes ...string) func(event Event, state State) bool {
 	return func(event Event, state State) bool { // todo
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
 			return false
@@ -37,11 +38,8 @@ func IsSuffix(prefixes ...string) func(event Event, state State) bool {
 	}
 }
 
-func OnlyToMe(event Event, _ State) bool {
-	return event.IsToMe == true
-}
-
-func IsCommand(commands ...string) func(event Event, state State) bool {
+// command trigger
+func CommandRule(commands ...string) func(event Event, state State) bool {
 	return func(event Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
 			return false
@@ -64,16 +62,61 @@ func IsCommand(commands ...string) func(event Event, state State) bool {
 	}
 }
 
-// only triggered by specific person
-func CheckUser(userId int64) func(event Event, state State) bool {
+// 正则匹配
+func RegexRule(regexPattern string) func(event Event, state State) bool {
+	regex := regexp.MustCompile(regexPattern)
 	return func(event Event, state State) bool {
-		return event.UserID == userId
+		msg := event.Message.CQString()
+		state["regex_matched"] = regex.FindAllString(msg, -1)
+		if state["regex_matched"] != nil {
+			return false
+		}
+		return true
+	}
+}
+
+// 关键词匹配
+func KeywordRule(src ...string) func(event Event, state State) bool {
+	return func(event Event, state State) bool {
+		msg := event.Message.CQString()
+		for _, str := range src {
+			if strings.Contains(msg, str) {
+				state["keyword"] = str
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// 完全匹配
+func FullMatchRule(src ...string) func(event Event, state State) bool {
+	return func(event Event, state State) bool {
+		msg := event.Message.CQString()
+		for _, str := range src {
+			if str == msg {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// only triggered in conditions of @bot or begin with the nicknames
+func OnlyToMe(event Event, _ State) bool {
+	return event.IsToMe == true
+}
+
+// only triggered by specific person
+func CheckUser(userId ...int64) func(event Event, state State) bool {
+	return func(event Event, state State) bool {
+		return event.UserID == userId[0]
 	}
 }
 
 // only triggered in private message
 func OnlyPrivate(event Event, _ State) bool {
-	return event.PostType=="message" && event.DetailType == "private"
+	return event.PostType == "message" && event.DetailType == "private"
 }
 
 // only triggered in public/group message
@@ -82,7 +125,7 @@ func OnlyGroup(event Event, _ State) bool {
 }
 
 func SuperUserPermission(event Event, _ State) bool {
-	uid := strconv.FormatInt(event.UserID,10)
+	uid := strconv.FormatInt(event.UserID, 10)
 	for _, su := range zeroBot.SuperUsers {
 		if su == uid {
 			return true
