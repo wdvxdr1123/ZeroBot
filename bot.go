@@ -103,6 +103,12 @@ func handleResponse(response []byte) {
 }
 
 func processEvent(response []byte) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			log.Errorf("handle event err: %v", pa)
+		}
+	}()
+
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	switch event.PostType { // process DetailType
