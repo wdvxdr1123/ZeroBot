@@ -37,15 +37,23 @@ func (testPlugin) Start() { // 插件主体
 			return zero.FinishResponse
 		})
 
-	zero.OnSuffix("复读").Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+	zero.OnSuffix("复读").Handle(func(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
 		zero.Send(event, event.Message)
 		return zero.FinishResponse
 	})
 
 	zero.OnFullMatch("你是谁", zero.OnlyToMe).Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
 		zero.Send(event, "我是一个复读机~~~")
-		echo := matcher.Get(event, "我想要复读你的话!")
+		echo := matcher.Get("我想要复读你的话!")
 		zero.Send(event, echo)
+		return zero.FinishResponse
+	})
+
+	zero.OnCommand("next_echo").Receive(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+		zero.Send(event, event.Message)
+		if event.Message.CQString() == "哈哈哈" {
+			return zero.RejectResponse
+		}
 		return zero.FinishResponse
 	})
 }

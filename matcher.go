@@ -6,7 +6,7 @@ import (
 
 type (
 	Response uint8
-	Rule     func(event Event, state State) bool
+	Rule     func(event *Event, state State) bool
 	Handler  func(matcher *Matcher, event Event, state State) Response
 )
 
@@ -19,6 +19,7 @@ const (
 type Matcher struct {
 	Type_    string
 	State    State
+	Event    *Event
 	Rules    []Rule
 	handlers []Handler
 }
@@ -45,6 +46,7 @@ func On(type_ string, rules ...Rule) *Matcher {
 }
 
 func (m *Matcher) run(event Event) {
+	m.Event = &event
 	for _, handler := range m.handlers {
 		m.handlers = m.handlers[1:] // delete the handling handler
 		switch handler(m, event, m.State) {
@@ -71,7 +73,7 @@ func runMatcher(matcher *Matcher, event Event) {
 		return
 	}
 	for _, rule := range matcher.Rules {
-		if rule(event, matcher.State) == false {
+		if rule(&event, matcher.State) == false {
 			return
 		}
 	}
@@ -79,9 +81,10 @@ func runMatcher(matcher *Matcher, event Event) {
 	m.run(event)
 }
 
-func (m *Matcher) Get(event Event, prompt string) string {
+func (m *Matcher) Get(prompt string) string {
 	ch := make(chan string)
-	Send(event, prompt)
+	event := m.Event
+	Send(*event, prompt)
 	tempMatcherList.Store(getSeq(), &Matcher{
 		Type_: "message",
 		State: map[string]interface{}{},
@@ -120,6 +123,20 @@ func copyState(src State) State {
 // 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, handler)
+	return m
+}
+
+// 接收一条消息后处理事件
+func (m *Matcher) Receive(handler Handler) *Matcher {
+	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
+		tempMatcherList.Store(getSeq(), &Matcher{
+			Type_:    "message",
+			State:    matcher.State,
+			Rules:    []Rule{CheckUser(event.UserID)},
+			handlers: append([]Handler{handler}, m.handlers...),
+		})
+		return FinishResponse
+	})
 	return m
 }
 

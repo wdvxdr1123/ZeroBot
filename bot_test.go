@@ -19,7 +19,7 @@ func StartHTTPDebuger() {
 
 func TestRun(t *testing.T) {
 	go StartHTTPDebuger()
-	On("message", func(event Event, state State) bool {
+	On("message", func(event *Event, state State) bool {
 		return event.RawMessage == "复读"
 	}).Got("echo", "请输入复读内容", func(matcher *Matcher, event Event, state State) Response {
 		Send(event, matcher.State["echo"])

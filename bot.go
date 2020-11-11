@@ -126,7 +126,7 @@ func processEvent(response []byte) {
 	tempMatcherList.Range(func(key, value interface{}) bool {
 		matcher := value.(*Matcher)
 		for _, v := range matcher.Rules {
-			if v(event, matcher.State) == false {
+			if v(&event, matcher.State) == false {
 				return true
 			}
 		}
