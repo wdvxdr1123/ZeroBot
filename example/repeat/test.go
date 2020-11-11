@@ -49,11 +49,13 @@ func (testPlugin) Start() { // 插件主体
 		return zero.FinishResponse
 	})
 
-	zero.OnCommand("next_echo").Receive(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, event.Message)
-		if event.Message.CQString() == "哈哈哈" {
-			return zero.RejectResponse
-		}
-		return zero.FinishResponse
-	})
+	zero.OnCommand("next_echo").Receive(receiveNextEcho)
+}
+
+func receiveNextEcho(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Response {
+	zero.Send(event, event.Message)
+	if event.Message.CQString() == "哈哈哈" {
+		return zero.RejectResponse
+	}
+	return zero.FinishResponse
 }
