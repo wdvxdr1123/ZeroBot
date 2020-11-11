@@ -130,12 +130,12 @@ func processEvent(response []byte) {
 				return true
 			}
 		}
-		go matcher.run(event)
+		matcher.run(event)
 		tempMatcherList.Delete(key)
 		return true
 	})
 	for _, v := range matcherList {
-		go runMatcher(v, event)
+		runMatcher(v, event)
 	}
 }
 
@@ -156,7 +156,7 @@ func preprocessMessageEvent(e *Event) {
 		if e.Message[0].Type != "text" {
 			return
 		}
-		e.Message[0].Data["text"] = strings.TrimSpace(e.Message[0].Data["text"]) // Trim!
+		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
 		text := e.Message[0].Data["text"]
 		for _, nickname := range zeroBot.nicknames {
 			if strings.HasPrefix(text, nickname) {
@@ -166,8 +166,7 @@ func preprocessMessageEvent(e *Event) {
 			}
 		}
 	}()
-
-	e.Message[0].Data["text"] = strings.TrimSpace(e.Message[0].Data["text"]) // Trim Again!
+	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
 }
 
 // 快捷撤回

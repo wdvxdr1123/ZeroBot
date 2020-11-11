@@ -31,11 +31,9 @@ func (testPlugin) Start() { // 插件主体
 			},
 		)
 
-	zero.OnCommand("echo", zero.OnlyToMe).
-		Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-			zero.Send(event, event.Message)
-			return zero.FinishResponse
-		})
+	zero.OnCommand("echo").Handle(handleCommand)
+
+	zero.OnCommand("cmd_echo").Handle(handleCommand)
 
 	zero.OnSuffix("复读").Handle(func(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
 		zero.Send(event, event.Message)
@@ -57,5 +55,10 @@ func receiveNextEcho(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Respo
 	if event.Message.CQString() == "哈哈哈" {
 		return zero.RejectResponse
 	}
+	return zero.FinishResponse
+}
+
+func handleCommand(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Response {
+	zero.Send(event, event.Message)
 	return zero.FinishResponse
 }

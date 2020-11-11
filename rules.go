@@ -12,9 +12,13 @@ func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
 			return false
 		}
-		firstMessage := event.Message[0].Data
+		first := event.Message[0]
+		firstMessage := first.Data["text"]
 		for _, prefix := range prefixes {
-			if strings.HasPrefix(firstMessage["text"], prefix) { // 只要有一个前缀就行了
+			first.Data["text"] = strings.TrimPrefix(firstMessage, prefix)
+			if first.Data["text"] != firstMessage {
+				state["prefix"] = prefix
+				first.Data["text"] = strings.TrimLeft(first.Data["text"], " ")
 				return true
 			}
 		}
@@ -22,18 +26,22 @@ func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 	}
 }
 
-// 是否含有后缀 todo
+// 是否含有后缀
 func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		if event.Message == nil { // 确保无空指针
 			return false
 		}
-		lastMessage := event.Message[len(event.Message)-1]
-		if lastMessage.Type != "text" {
+		last := event.Message[len(event.Message)-1]
+		if last.Type != "text" {
 			return false
 		}
+		lastMessage := last.Data["text"]
 		for _, suffix := range suffixes {
-			if strings.HasSuffix(lastMessage.Data["text"], suffix) { // 只要有一个前缀就行了
+			last.Data["text"] = strings.TrimSuffix(lastMessage, suffix)
+			if last.Data["text"] != lastMessage {
+				state["suffix"] = suffix
+				last.Data["text"] = strings.TrimRight(last.Data["text"], " ")
 				return true
 			}
 		}
@@ -44,20 +52,20 @@ func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 // command trigger
 func CommandRule(commands ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
-		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
+		if event.Message == nil && event.Message[0].Type != "text" {
 			return false
 		}
-		firstMessage := event.Message[0].Data["text"]
-		if strings.HasPrefix(firstMessage, zeroBot.commandPrefix) {
-			event.Message[0].Data["text"] = firstMessage[len(zeroBot.commandPrefix):]
-			firstMessage = event.Message[0].Data["text"]
-		} else {
+		first := event.Message[0]
+		firstMessage := first.Data["text"]
+		cmdMessage := strings.TrimPrefix(firstMessage, zeroBot.commandPrefix)
+		if cmdMessage == firstMessage {
 			return false
 		}
 		for _, prefix := range commands {
-			if strings.HasPrefix(firstMessage, prefix) { // 只要有一个前缀就行了
+			if strings.HasPrefix(cmdMessage,prefix) {
 				state["command"] = prefix
-				event.Message[0].Data["text"] = firstMessage[len(prefix):] // 去除指令
+				first.Data["text"] = cmdMessage[len(prefix):]
+				first.Data["text"] = strings.TrimLeft(first.Data["text"], " ")
 				return true
 			}
 		}

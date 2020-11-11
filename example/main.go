@@ -11,7 +11,7 @@ func main() {
 		Port:          "6700",
 		AccessToken:   "",
 		NickName:      []string{"xcw"},
-		CommandPrefix: "",
+		CommandPrefix: "/",
 		SuperUsers:    []string{"123456"},
 	})
 	select {}
