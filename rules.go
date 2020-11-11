@@ -23,14 +23,17 @@ func PrefixRule(prefixes ...string) func(event Event, state State) bool {
 }
 
 // 是否含有后缀 todo
-func SuffixRule(prefixes ...string) func(event Event, state State) bool {
-	return func(event Event, state State) bool { // todo
-		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
+func SuffixRule(suffixes ...string) func(event Event, state State) bool {
+	return func(event Event, state State) bool {
+		if event.Message == nil { // 确保无空指针
 			return false
 		}
-		firstMessage := event.Message[0].Data
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(firstMessage["text"], prefix) { // 只要有一个前缀就行了
+		lastMessage := event.Message[len(event.Message)-1]
+		if lastMessage.Type != "text" {
+			return false
+		}
+		for _, suffix := range suffixes {
+			if strings.HasSuffix(lastMessage.Data["text"], suffix) { // 只要有一个前缀就行了
 				return true
 			}
 		}
@@ -110,7 +113,12 @@ func OnlyToMe(event Event, _ State) bool {
 // only triggered by specific person
 func CheckUser(userId ...int64) func(event Event, state State) bool {
 	return func(event Event, state State) bool {
-		return event.UserID == userId[0]
+		for _, uid := range userId {
+			if event.UserID == uid {
+				return true
+			}
+		}
+		return false
 	}
 }
 

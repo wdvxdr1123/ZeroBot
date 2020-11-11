@@ -171,18 +171,18 @@ func OnMetaEvent(rules ...Rule) *Matcher {
 }
 
 // 前缀触发器
-func OnPrefix(prefix []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{PrefixRule(prefix...)}, rules...)...)
+func OnPrefix(prefix string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{PrefixRule(prefix)}, rules...)...)
 }
 
 // 后缀触发器
-func OnSuffix(suffix []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{SuffixRule(suffix...)}, rules...)...)
+func OnSuffix(suffix string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{SuffixRule(suffix)}, rules...)...)
 }
 
 // 命令触发器
-func OnCommand(commands []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{CommandRule(commands...)}, rules...)...)
+func OnCommand(commands string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{CommandRule(commands)}, rules...)...)
 }
 
 // 正则触发器
@@ -208,4 +208,19 @@ func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 // 关键词触发器组
 func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{KeywordRule(keywords...)}, rules...)...)
+}
+
+// 命令触发器组
+func OnCommandGroup(commands []string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{CommandRule(commands...)}, rules...)...)
+}
+
+// 前缀触发器组
+func OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{PrefixRule(prefix...)}, rules...)...)
+}
+
+// 后缀触发器组
+func OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
+	return OnMessage(append([]Rule{SuffixRule(suffix...)}, rules...)...)
 }
