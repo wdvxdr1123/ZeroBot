@@ -1,13 +1,13 @@
 package zero
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -53,8 +53,11 @@ func Run(option Option) {
 	zeroBot.commandPrefix = option.CommandPrefix
 	zeroBot.SuperUsers = option.SuperUsers
 
-	zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
+	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
+		return matcherList[i].Priority < matcherList[j].Priority
+	})
 
+	zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
 	zeroBot.id = GetLoginInfo().Get("user_id").String()
 }
 
@@ -134,8 +137,22 @@ func processEvent(response []byte) {
 		tempMatcherList.Delete(key)
 		return true
 	})
-	for _, v := range matcherList {
-		runMatcher(v, event)
+
+loop:
+	for _, matcher := range matcherList {
+		if event.PostType != matcher.Type_ {
+			return
+		}
+		for _, rule := range matcher.Rules {
+			if rule(&event, matcher.State) == false {
+				continue loop
+			}
+		}
+		m := matcher.copy()
+		m.run(event)
+		if matcher.Block {
+			break loop
+		}
 	}
 }
 

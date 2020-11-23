@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"encoding/json"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"strconv"
@@ -71,7 +70,7 @@ type Event struct {
 	Comment       string          `json:"comment"` // This field is used for Request Event
 	Message       message.Message `json:"-"`       // Message parsed
 	Sender        *User           `json:"sender"`
-	NativeMessage json.RawMessage `json:"message"`
+	NativeMessage []byte          `json:"message"`
 	IsToMe        bool            `json:"-"`
 }
 

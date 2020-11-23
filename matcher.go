@@ -17,7 +17,9 @@ const (
 )
 
 type Matcher struct {
+	Block    bool
 	Type_    string
+	Priority int32
 	State    State
 	Event    *Event
 	Rules    []Rule
@@ -69,16 +71,7 @@ func (m *Matcher) run(event Event) {
 }
 
 func runMatcher(matcher *Matcher, event Event) {
-	if event.PostType != matcher.Type_ {
-		return
-	}
-	for _, rule := range matcher.Rules {
-		if rule(&event, matcher.State) == false {
-			return
-		}
-	}
-	m := matcher.copy()
-	m.run(event)
+
 }
 
 func (m *Matcher) Get(prompt string) string {

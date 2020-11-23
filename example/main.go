@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/wdvxdr1123/ZeroBot"
+	_ "github.com/wdvxdr1123/ZeroBot/example/priority"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
 

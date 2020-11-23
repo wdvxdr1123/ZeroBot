@@ -1,11 +1,13 @@
 package zero
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // 先就这样吧，后面看看有什么优美的方案
 func CallAction(action string, params Params) gjson.Result {

@@ -15,10 +15,9 @@ func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 		first := event.Message[0]
 		firstMessage := first.Data["text"]
 		for _, prefix := range prefixes {
-			first.Data["text"] = strings.TrimPrefix(firstMessage, prefix)
-			if first.Data["text"] != firstMessage {
+			if strings.HasPrefix(firstMessage, prefix) {
 				state["prefix"] = prefix
-				first.Data["text"] = strings.TrimLeft(first.Data["text"], " ")
+				state["args"] = strings.TrimLeft(strings.TrimPrefix(firstMessage, prefix), " ")
 				return true
 			}
 		}
@@ -38,10 +37,9 @@ func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 		}
 		lastMessage := last.Data["text"]
 		for _, suffix := range suffixes {
-			last.Data["text"] = strings.TrimSuffix(lastMessage, suffix)
-			if last.Data["text"] != lastMessage {
+			if strings.HasSuffix(lastMessage, suffix) {
 				state["suffix"] = suffix
-				last.Data["text"] = strings.TrimRight(last.Data["text"], " ")
+				state["args"] = strings.TrimLeft(strings.TrimPrefix(lastMessage, suffix), " ")
 				return true
 			}
 		}
@@ -61,11 +59,10 @@ func CommandRule(commands ...string) func(event *Event, state State) bool {
 		if cmdMessage == firstMessage {
 			return false
 		}
-		for _, prefix := range commands {
-			if strings.HasPrefix(cmdMessage,prefix) {
-				state["command"] = prefix
-				first.Data["text"] = cmdMessage[len(prefix):]
-				first.Data["text"] = strings.TrimLeft(first.Data["text"], " ")
+		for _, command := range commands {
+			if strings.HasPrefix(cmdMessage, command) {
+				state["command"] = command
+				state["args"] = strings.TrimLeft(cmdMessage[len(command):], " ")
 				return true
 			}
 		}

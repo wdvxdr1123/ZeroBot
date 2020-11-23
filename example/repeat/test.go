@@ -36,7 +36,7 @@ func (testPlugin) Start() { // 插件主体
 	zero.OnCommand("cmd_echo").Handle(handleCommand)
 
 	zero.OnSuffix("复读").Handle(func(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, event.Message)
+		zero.Send(event, state["args"])
 		return zero.FinishResponse
 	})
 
@@ -58,7 +58,7 @@ func receiveNextEcho(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Respo
 	return zero.FinishResponse
 }
 
-func handleCommand(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Response {
-	zero.Send(event, event.Message)
+func handleCommand(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+	zero.Send(event, state["args"])
 	return zero.FinishResponse
 }
