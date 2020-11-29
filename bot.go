@@ -170,7 +170,7 @@ func preprocessMessageEvent(e *Event) {
 				}
 			}
 		}
-		if e.Message[0].Type != "text" {
+		if e.Message == nil || e.Message[0].Type != "text" {
 			return
 		}
 		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
