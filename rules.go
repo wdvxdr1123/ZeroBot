@@ -75,7 +75,7 @@ func RegexRule(regexPattern string) func(event *Event, state State) bool {
 	regex := regexp.MustCompile(regexPattern)
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
-		state["regex_matched"] = regex.FindAllString(msg, -1)
+		state["regex_matched"] = regex.FindStringSubmatch(msg)
 		if state["regex_matched"] != nil {
 			return false
 		}
