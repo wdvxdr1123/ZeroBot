@@ -1,0 +1,5 @@
+baseURL = "http://docs.wdvxdr.top/"
+languageCode = "zh-cn"
+title = "ZeroBot Document"
+theme = "book"
+
