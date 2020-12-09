@@ -19,7 +19,7 @@ func CallAction(action string, params Params) gjson.Result {
 	rsp, err := sendAndWait(req)
 	if err == nil {
 		if rsp.RetCode != 0 {
-			log.Errorf("调用 API: %v 时出现错误, RetCode: %", action, rsp.RetCode)
+			log.Errorf("调用 API: %v 时出现错误, RetCode: %v", action, rsp.RetCode)
 			return gjson.Result{}
 		}
 		return rsp.Data

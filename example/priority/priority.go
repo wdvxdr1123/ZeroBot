@@ -21,7 +21,7 @@ func (testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 func (testPlugin) Start() {
 	zero.OnPrefix("1234").
 		Handle(
-			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+			func(matcher *Matcher, event Event, state State) zero.Response {
 				zero.Send(event, "这是触发器A")
 				return zero.FinishResponse
 			},
@@ -31,7 +31,7 @@ func (testPlugin) Start() {
 
 	zero.OnPrefix("12345").
 		Handle(
-			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+			func(matcher *Matcher, event Event, state State) zero.Response {
 				zero.Send(event, "这是触发器B")
 				return zero.FinishResponse
 			},
@@ -40,7 +40,7 @@ func (testPlugin) Start() {
 
 	zero.OnPrefix("123456").
 		Handle(
-			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+			func(matcher *Matcher, event Event, state State) zero.Response {
 				zero.Send(event, "这是触发器C")
 				return zero.FinishResponse
 			},

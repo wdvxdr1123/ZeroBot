@@ -2,7 +2,7 @@ package zero
 
 import log "github.com/sirupsen/logrus"
 
-// 插件信息
+// PluginInfo is the plugin's information
 type PluginInfo struct {
 	Author     string // 作者
 	PluginName string // 插件名
@@ -10,9 +10,9 @@ type PluginInfo struct {
 	Details    string // 插件说明
 }
 
-var PluginPool []IPlugin
+var pluginPool []IPlugin
 
-// 插件
+// IPlugin is the plugin of the ZeroBot
 type IPlugin interface {
 	// 获取插件信息
 	GetPluginInfo() PluginInfo
@@ -20,6 +20,7 @@ type IPlugin interface {
 	Start()
 }
 
+// RegisterPlugin register the plugin to ZeroBot
 func RegisterPlugin(plugin IPlugin) {
 	info := plugin.GetPluginInfo()
 	log.Infof(
@@ -29,5 +30,5 @@ func RegisterPlugin(plugin IPlugin) {
 		info.Version,
 		info.Details,
 	)
-	PluginPool = append(PluginPool, plugin)
+	pluginPool = append(pluginPool, plugin)
 }

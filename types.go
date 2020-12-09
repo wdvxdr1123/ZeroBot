@@ -11,7 +11,7 @@ import (
 
 type Params map[string]interface{}
 
-// 调用api的返回
+// APIResponse is the response of calling API
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
 type APIResponse struct {
 	Status  string       `json:"status"`
@@ -20,7 +20,7 @@ type APIResponse struct {
 	Echo    uint64       `json:"echo"`
 }
 
-// 调用ws服务器api
+// WebSocketRequest is the request sending to the cqhttp
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
 type WebSocketRequest struct {
 	Action string `json:"action"`
@@ -49,7 +49,7 @@ type User struct {
 	AnonymousFlag string `json:"anonymous_flag" anonymous:"flag"`
 }
 
-// Event
+// Event is the event emitted form cqhttp
 type Event struct {
 	Time          int64               `json:"time"`
 	PostType      string              `json:"post_type"`

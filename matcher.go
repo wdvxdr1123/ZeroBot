@@ -18,7 +18,7 @@ const (
 
 type Matcher struct {
 	Block    bool
-	Type_    string
+	Type     string
 	Priority int
 	State    State
 	Event    *Event
@@ -48,7 +48,7 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 // 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type_:    type_,
+		Type:     type_,
 		State:    map[string]interface{}{},
 		Rules:    rules,
 		handlers: []Handler{},
@@ -68,7 +68,7 @@ func (m *Matcher) run(event Event) {
 			return
 		case RejectResponse:
 			tempMatcherList.Store(getSeq(), &Matcher{
-				Type_: "message",
+				Type:  "message",
 				State: m.State,
 				Rules: []Rule{
 					CheckUser(event.UserID),
@@ -85,7 +85,7 @@ func (m *Matcher) Get(prompt string) string {
 	event := m.Event
 	Send(*event, prompt)
 	tempMatcherList.Store(getSeq(), &Matcher{
-		Type_: "message",
+		Type:  "message",
 		State: map[string]interface{}{},
 		Rules: []Rule{
 			CheckUser(event.UserID),
@@ -129,7 +129,7 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 func (m *Matcher) Receive(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
 		tempMatcherList.Store(getSeq(), &Matcher{
-			Type_:    "message",
+			Type:     "message",
 			State:    matcher.State,
 			Rules:    []Rule{CheckUser(event.UserID)},
 			handlers: append([]Handler{handler}, m.handlers...),
@@ -157,7 +157,7 @@ func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 				}
 				// add temp matcher to got and process the left handlers
 				tempMatcherList.Store(getSeq(), &Matcher{
-					Type_:    "message",
+					Type:     "message",
 					State:    matcher.State,
 					Rules:    []Rule{CheckUser(event.UserID)},
 					handlers: append([]Handler{gotKeyHandler}, m.handlers...),

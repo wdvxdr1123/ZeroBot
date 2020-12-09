@@ -40,12 +40,12 @@ var (
 )
 
 func init() {
-	PluginPool = []IPlugin{} // 初始化
+	pluginPool = []IPlugin{} // 初始化
 	zeroBot.nicknames = []string{}
 }
 
 func Run(option Option) {
-	for _, plugin := range PluginPool {
+	for _, plugin := range pluginPool {
 		plugin.Start() // 加载插件
 	}
 	zeroBot.option = option
@@ -92,7 +92,7 @@ func handleResponse(response []byte) {
 			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
 				ch <- APIResponse{ // 发送api调用响应
-					Status:  rsp.Get("status").Str,
+					Status:  rsp.Get("status").String(),
 					Data:    rsp.Get("data"),
 					RetCode: rsp.Get("retcode").Int(),
 					Echo:    rsp.Get("echo").Uint(),
@@ -135,12 +135,15 @@ func processEvent(response []byte) {
 		}
 		matcher.run(event)
 		tempMatcherList.Delete(key)
+		if matcher.Block {
+			return false
+		}
 		return true
 	})
 
 loop:
 	for _, matcher := range matcherList {
-		if event.PostType != matcher.Type_ {
+		if event.PostType != matcher.Type {
 			return
 		}
 		for _, rule := range matcher.Rules {

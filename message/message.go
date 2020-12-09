@@ -15,7 +15,7 @@ type MessageSegment struct {
 	Data map[string]string `json:"data"`
 }
 
-// EncodeCQText escapes special characters in a non-media plain message.
+// EscapeCQText escapes special characters in a non-media plain message.
 func EscapeCQText(str string) string {
 	str = strings.Replace(str, "&", "&amp;", -1)
 	str = strings.Replace(str, "[", "&#91;", -1)
@@ -23,7 +23,7 @@ func EscapeCQText(str string) string {
 	return str
 }
 
-// DecodeCQText unescapes special characters in a non-media plain message.
+// UnescapeCQText unescapes special characters in a non-media plain message.
 func UnescapeCQText(str string) string {
 	str = strings.Replace(str, "&#93;", "]", -1)
 	str = strings.Replace(str, "&#91;", "[", -1)
@@ -55,7 +55,7 @@ func UnescapeCQCodeText(str string) string {
 func (m MessageSegment) CQCode() string {
 	cqcode := "[CQ:" + m.Type  // 消息类型
 	for k, v := range m.Data { // 消息参数
-		cqcode = fmt.Sprintf("%v,%v=%v", cqcode, k, EscapeCQCodeText(fmt.Sprintf("%v", v)))
+		cqcode = fmt.Sprintf("%v,%v=%v", cqcode, k, EscapeCQCodeText(v))
 	}
 	return cqcode + "]"
 }
