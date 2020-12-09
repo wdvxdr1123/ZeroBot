@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>ZeroBot Document</title>
-    <link>http://docs.wdvxdr.top/</link>
-    <description>Recent content on ZeroBot Document</description>
+    <title>Starts on ZeroBot Document</title>
+    <link>http://docs.wdvxdr.top/start/</link>
+    <description>Recent content in Starts on ZeroBot Document</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language><atom:link href="http://docs.wdvxdr.top/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language><atom:link href="http://docs.wdvxdr.top/start/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>快速安装</title>
       <link>http://docs.wdvxdr.top/start/install/</link>

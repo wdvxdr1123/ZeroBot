@@ -3,15 +3,23 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/</loc>
+    <loc>http://docs.wdvxdr.top/start/install/</loc>
   </url>
   
   <url>
-    <loc>/categories/</loc>
+    <loc>http://docs.wdvxdr.top/categories/</loc>
   </url>
   
   <url>
-    <loc>/tags/</loc>
+    <loc>http://docs.wdvxdr.top/start/</loc>
+  </url>
+  
+  <url>
+    <loc>http://docs.wdvxdr.top/tags/</loc>
+  </url>
+  
+  <url>
+    <loc>http://docs.wdvxdr.top/</loc>
   </url>
   
 </urlset>
