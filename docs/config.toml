@@ -3,3 +3,6 @@ languageCode = "zh-cn"
 title = "ZeroBot Document"
 theme = "book"
 
+[params]
+    BookMenuBundle = '/menu'
+    BookSection = 'docs'

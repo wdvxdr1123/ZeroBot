@@ -78,7 +78,7 @@ func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 			return APIResponse{}, errors.New("channel closed")
 		}
 		return rsp, nil
-	case <-time.After(10 * time.Second):
+	case <-time.After(30 * time.Second):
 		return APIResponse{}, errors.New("timed out")
 	}
 }
@@ -88,7 +88,7 @@ func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
 		log.Debug("接收到API调用返回: ", strings.TrimSpace(string(response)))
-		if c, ok := seqMap.Load(rsp.Get("echo").Uint()); ok {
+		if c, ok := seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
 			if ch, ok := c.(chan APIResponse); ok {
 				defer close(ch)
 				ch <- APIResponse{ // 发送api调用响应
