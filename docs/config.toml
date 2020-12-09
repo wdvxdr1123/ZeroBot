@@ -6,3 +6,10 @@ theme = "book"
 [params]
     BookMenuBundle = '/menu'
     BookSection = 'docs'
+
+[outputs]
+home = ["HTML", "RSS"]
+page = ["HTML"]
+section = ["HTML", "RSS"]
+taxonomy = ["HTML", "RSS"]
+taxonomyTerm = ["HTML"]
