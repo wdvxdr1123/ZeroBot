@@ -9,13 +9,13 @@ jobs:
   deploy:
     runs-on: ubuntu-18.04
     steps:
-      - name: Open Folder
-        run: cd docs
-
       - uses: actions/checkout@v2
         with:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Open Folder
+        run: cd docs
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
