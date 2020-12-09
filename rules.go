@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// 是否含有前缀
+// PrefixRule check if the message has the prefix and trim the prefix
 func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
@@ -25,7 +25,7 @@ func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 	}
 }
 
-// 是否含有后缀
+// SuffixRule check if the message has the suffix and trim the suffix
 func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		if event.Message == nil { // 确保无空指针
@@ -47,7 +47,7 @@ func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 	}
 }
 
-// command trigger
+// CommandRule check if the message is a command and trim the command name
 func CommandRule(commands ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" {
@@ -70,7 +70,7 @@ func CommandRule(commands ...string) func(event *Event, state State) bool {
 	}
 }
 
-// 正则匹配
+// RegexRule check if the message can be matched by the regex pattern
 func RegexRule(regexPattern string) func(event *Event, state State) bool {
 	regex := regexp.MustCompile(regexPattern)
 	return func(event *Event, state State) bool {
@@ -83,7 +83,7 @@ func RegexRule(regexPattern string) func(event *Event, state State) bool {
 	}
 }
 
-// 关键词匹配
+// KeywordRule check if the message has a keyword or keywords
 func KeywordRule(src ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
@@ -97,7 +97,7 @@ func KeywordRule(src ...string) func(event *Event, state State) bool {
 	}
 }
 
-// 完全匹配
+// FullMatchRule check if src has the same copy of the message
 func FullMatchRule(src ...string) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
@@ -110,12 +110,12 @@ func FullMatchRule(src ...string) func(event *Event, state State) bool {
 	}
 }
 
-// only triggered in conditions of @bot or begin with the nicknames
+// OnlyToMe only triggered in conditions of @bot or begin with the nicknames
 func OnlyToMe(event *Event, _ State) bool {
 	return event.IsToMe == true
 }
 
-// only triggered by specific person
+// CheckUser only triggered by specific person
 func CheckUser(userId ...int64) func(event *Event, state State) bool {
 	return func(event *Event, state State) bool {
 		for _, uid := range userId {
@@ -127,16 +127,17 @@ func CheckUser(userId ...int64) func(event *Event, state State) bool {
 	}
 }
 
-// only triggered in private message
+// OnlyPrivate requres that the event is private message
 func OnlyPrivate(event *Event, _ State) bool {
 	return event.PostType == "message" && event.DetailType == "private"
 }
 
-// only triggered in public/group message
+// OnlyPrivate requres that the event is public/group message
 func OnlyGroup(event *Event, _ State) bool {
 	return event.PostType == "message" && event.DetailType == "group"
 }
 
+// SuperUserPermission only triggered by the bot's owner
 func SuperUserPermission(event *Event, _ State) bool {
 	uid := strconv.FormatInt(event.UserID, 10)
 	for _, su := range zeroBot.SuperUsers {
@@ -147,12 +148,12 @@ func SuperUserPermission(event *Event, _ State) bool {
 	return false
 }
 
-// only triggered by the group admins or higher permission
+// AdminPermission only triggered by the group admins or higher permission
 func AdminPermission(event *Event, state State) bool {
 	return SuperUserPermission(event, state) || event.Sender.Role != "member"
 }
 
-// only triggered by the group owner or higher permission
+// OwnerPermission only triggered by the group owner or higher permission
 func OwnerPermission(event *Event, state State) bool {
 	return SuperUserPermission(event, state) ||
 		(event.Sender.Role != "member" && event.Sender.Role != "admin")

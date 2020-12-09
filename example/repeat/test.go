@@ -5,13 +5,12 @@ import (
 )
 
 func init() {
-	a := testPlugin{}
-	zero.RegisterPlugin(a) // 注册插件
+	zero.RegisterPlugin(testPlugin{}) // 注册插件
 }
 
 type testPlugin struct{}
 
-func (testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
+func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 	return zero.PluginInfo{
 		Author:     "wdvxdr1123",
 		PluginName: "test",

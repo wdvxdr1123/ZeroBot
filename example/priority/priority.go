@@ -19,23 +19,31 @@ func (testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 }
 
 func (testPlugin) Start() {
-	a := zero.OnPrefix("1234").Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, "这是触发器A")
-		return zero.FinishResponse
-	})
-	a.Priority = 10
-	a.Block = false
+	zero.OnPrefix("1234").
+		Handle(
+			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+				zero.Send(event, "这是触发器A")
+				return zero.FinishResponse
+			},
+		).
+		SetBlock(false).
+		SetPriority(10)
 
-	b := zero.OnPrefix("12345").Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, "这是触发器B")
-		return zero.FinishResponse
-	})
-	b.Priority = 12
-	b.Block = true
+	zero.OnPrefix("12345").
+		Handle(
+			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+				zero.Send(event, "这是触发器B")
+				return zero.FinishResponse
+			},
+		).
+		SetBlock(true).SetPriority(12)
 
-	c := zero.OnPrefix("123456").Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, "这是触发器C")
-		return zero.FinishResponse
-	})
-	c.Priority = 14
+	zero.OnPrefix("123456").
+		Handle(
+			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+				zero.Send(event, "这是触发器C")
+				return zero.FinishResponse
+			},
+		).
+		SetPriority(15)
 }

@@ -19,7 +19,7 @@ const (
 type Matcher struct {
 	Block    bool
 	Type_    string
-	Priority int32
+	Priority int
 	State    State
 	Event    *Event
 	Rules    []Rule
@@ -34,6 +34,16 @@ var (
 )
 
 type State map[string]interface{}
+
+func (m *Matcher) SetBlock(block bool) *Matcher {
+	m.Block = block
+	return m
+}
+
+func (m *Matcher) SetPriority(priority int) *Matcher {
+	m.Priority = priority
+	return m
+}
 
 // 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
@@ -68,10 +78,6 @@ func (m *Matcher) run(event Event) {
 			return
 		}
 	}
-}
-
-func runMatcher(matcher *Matcher, event Event) {
-
 }
 
 func (m *Matcher) Get(prompt string) string {
