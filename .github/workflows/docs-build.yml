@@ -19,18 +19,15 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
-          
-      - name: Open Folder
-        run: cd docs
 
       - name: Build
-        run: hugo
+        run: cd docs && hugo
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./docs/public
       
       - name: SSH Auto Deploy
         uses: hengkx/ssh-deploy@v1.0.1
@@ -39,5 +36,5 @@ jobs:
           USERNAME: ${{ secrets.DEPLOY_USERNAME }}
           PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
           PORT: ${{ secrets.DEPLOY_PORT }}
-          SOURCE: './public'
+          SOURCE: './docs/public'
           TARGET: ${{ secrets.DEPLOY_DEST_PATH }}
