@@ -5,10 +5,11 @@ import (
 	"strings"
 )
 
-// array form of message
+// Message impl the array form of message
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type Message []MessageSegment
 
+// MessageSegment impl the single message
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type MessageSegment struct {
 	Type string            `json:"type"`
@@ -51,7 +52,7 @@ func UnescapeCQCodeText(str string) string {
 	return str
 }
 
-// 将数组消息转换为CQ码
+// CQCode 将数组消息转换为CQ码
 func (m MessageSegment) CQCode() string {
 	cqcode := "[CQ:" + m.Type  // 消息类型
 	for k, v := range m.Data { // 消息参数
@@ -60,7 +61,7 @@ func (m MessageSegment) CQCode() string {
 	return cqcode + "]"
 }
 
-// 纯文本
+// Text 纯文本
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
 func Text(text string) MessageSegment {
 	return MessageSegment{
@@ -71,7 +72,7 @@ func Text(text string) MessageSegment {
 	}
 }
 
-// QQ 表情
+// Face QQ表情
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#qq-%E8%A1%A8%E6%83%85
 func Face(id string) MessageSegment {
 	return MessageSegment{
@@ -82,7 +83,7 @@ func Face(id string) MessageSegment {
 	}
 }
 
-// 普通图片
+// Image 普通图片
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%9B%BE%E7%89%87
 func Image(file string) MessageSegment {
 	return MessageSegment{
@@ -93,7 +94,7 @@ func Image(file string) MessageSegment {
 	}
 }
 
-// 语音
+// Record 语音
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E8%AF%AD%E9%9F%B3
 func Record(file string) MessageSegment {
 	return MessageSegment{
@@ -104,7 +105,7 @@ func Record(file string) MessageSegment {
 	}
 }
 
-// @某人
+// At @某人
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E6%9F%90%E4%BA%BA
 func At(qq string) MessageSegment {
 	return MessageSegment{
@@ -115,7 +116,7 @@ func At(qq string) MessageSegment {
 	}
 }
 
-// 音乐分享
+// Music 音乐分享
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E5%88%86%E4%BA%AB-
 func Music(type_ string, id string) MessageSegment {
 	return MessageSegment{
@@ -127,7 +128,7 @@ func Music(type_ string, id string) MessageSegment {
 	}
 }
 
-// 音乐自定义分享
+// CustomMusic 音乐自定义分享
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E4%BA%AB-
 func CustomMusic(subType, url, audio, title string) MessageSegment {
 	return MessageSegment{
@@ -142,7 +143,7 @@ func CustomMusic(subType, url, audio, title string) MessageSegment {
 	}
 }
 
-// 回复
+// Reply 回复
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%9B%9E%E5%A4%8D
 func Reply(id string) MessageSegment {
 	return MessageSegment{
@@ -153,7 +154,7 @@ func Reply(id string) MessageSegment {
 	}
 }
 
-// 合并转发
+// Forward 合并转发
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91-
 func Forward(id string) MessageSegment {
 	return MessageSegment{
@@ -164,7 +165,7 @@ func Forward(id string) MessageSegment {
 	}
 }
 
-// 合并转发节点
+// Node 合并转发节点
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%8A%82%E7%82%B9-
 func Node(id string) MessageSegment {
 	return MessageSegment{
@@ -175,7 +176,7 @@ func Node(id string) MessageSegment {
 	}
 }
 
-// 自定义合并转发节点
+// CustomNode 自定义合并转发节点
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
 func CustomNode(nickname string, userId string, content string) MessageSegment {
 	return MessageSegment{
@@ -212,7 +213,7 @@ func JSON(data string) MessageSegment {
 
 // Expand CQCode
 
-// 群礼物
+// Gift 群礼物
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E7%A4%BC%E7%89%A9
 func Gift(userId string, giftId string) MessageSegment {
 	return MessageSegment{
@@ -224,7 +225,7 @@ func Gift(userId string, giftId string) MessageSegment {
 	}
 }
 
-// 戳一戳
+// Poke 戳一戳
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%88%B3%E4%B8%80%E6%88%B3
 func Poke(userId string) MessageSegment {
 	return MessageSegment{
@@ -235,7 +236,7 @@ func Poke(userId string) MessageSegment {
 	}
 }
 
-// 文本转语音
+// TTS 文本转语音
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%96%87%E6%9C%AC%E8%BD%AC%E8%AF%AD%E9%9F%B3
 func TTS(text string) MessageSegment {
 	return MessageSegment{

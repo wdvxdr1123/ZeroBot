@@ -35,17 +35,19 @@ var (
 
 type State map[string]interface{}
 
+// SetBlock 设置是否阻断后面的 Matcher 触发
 func (m *Matcher) SetBlock(block bool) *Matcher {
 	m.Block = block
 	return m
 }
 
+// SetBlock 设置当前 Matcher 优先级
 func (m *Matcher) SetPriority(priority int) *Matcher {
 	m.Priority = priority
 	return m
 }
 
-// 添加新的主匹配器
+// On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
 		Type:     type_,
@@ -119,13 +121,13 @@ func copyState(src State) State {
 	return dst
 }
 
-// 直接处理事件
+// Handle 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, handler)
 	return m
 }
 
-// 接收一条消息后处理事件
+// Receive 接收一条消息后处理事件
 func (m *Matcher) Receive(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
 		tempMatcherList.Store(getSeq(), &Matcher{
@@ -139,7 +141,7 @@ func (m *Matcher) Receive(handler Handler) *Matcher {
 	return m
 }
 
-// 判断State是否含有"name"键，若无则向用户索取
+// Got 判断State是否含有"name"键，若无则向用户索取
 func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 	m.handlers = append(
 		m.handlers,
@@ -170,73 +172,77 @@ func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 	return m
 }
 
+// 消息触发器
 func OnMessage(rules ...Rule) *Matcher {
 	return On("message", rules...)
 }
 
+// OnNotice 系统提示触发器
 func OnNotice(rules ...Rule) *Matcher {
 	return On("notice", rules...)
 }
 
+// OnRequest 请求消息触发器
 func OnRequest(rules ...Rule) *Matcher {
 	return On("request", rules...)
 }
 
+// OnMetaEvent 元事件触发器
 func OnMetaEvent(rules ...Rule) *Matcher {
 	return On("meta_event", rules...)
 }
 
-// 前缀触发器
+// OnPrefix 前缀触发器
 func OnPrefix(prefix string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{PrefixRule(prefix)}, rules...)...)
 }
 
-// 后缀触发器
+// OnSuffix 后缀触发器
 func OnSuffix(suffix string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{SuffixRule(suffix)}, rules...)...)
 }
 
-// 命令触发器
+// OnCommand 命令触发器
 func OnCommand(commands string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{CommandRule(commands)}, rules...)...)
 }
 
-// 正则触发器
+// OnRegex 正则触发器
 func OnRegex(regexPattern string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{RegexRule(regexPattern)}, rules...)...)
 }
 
-// 关键词触发器
+// OnKeyword 关键词触发器
 func OnKeyword(keyword string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{KeywordRule(keyword)}, rules...)...)
 }
 
-// 完全匹配触发器
+// OnFullMatch 完全匹配触发器
 func OnFullMatch(src string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{FullMatchRule(src)}, rules...)...)
 }
 
-// 完全匹配触发器组
+// OnFullMatchGroup 完全匹配触发器组
 func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{FullMatchRule(src...)}, rules...)...)
 }
 
-// 关键词触发器组
+// OnKeywordGroup 关键词触发器组
 func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{KeywordRule(keywords...)}, rules...)...)
 }
 
-// 命令触发器组
+// OnCommandGroup 命令触发器组
 func OnCommandGroup(commands []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{CommandRule(commands...)}, rules...)...)
 }
 
-// 前缀触发器组
+// OnPrefixGroup 前缀触发器组
 func OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{PrefixRule(prefix...)}, rules...)...)
 }
 
-// 后缀触发器组
+// OnSuffixGroup 后缀触发器组
 func OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 	return OnMessage(append([]Rule{SuffixRule(suffix...)}, rules...)...)
 }
