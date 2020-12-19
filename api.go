@@ -28,13 +28,12 @@ func CallAction(action string, params Params) gjson.Result {
 	return gjson.Result{}
 }
 
-// Send 快捷发送
-func Send(event Event, message interface{}) {
+// Send 快捷发送消息
+func Send(event Event, message interface{}) int64 {
 	if event.GroupID != 0 {
-		SendGroupMessage(event.GroupID, message)
-	} else if event.UserID != 0 {
-		SendPrivateMessage(event.UserID, message)
+		return SendGroupMessage(event.GroupID, message)
 	}
+	return SendPrivateMessage(event.UserID, message)
 }
 
 // SendGroupMessage 发送群消息

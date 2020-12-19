@@ -246,3 +246,8 @@ func TTS(text string) MessageSegment {
 		},
 	}
 }
+
+// ReplyWithMessage returns a reply message
+func ReplyWithMessage(messageID string, m ...MessageSegment) Message {
+	return append(Message{Reply(messageID)}, m...)
+}

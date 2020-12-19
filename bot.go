@@ -9,7 +9,6 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"sort"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -32,10 +31,11 @@ type Option struct {
 	SuperUsers    []string `json:"super_users"`
 }
 
+//go:generate go run github.com/a8m/syncmap -pkg zero -name SeqMap map[uint64]chan<-APIResponse
 var (
 	zeroBot bot
 	seq     uint64 = 0
-	seqMap  sync.Map
+	seqMap  = SeqMap{}
 	sending = make(chan []byte)
 )
 
@@ -89,14 +89,12 @@ func handleResponse(response []byte) {
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
 		log.Debug("接收到API调用返回: ", strings.TrimSpace(string(response)))
 		if c, ok := seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
-			if ch, ok := c.(chan APIResponse); ok {
-				defer close(ch)
-				ch <- APIResponse{ // 发送api调用响应
-					Status:  rsp.Get("status").String(),
-					Data:    rsp.Get("data"),
-					RetCode: rsp.Get("retcode").Int(),
-					Echo:    rsp.Get("echo").Uint(),
-				}
+			defer close(c)
+			c <- APIResponse{ // 发送api调用响应
+				Status:  rsp.Get("status").String(),
+				Data:    rsp.Get("data"),
+				RetCode: rsp.Get("retcode").Int(),
+				Echo:    rsp.Get("echo").Uint(),
 			}
 		}
 	} else {
@@ -126,8 +124,7 @@ func processEvent(response []byte) {
 		preprocessMessageEvent(&event)
 	}
 	// run Matchers
-	tempMatcherList.Range(func(key, value interface{}) bool {
-		matcher := value.(*Matcher)
+	tempMatcherList.Range(func(key uint64, matcher *Matcher) bool {
 		for _, v := range matcher.Rules {
 			if v(&event, matcher.State) == false {
 				return true

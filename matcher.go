@@ -1,9 +1,5 @@
 package zero
 
-import (
-	"sync"
-)
-
 type (
 	Response uint8
 	Rule     func(event *Event, state State) bool
@@ -26,11 +22,12 @@ type Matcher struct {
 	handlers []Handler
 }
 
+//go:generate go run github.com/a8m/syncmap -pkg zero -name TempMatcher map[uint64]*Matcher
 var (
 	// 所有主匹配器列表
 	matcherList = make([]*Matcher, 0)
 	// 临时匹配器
-	tempMatcherList = sync.Map{}
+	tempMatcherList = TempMatcher{}
 )
 
 type State map[string]interface{}

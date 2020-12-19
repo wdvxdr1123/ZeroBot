@@ -1,7 +1,7 @@
 // From: https://github.com/wechaty/go-wechaty
 // Modified: https://github.com/wdvxdr1123
 
-package async
+package sync
 
 import (
 	"math"
