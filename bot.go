@@ -31,12 +31,11 @@ type Option struct {
 	SuperUsers    []string `json:"super_users"`
 }
 
-//go:generate go run github.com/a8m/syncmap -pkg zero -name SeqMap map[uint64]chan<-APIResponse
 var (
 	zeroBot bot
 	seq     uint64 = 0
-	seqMap  = SeqMap{}
-	sending = make(chan []byte)
+	seqMap         = seqSyncMap{}
+	sending        = make(chan []byte)
 )
 
 func init() {

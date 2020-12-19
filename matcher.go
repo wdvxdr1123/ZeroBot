@@ -22,12 +22,11 @@ type Matcher struct {
 	handlers []Handler
 }
 
-//go:generate go run github.com/a8m/syncmap -pkg zero -name TempMatcher map[uint64]*Matcher
 var (
 	// 所有主匹配器列表
 	matcherList = make([]*Matcher, 0)
 	// 临时匹配器
-	tempMatcherList = TempMatcher{}
+	tempMatcherList = matcherMap{}
 )
 
 type State map[string]interface{}
@@ -79,6 +78,7 @@ func (m *Matcher) run(event Event) {
 	}
 }
 
+// Get ..
 func (m *Matcher) Get(prompt string) string {
 	ch := make(chan string)
 	event := m.Event

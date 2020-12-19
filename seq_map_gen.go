@@ -27,7 +27,7 @@ import (
 // contention compared to a Go map paired with a separate Mutex or RWMutex.
 //
 // The zero Map is empty and ready for use. A Map must not be copied after first use.
-type SeqMap struct {
+type seqSyncMap struct {
 	mu sync.Mutex
 
 	// read contains the portion of the map's contents that are safe for
@@ -51,7 +51,7 @@ type SeqMap struct {
 	//
 	// If the dirty map is nil, the next write to the map will initialize it by
 	// making a shallow copy of the clean map, omitting stale entries.
-	dirty map[uint64]*entrySeqMap
+	dirty map[uint64]*entrySeqSyncMap
 
 	// misses counts the number of loads since the read map was last updated that
 	// needed to lock mu to determine whether the key was present.
@@ -63,17 +63,17 @@ type SeqMap struct {
 }
 
 // readOnly is an immutable struct stored atomically in the Map.read field.
-type readOnlySeqMap struct {
-	m       map[uint64]*entrySeqMap
+type readOnlySeqSyncMap struct {
+	m       map[uint64]*entrySeqSyncMap
 	amended bool // true if the dirty map contains some key not in m.
 }
 
 // expunged is an arbitrary pointer that marks entries which have been deleted
 // from the dirty map.
-var expungedSeqMap = unsafe.Pointer(new(chan<- APIResponse))
+var expungedSeqSyncMap = unsafe.Pointer(new(chan<- APIResponse))
 
 // An entry is a slot in the map corresponding to a particular key.
-type entrySeqMap struct {
+type entrySeqSyncMap struct {
 	// p points to the interface{} value stored for the entry.
 	//
 	// If p == nil, the entry has been deleted and m.dirty == nil.
@@ -95,22 +95,22 @@ type entrySeqMap struct {
 	p unsafe.Pointer // *interface{}
 }
 
-func newEntrySeqMap(i chan<- APIResponse) *entrySeqMap {
-	return &entrySeqMap{p: unsafe.Pointer(&i)}
+func newEntrySeqSyncMap(i chan<- APIResponse) *entrySeqSyncMap {
+	return &entrySeqSyncMap{p: unsafe.Pointer(&i)}
 }
 
 // Load returns the value stored in the map for a key, or nil if no
 // value is present.
 // The ok result indicates whether value was found in the map.
-func (m *SeqMap) Load(key uint64) (value chan<- APIResponse, ok bool) {
-	read, _ := m.read.Load().(readOnlySeqMap)
+func (m *seqSyncMap) Load(key uint64) (value chan<- APIResponse, ok bool) {
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
 	e, ok := read.m[key]
 	if !ok && read.amended {
 		m.mu.Lock()
 		// Avoid reporting a spurious miss if m.dirty got promoted while we were
 		// blocked on m.mu. (If further loads of the same key will not miss, it's
 		// not worth copying the dirty map for this key.)
-		read, _ = m.read.Load().(readOnlySeqMap)
+		read, _ = m.read.Load().(readOnlySeqSyncMap)
 		e, ok = read.m[key]
 		if !ok && read.amended {
 			e, ok = m.dirty[key]
@@ -127,23 +127,23 @@ func (m *SeqMap) Load(key uint64) (value chan<- APIResponse, ok bool) {
 	return e.load()
 }
 
-func (e *entrySeqMap) load() (value chan<- APIResponse, ok bool) {
+func (e *entrySeqSyncMap) load() (value chan<- APIResponse, ok bool) {
 	p := atomic.LoadPointer(&e.p)
-	if p == nil || p == expungedSeqMap {
+	if p == nil || p == expungedSeqSyncMap {
 		return value, false
 	}
 	return *(*chan<- APIResponse)(p), true
 }
 
 // Store sets the value for a key.
-func (m *SeqMap) Store(key uint64, value chan<- APIResponse) {
-	read, _ := m.read.Load().(readOnlySeqMap)
+func (m *seqSyncMap) Store(key uint64, value chan<- APIResponse) {
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
 	if e, ok := read.m[key]; ok && e.tryStore(&value) {
 		return
 	}
 
 	m.mu.Lock()
-	read, _ = m.read.Load().(readOnlySeqMap)
+	read, _ = m.read.Load().(readOnlySeqSyncMap)
 	if e, ok := read.m[key]; ok {
 		if e.unexpungeLocked() {
 			// The entry was previously expunged, which implies that there is a
@@ -158,9 +158,9 @@ func (m *SeqMap) Store(key uint64, value chan<- APIResponse) {
 			// We're adding the first new key to the dirty map.
 			// Make sure it is allocated and mark the read-only map as incomplete.
 			m.dirtyLocked()
-			m.read.Store(readOnlySeqMap{m: read.m, amended: true})
+			m.read.Store(readOnlySeqSyncMap{m: read.m, amended: true})
 		}
-		m.dirty[key] = newEntrySeqMap(value)
+		m.dirty[key] = newEntrySeqSyncMap(value)
 	}
 	m.mu.Unlock()
 }
@@ -169,10 +169,10 @@ func (m *SeqMap) Store(key uint64, value chan<- APIResponse) {
 //
 // If the entry is expunged, tryStore returns false and leaves the entry
 // unchanged.
-func (e *entrySeqMap) tryStore(i *chan<- APIResponse) bool {
+func (e *entrySeqSyncMap) tryStore(i *chan<- APIResponse) bool {
 	for {
 		p := atomic.LoadPointer(&e.p)
-		if p == expungedSeqMap {
+		if p == expungedSeqSyncMap {
 			return false
 		}
 		if atomic.CompareAndSwapPointer(&e.p, p, unsafe.Pointer(i)) {
@@ -185,23 +185,23 @@ func (e *entrySeqMap) tryStore(i *chan<- APIResponse) bool {
 //
 // If the entry was previously expunged, it must be added to the dirty map
 // before m.mu is unlocked.
-func (e *entrySeqMap) unexpungeLocked() (wasExpunged bool) {
-	return atomic.CompareAndSwapPointer(&e.p, expungedSeqMap, nil)
+func (e *entrySeqSyncMap) unexpungeLocked() (wasExpunged bool) {
+	return atomic.CompareAndSwapPointer(&e.p, expungedSeqSyncMap, nil)
 }
 
 // storeLocked unconditionally stores a value to the entry.
 //
 // The entry must be known not to be expunged.
-func (e *entrySeqMap) storeLocked(i *chan<- APIResponse) {
+func (e *entrySeqSyncMap) storeLocked(i *chan<- APIResponse) {
 	atomic.StorePointer(&e.p, unsafe.Pointer(i))
 }
 
 // LoadOrStore returns the existing value for the key if present.
 // Otherwise, it stores and returns the given value.
 // The loaded result is true if the value was loaded, false if stored.
-func (m *SeqMap) LoadOrStore(key uint64, value chan<- APIResponse) (actual chan<- APIResponse, loaded bool) {
+func (m *seqSyncMap) LoadOrStore(key uint64, value chan<- APIResponse) (actual chan<- APIResponse, loaded bool) {
 	// Avoid locking if it's a clean hit.
-	read, _ := m.read.Load().(readOnlySeqMap)
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
 	if e, ok := read.m[key]; ok {
 		actual, loaded, ok := e.tryLoadOrStore(value)
 		if ok {
@@ -210,7 +210,7 @@ func (m *SeqMap) LoadOrStore(key uint64, value chan<- APIResponse) (actual chan<
 	}
 
 	m.mu.Lock()
-	read, _ = m.read.Load().(readOnlySeqMap)
+	read, _ = m.read.Load().(readOnlySeqSyncMap)
 	if e, ok := read.m[key]; ok {
 		if e.unexpungeLocked() {
 			m.dirty[key] = e
@@ -224,9 +224,9 @@ func (m *SeqMap) LoadOrStore(key uint64, value chan<- APIResponse) (actual chan<
 			// We're adding the first new key to the dirty map.
 			// Make sure it is allocated and mark the read-only map as incomplete.
 			m.dirtyLocked()
-			m.read.Store(readOnlySeqMap{m: read.m, amended: true})
+			m.read.Store(readOnlySeqSyncMap{m: read.m, amended: true})
 		}
-		m.dirty[key] = newEntrySeqMap(value)
+		m.dirty[key] = newEntrySeqSyncMap(value)
 		actual, loaded = value, false
 	}
 	m.mu.Unlock()
@@ -239,9 +239,9 @@ func (m *SeqMap) LoadOrStore(key uint64, value chan<- APIResponse) (actual chan<
 //
 // If the entry is expunged, tryLoadOrStore leaves the entry unchanged and
 // returns with ok==false.
-func (e *entrySeqMap) tryLoadOrStore(i chan<- APIResponse) (actual chan<- APIResponse, loaded, ok bool) {
+func (e *entrySeqSyncMap) tryLoadOrStore(i chan<- APIResponse) (actual chan<- APIResponse, loaded, ok bool) {
 	p := atomic.LoadPointer(&e.p)
-	if p == expungedSeqMap {
+	if p == expungedSeqSyncMap {
 		return actual, false, false
 	}
 	if p != nil {
@@ -257,7 +257,7 @@ func (e *entrySeqMap) tryLoadOrStore(i chan<- APIResponse) (actual chan<- APIRes
 			return i, false, true
 		}
 		p = atomic.LoadPointer(&e.p)
-		if p == expungedSeqMap {
+		if p == expungedSeqSyncMap {
 			return actual, false, false
 		}
 		if p != nil {
@@ -268,12 +268,12 @@ func (e *entrySeqMap) tryLoadOrStore(i chan<- APIResponse) (actual chan<- APIRes
 
 // LoadAndDelete deletes the value for a key, returning the previous value if any.
 // The loaded result reports whether the key was present.
-func (m *SeqMap) LoadAndDelete(key uint64) (value chan<- APIResponse, loaded bool) {
-	read, _ := m.read.Load().(readOnlySeqMap)
+func (m *seqSyncMap) LoadAndDelete(key uint64) (value chan<- APIResponse, loaded bool) {
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
 	e, ok := read.m[key]
 	if !ok && read.amended {
 		m.mu.Lock()
-		read, _ = m.read.Load().(readOnlySeqMap)
+		read, _ = m.read.Load().(readOnlySeqSyncMap)
 		e, ok = read.m[key]
 		if !ok && read.amended {
 			e, ok = m.dirty[key]
@@ -292,14 +292,14 @@ func (m *SeqMap) LoadAndDelete(key uint64) (value chan<- APIResponse, loaded boo
 }
 
 // Delete deletes the value for a key.
-func (m *SeqMap) Delete(key uint64) {
+func (m *seqSyncMap) Delete(key uint64) {
 	m.LoadAndDelete(key)
 }
 
-func (e *entrySeqMap) delete() (value chan<- APIResponse, ok bool) {
+func (e *entrySeqSyncMap) delete() (value chan<- APIResponse, ok bool) {
 	for {
 		p := atomic.LoadPointer(&e.p)
-		if p == nil || p == expungedSeqMap {
+		if p == nil || p == expungedSeqSyncMap {
 			return value, false
 		}
 		if atomic.CompareAndSwapPointer(&e.p, p, nil) {
@@ -318,21 +318,21 @@ func (e *entrySeqMap) delete() (value chan<- APIResponse, ok bool) {
 //
 // Range may be O(N) with the number of elements in the map even if f returns
 // false after a constant number of calls.
-func (m *SeqMap) Range(f func(key uint64, value chan<- APIResponse) bool) {
+func (m *seqSyncMap) Range(f func(key uint64, value chan<- APIResponse) bool) {
 	// We need to be able to iterate over all of the keys that were already
 	// present at the start of the call to Range.
 	// If read.amended is false, then read.m satisfies that property without
 	// requiring us to hold m.mu for a long time.
-	read, _ := m.read.Load().(readOnlySeqMap)
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
 	if read.amended {
 		// m.dirty contains keys not in read.m. Fortunately, Range is already O(N)
 		// (assuming the caller does not break out early), so a call to Range
 		// amortizes an entire copy of the map: we can promote the dirty copy
 		// immediately!
 		m.mu.Lock()
-		read, _ = m.read.Load().(readOnlySeqMap)
+		read, _ = m.read.Load().(readOnlySeqSyncMap)
 		if read.amended {
-			read = readOnlySeqMap{m: m.dirty}
+			read = readOnlySeqSyncMap{m: m.dirty}
 			m.read.Store(read)
 			m.dirty = nil
 			m.misses = 0
@@ -351,23 +351,23 @@ func (m *SeqMap) Range(f func(key uint64, value chan<- APIResponse) bool) {
 	}
 }
 
-func (m *SeqMap) missLocked() {
+func (m *seqSyncMap) missLocked() {
 	m.misses++
 	if m.misses < len(m.dirty) {
 		return
 	}
-	m.read.Store(readOnlySeqMap{m: m.dirty})
+	m.read.Store(readOnlySeqSyncMap{m: m.dirty})
 	m.dirty = nil
 	m.misses = 0
 }
 
-func (m *SeqMap) dirtyLocked() {
+func (m *seqSyncMap) dirtyLocked() {
 	if m.dirty != nil {
 		return
 	}
 
-	read, _ := m.read.Load().(readOnlySeqMap)
-	m.dirty = make(map[uint64]*entrySeqMap, len(read.m))
+	read, _ := m.read.Load().(readOnlySeqSyncMap)
+	m.dirty = make(map[uint64]*entrySeqSyncMap, len(read.m))
 	for k, e := range read.m {
 		if !e.tryExpungeLocked() {
 			m.dirty[k] = e
@@ -375,13 +375,13 @@ func (m *SeqMap) dirtyLocked() {
 	}
 }
 
-func (e *entrySeqMap) tryExpungeLocked() (isExpunged bool) {
+func (e *entrySeqSyncMap) tryExpungeLocked() (isExpunged bool) {
 	p := atomic.LoadPointer(&e.p)
 	for p == nil {
-		if atomic.CompareAndSwapPointer(&e.p, nil, expungedSeqMap) {
+		if atomic.CompareAndSwapPointer(&e.p, nil, expungedSeqSyncMap) {
 			return true
 		}
 		p = atomic.LoadPointer(&e.p)
 	}
-	return p == expungedSeqMap
+	return p == expungedSeqSyncMap
 }
