@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync/atomic"
@@ -105,7 +106,7 @@ func handleResponse(response []byte) {
 func processEvent(response []byte) {
 	defer func() {
 		if pa := recover(); pa != nil {
-			log.Errorf("handle event err: %v", pa)
+			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
 		}
 	}()
 

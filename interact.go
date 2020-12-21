@@ -1,6 +1,10 @@
 package zero
 
-import "github.com/wdvxdr1123/ZeroBot/message"
+import (
+	"github.com/wdvxdr1123/ZeroBot/message"
+	"sync"
+	"sync/atomic"
+)
 
 type (
 	nextMessage struct {
@@ -10,7 +14,7 @@ type (
 
 	forMessage struct {
 		rule []Rule
-		fn func(m message.Message) Response
+		fn   func(m message.Message) Response
 	}
 
 	selectNextMessage struct {
@@ -72,8 +76,21 @@ func (n *forMessage) Handle(fn func(m message.Message) Response) *forMessage {
 }
 
 // Do start wait next message.
-func (n *forMessage) Do()  {
-	panic("impl me")
+func (n *forMessage) Do() {
+	cond := sync.NewCond(&sync.Mutex{})
+	var state uint32 = 0
+	waitNextMessage := NextMessage().Rule(n.rule...).Handle(func(m message.Message) {
+		if n.fn(m) == FinishResponse {
+			atomic.StoreUint32(&state, 1)
+		}
+		cond.Signal()
+	})
+	cond.L.Lock()
+	for state != 1 {
+		go waitNextMessage.Do()
+		cond.Wait()
+	}
+	cond.L.Unlock()
 }
 
 // Select

@@ -1,0 +1,33 @@
+package music
+
+import (
+	"fmt"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/tidwall/gjson"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+)
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+func QueryNeteaseMusic(musicName string) string {
+	client := http.Client{}
+	req, err := http.NewRequest("GET", "http://music.163.com/api/search/get?type=1&s="+url.QueryEscape(musicName), nil)
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66")
+	res, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	fmt.Println(res.Status)
+	data, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		return ""
+	}
+	fmt.Println(string(data))
+	return gjson.ParseBytes(data).Get("result.songs.0.id").String()
+}
