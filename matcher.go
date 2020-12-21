@@ -1,5 +1,7 @@
 package zero
 
+import "sync"
+
 type (
 	Response uint8
 	Rule     func(event *Event, state State) bool
@@ -27,6 +29,8 @@ var (
 	matcherList = make([]*Matcher, 0)
 	// 临时匹配器
 	tempMatcherList = matcherMap{}
+	// Matcher 修改读写锁
+	matcherLock = sync.RWMutex{}
 )
 
 type State map[string]interface{}
@@ -45,6 +49,8 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 
 // On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
+	matcherLock.Lock()
+	defer matcherLock.Unlock()
 	var matcher = &Matcher{
 		Type:     type_,
 		State:    map[string]interface{}{},

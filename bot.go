@@ -137,7 +137,8 @@ func processEvent(response []byte) {
 		}
 		return true
 	})
-
+	matcherLock.RLock()
+	defer matcherLock.RUnlock()
 loop:
 	for _, matcher := range matcherList {
 		if event.PostType != matcher.Type {
