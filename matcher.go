@@ -1,6 +1,9 @@
 package zero
 
-import "sync"
+import (
+	"sort"
+	"sync"
+)
 
 type (
 	Response uint8
@@ -58,7 +61,21 @@ func On(type_ string, rules ...Rule) *Matcher {
 		handlers: []Handler{},
 	}
 	matcherList = append(matcherList, matcher)
+	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
+		return matcherList[i].Priority < matcherList[j].Priority
+	})
 	return matcher
+}
+
+// Delete remove the matcher from list
+func (m *Matcher) Delete() {
+	matcherLock.Lock()
+	defer matcherLock.Unlock()
+	for i, matcher := range matcherList {
+		if m == matcher {
+			matcherList = append(matcherList[:i], matcherList[i+1:]...)
+		}
+	}
 }
 
 func (m *Matcher) run(event Event) {

@@ -8,7 +8,6 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"runtime/debug"
-	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -52,11 +51,6 @@ func Run(option Option) {
 	zeroBot.nicknames = option.NickName
 	zeroBot.commandPrefix = option.CommandPrefix
 	zeroBot.SuperUsers = option.SuperUsers
-
-	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
-		return matcherList[i].Priority < matcherList[j].Priority
-	})
-
 	zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
 	zeroBot.id = GetLoginInfo().Get("user_id").String()
 }
