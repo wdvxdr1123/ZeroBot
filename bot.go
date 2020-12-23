@@ -117,34 +117,24 @@ func processEvent(response []byte) {
 	if event.PostType == "message" {
 		preprocessMessageEvent(&event)
 	}
-	// run Matchers
-	tempMatcherList.Range(func(key uint64, matcher *Matcher) bool {
-		for _, v := range matcher.Rules {
-			if v(&event, matcher.State) == false {
-				return true
-			}
-		}
-		matcher.run(event)
-		tempMatcherList.Delete(key)
-		if matcher.Block {
-			return false
-		}
-		return true
-	})
-	matcherLock.RLock()
-	defer matcherLock.RUnlock()
+
 loop:
 	for _, matcher := range matcherList {
 		if event.PostType != matcher.Type {
 			return
 		}
-		for _, rule := range matcher.Rules {
-			if rule(&event, matcher.State) == false {
+		matcherLock.RLock()
+		m := matcher.copy()
+		matcherLock.RUnlock()
+		for _, rule := range m.Rules {
+			if rule(&event, m.State) == false {
 				continue loop
 			}
 		}
-		m := matcher.copy()
 		m.run(event)
+		if matcher.Temp {
+			matcher.Delete()
+		}
 		if matcher.Block {
 			break loop
 		}

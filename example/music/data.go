@@ -1,7 +1,6 @@
 package music
 
 import (
-	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
@@ -22,12 +21,10 @@ func QueryNeteaseMusic(musicName string) string {
 	if err != nil {
 		return ""
 	}
-	fmt.Println(res.Status)
 	data, err := ioutil.ReadAll(res.Body)
 	defer res.Body.Close()
 	if err != nil {
 		return ""
 	}
-	fmt.Println(string(data))
 	return gjson.ParseBytes(data).Get("result.songs.0.id").String()
 }

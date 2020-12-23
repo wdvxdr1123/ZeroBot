@@ -17,7 +17,12 @@ type (
 		fn   func(m message.Message) Response
 	}
 
-	selectNextMessage struct {
+	selectMessage struct {
+		cases []Case
+	}
+
+	Case struct {
+
 	}
 )
 
@@ -43,7 +48,7 @@ func (n *nextMessage) Handle(fn func(m message.Message)) *nextMessage {
 // Do start wait next message.
 func (n *nextMessage) Do() {
 	ch := make(chan message.Message)
-	tempMatcherList.Store(getSeq(), &Matcher{
+	StoreTempMatcher(&Matcher{
 		Block:    true,
 		Type:     "message",
 		Priority: 0,
@@ -94,6 +99,15 @@ func (n *forMessage) Do() {
 }
 
 // Select
-func Select() {
+func Select() *selectMessage {
+	return &selectMessage{}
+}
+
+func (s *selectMessage) AddCase(cases... Case) *selectMessage {
+	s.cases = append(s.cases, cases...)
+	return s
+}
+
+func (s *selectMessage) Do()  {
 	panic("impl me")
 }

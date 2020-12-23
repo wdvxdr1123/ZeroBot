@@ -18,6 +18,7 @@ const (
 )
 
 type Matcher struct {
+	Temp     bool
 	Block    bool
 	Type     string
 	Priority int
@@ -30,13 +31,18 @@ type Matcher struct {
 var (
 	// 所有主匹配器列表
 	matcherList = make([]*Matcher, 0)
-	// 临时匹配器
-	tempMatcherList = matcherMap{}
 	// Matcher 修改读写锁
 	matcherLock = sync.RWMutex{}
 )
 
+// State store the context of a matcher.
 type State map[string]interface{}
+
+func sortMathcer() {
+	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
+		return matcherList[i].Priority < matcherList[j].Priority
+	})
+}
 
 // SetBlock 设置是否阻断后面的 Matcher 触发
 func (m *Matcher) SetBlock(block bool) *Matcher {
@@ -46,25 +52,37 @@ func (m *Matcher) SetBlock(block bool) *Matcher {
 
 // SetBlock 设置当前 Matcher 优先级
 func (m *Matcher) SetPriority(priority int) *Matcher {
+	matcherLock.Lock()
+	defer matcherLock.Unlock()
 	m.Priority = priority
+	sortMathcer()
 	return m
 }
 
 // On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
-	matcherLock.Lock()
-	defer matcherLock.Unlock()
 	var matcher = &Matcher{
 		Type:     type_,
 		State:    map[string]interface{}{},
 		Rules:    rules,
 		handlers: []Handler{},
 	}
-	matcherList = append(matcherList, matcher)
-	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
-		return matcherList[i].Priority < matcherList[j].Priority
-	})
+	StoreMatcher(matcher)
 	return matcher
+}
+
+// StoreMatcher store a matcher to matcher list.
+func StoreMatcher(m *Matcher) {
+	matcherLock.Lock()
+	defer matcherLock.Unlock()
+	matcherList = append(matcherList, m)
+	sortMathcer()
+}
+
+// StoreTempMatcher store a matcher only triggered once.
+func StoreTempMatcher(m *Matcher) {
+	m.Temp = true
+	StoreMatcher(m)
 }
 
 // Delete remove the matcher from list
@@ -88,7 +106,7 @@ func (m *Matcher) run(event Event) {
 		case FinishResponse:
 			return
 		case RejectResponse:
-			tempMatcherList.Store(getSeq(), &Matcher{
+			StoreTempMatcher(&Matcher{
 				Type:  "message",
 				State: m.State,
 				Rules: []Rule{
@@ -106,7 +124,7 @@ func (m *Matcher) Get(prompt string) string {
 	ch := make(chan string)
 	event := m.Event
 	Send(*event, prompt)
-	tempMatcherList.Store(getSeq(), &Matcher{
+	StoreTempMatcher(&Matcher{
 		Type:  "message",
 		State: map[string]interface{}{},
 		Rules: []Rule{
@@ -129,6 +147,9 @@ func (m *Matcher) copy() *Matcher {
 		State:    copyState(m.State),
 		Rules:    m.Rules,
 		handlers: newHandlers,
+		Block:    m.Block,
+		Priority: m.Priority,
+		Temp:     m.Temp,
 	}
 }
 
@@ -150,7 +171,7 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 // Receive 接收一条消息后处理事件
 func (m *Matcher) Receive(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
-		tempMatcherList.Store(getSeq(), &Matcher{
+		StoreTempMatcher(&Matcher{
 			Type:     "message",
 			State:    matcher.State,
 			Rules:    []Rule{CheckUser(event.UserID)},
@@ -167,24 +188,8 @@ func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 		m.handlers,
 		// Got Handler
 		func(matcher *Matcher, event Event, state State) Response {
-			if _, ok := matcher.State[key]; ok == false {
-				// send message to notify the user
-				if prompt != "" {
-					Send(event, prompt)
-				}
-
-				gotKeyHandler := func(matcher *Matcher, event Event, state State) Response {
-					state[key] = event.RawMessage
-					return SuccessResponse
-				}
-				// add temp matcher to got and process the left handlers
-				tempMatcherList.Store(getSeq(), &Matcher{
-					Type:     "message",
-					State:    matcher.State,
-					Rules:    []Rule{CheckUser(event.UserID)},
-					handlers: append([]Handler{gotKeyHandler}, m.handlers...),
-				})
-				return FinishResponse
+			if _, ok := state[key]; !ok {
+				state[key] = matcher.Get(prompt)
 			}
 			return handler(matcher, event, matcher.State)
 		},
