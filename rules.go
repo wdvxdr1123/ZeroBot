@@ -6,8 +6,25 @@ import (
 	"strings"
 )
 
+// Type check the event's type
+func Type(type_ string) Rule {
+	t := strings.SplitN(type_, "/", 3)
+	return func(event *Event, _ State) bool {
+		if len(t) > 0 && t[0] != event.PostType {
+			return false
+		}
+		if len(t) > 1 && t[1] != event.DetailType {
+			return false
+		}
+		if len(t) > 2 && t[2] != event.SubType {
+			return false
+		}
+		return true
+	}
+}
+
 // PrefixRule check if the message has the prefix and trim the prefix
-func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
+func PrefixRule(prefixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
 			return false
@@ -26,7 +43,7 @@ func PrefixRule(prefixes ...string) func(event *Event, state State) bool {
 }
 
 // SuffixRule check if the message has the suffix and trim the suffix
-func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
+func SuffixRule(suffixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		if event.Message == nil { // 确保无空指针
 			return false
@@ -48,7 +65,7 @@ func SuffixRule(suffixes ...string) func(event *Event, state State) bool {
 }
 
 // CommandRule check if the message is a command and trim the command name
-func CommandRule(commands ...string) func(event *Event, state State) bool {
+func CommandRule(commands ...string) Rule {
 	return func(event *Event, state State) bool {
 		if event.Message == nil && event.Message[0].Type != "text" {
 			return false
@@ -71,7 +88,7 @@ func CommandRule(commands ...string) func(event *Event, state State) bool {
 }
 
 // RegexRule check if the message can be matched by the regex pattern
-func RegexRule(regexPattern string) func(event *Event, state State) bool {
+func RegexRule(regexPattern string) Rule {
 	regex := regexp.MustCompile(regexPattern)
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
@@ -84,7 +101,7 @@ func RegexRule(regexPattern string) func(event *Event, state State) bool {
 }
 
 // KeywordRule check if the message has a keyword or keywords
-func KeywordRule(src ...string) func(event *Event, state State) bool {
+func KeywordRule(src ...string) Rule {
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
 		for _, str := range src {
@@ -98,7 +115,7 @@ func KeywordRule(src ...string) func(event *Event, state State) bool {
 }
 
 // FullMatchRule check if src has the same copy of the message
-func FullMatchRule(src ...string) func(event *Event, state State) bool {
+func FullMatchRule(src ...string) Rule {
 	return func(event *Event, state State) bool {
 		msg := event.Message.CQString()
 		for _, str := range src {
@@ -116,7 +133,7 @@ func OnlyToMe(event *Event, _ State) bool {
 }
 
 // CheckUser only triggered by specific person
-func CheckUser(userId ...int64) func(event *Event, state State) bool {
+func CheckUser(userId ...int64) Rule {
 	return func(event *Event, state State) bool {
 		for _, uid := range userId {
 			if event.UserID == uid {

@@ -120,8 +120,8 @@ func processEvent(response []byte) {
 
 loop:
 	for _, matcher := range matcherList {
-		if event.PostType != matcher.Type {
-			return
+		if !matcher.Type(&event, nil) {
+			continue
 		}
 		matcherLock.RLock()
 		m := matcher.copy()

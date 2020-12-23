@@ -20,10 +20,10 @@ const (
 type Matcher struct {
 	Temp     bool
 	Block    bool
-	Type     string
 	Priority int
 	State    State
 	Event    *Event
+	Type     Rule
 	Rules    []Rule
 	handlers []Handler
 }
@@ -38,7 +38,7 @@ var (
 // State store the context of a matcher.
 type State map[string]interface{}
 
-func sortMathcer() {
+func sortMatcher() {
 	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
 		return matcherList[i].Priority < matcherList[j].Priority
 	})
@@ -55,15 +55,15 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
 	m.Priority = priority
-	sortMathcer()
+	sortMatcher()
 	return m
 }
 
 // On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:     type_,
 		State:    map[string]interface{}{},
+		Type:     Type(type_),
 		Rules:    rules,
 		handlers: []Handler{},
 	}
@@ -76,7 +76,7 @@ func StoreMatcher(m *Matcher) {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
 	matcherList = append(matcherList, m)
-	sortMathcer()
+	sortMatcher()
 }
 
 // StoreTempMatcher store a matcher only triggered once.
@@ -107,8 +107,10 @@ func (m *Matcher) run(event Event) {
 			return
 		case RejectResponse:
 			StoreTempMatcher(&Matcher{
-				Type:  "message",
-				State: m.State,
+				Type:     Type("message"),
+				Block:    m.Block,
+				Priority: m.Priority,
+				State:    m.State,
 				Rules: []Rule{
 					CheckUser(event.UserID),
 				},
@@ -125,8 +127,10 @@ func (m *Matcher) Get(prompt string) string {
 	event := m.Event
 	Send(*event, prompt)
 	StoreTempMatcher(&Matcher{
-		Type:  "message",
-		State: map[string]interface{}{},
+		Priority: m.Priority,
+		Block:    m.Block,
+		Type:     Type("message"),
+		State:    map[string]interface{}{},
 		Rules: []Rule{
 			CheckUser(event.UserID),
 		},
@@ -145,6 +149,7 @@ func (m *Matcher) copy() *Matcher {
 	copy(newHandlers, m.handlers) // 复制
 	return &Matcher{
 		State:    copyState(m.State),
+		Type:     m.Type,
 		Rules:    m.Rules,
 		handlers: newHandlers,
 		Block:    m.Block,
@@ -172,9 +177,13 @@ func (m *Matcher) Handle(handler Handler) *Matcher {
 func (m *Matcher) Receive(handler Handler) *Matcher {
 	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
 		StoreTempMatcher(&Matcher{
-			Type:     "message",
+			Type:     Type("message"),
+			Priority: matcher.Priority,
+			Block:    matcher.Block,
 			State:    matcher.State,
-			Rules:    []Rule{CheckUser(event.UserID)},
+			Rules: []Rule{
+				CheckUser(event.UserID),
+			},
 			handlers: append([]Handler{handler}, m.handlers...),
 		})
 		return FinishResponse

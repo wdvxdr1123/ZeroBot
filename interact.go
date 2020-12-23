@@ -22,7 +22,6 @@ type (
 	}
 
 	Case struct {
-
 	}
 )
 
@@ -49,8 +48,8 @@ func (n *nextMessage) Handle(fn func(m message.Message)) *nextMessage {
 func (n *nextMessage) Do() {
 	ch := make(chan message.Message)
 	StoreTempMatcher(&Matcher{
+		Type:     Type("message"),
 		Block:    true,
-		Type:     "message",
 		Priority: 0,
 		Rules:    n.rule,
 		handlers: []Handler{
@@ -103,11 +102,11 @@ func Select() *selectMessage {
 	return &selectMessage{}
 }
 
-func (s *selectMessage) AddCase(cases... Case) *selectMessage {
+func (s *selectMessage) AddCase(cases ...Case) *selectMessage {
 	s.cases = append(s.cases, cases...)
 	return s
 }
 
-func (s *selectMessage) Do()  {
+func (s *selectMessage) Do() {
 	panic("impl me")
 }
