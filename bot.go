@@ -106,6 +106,7 @@ func processEvent(response []byte) {
 
 	var event Event
 	_ = json.Unmarshal(response, &event)
+	event.RawEvent = response
 	switch event.PostType { // process DetailType
 	case "message":
 		event.DetailType = event.MessageType

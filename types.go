@@ -73,6 +73,7 @@ type Event struct {
 	Sender        *User               `json:"sender"`
 	NativeMessage jsoniter.RawMessage `json:"message"`
 	IsToMe        bool                `json:"-"`
+	RawEvent      []byte              `json:"-"`
 }
 
 type Message struct {
