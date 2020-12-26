@@ -5,7 +5,8 @@
     <link>http://docs.wdvxdr.top/</link>
     <description>Recent content on ZeroBot Document</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language><atom:link href="http://docs.wdvxdr.top/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 26 Dec 2020 12:57:28 +0800</lastBuildDate><atom:link href="http://docs.wdvxdr.top/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>快速安装</title>
       <link>http://docs.wdvxdr.top/start/install/</link>
@@ -17,6 +18,17 @@
 使用下面指令下载源码
 go get github.com/wdvxdr1123/ZeroBot 然后你就可以在项目中导入ZeroBot了!
 import &amp;#34;github.com/wdvxdr1123/ZeroBot&amp;#34; </description>
+    </item>
+    
+    <item>
+      <title>First</title>
+      <link>http://docs.wdvxdr.top/start/quick_start/</link>
+      <pubDate>Sat, 26 Dec 2020 12:57:28 +0800</pubDate>
+      
+      <guid>http://docs.wdvxdr.top/start/quick_start/</guid>
+      <description>开始使用 #  最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
+func main() { zero.Run(zero.Option{ Host: &amp;#34;127.0.0.1&amp;#34;, // cqhttp的ip地址  Port: &amp;#34;6700&amp;#34;, // cqhttp的端口  AccessToken: &amp;#34;&amp;#34;, NickName: []string{&amp;#34;机器人的昵称&amp;#34;}, CommandPrefix: &amp;#34;/&amp;#34;, // 指令前缀  SuperUsers: []string{&amp;#34;123456&amp;#34;}, // 超级用户账号 一般填你自己的QQ号  }) select {} // 阻塞主goroutine, 防止退出程序  // 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞  /* c := make(chan os.Signal, 1) signal.Notify(c, os.Interrupt, os.Kill) &amp;lt;-c Release() // 释放资源 */ } 设置日志输出 #  在 ZeroBot 中使用了sirupsen/logrus来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板， 如果想偷懒，这里给出一个简单的模板
+import ( log &amp;#34;github.</description>
     </item>
     
   </channel>

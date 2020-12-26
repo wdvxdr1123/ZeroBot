@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.79.1" />
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="开始使用 #  最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
+func main() { zero.Run(zero.Option{ Host: &#34;127.0.0.1&#34;, // cqhttp的ip地址  Port: &#34;6700&#34;, // cqhttp的端口  AccessToken: &#34;&#34;, NickName: []string{&#34;机器人的昵称&#34;}, CommandPrefix: &#34;/&#34;, // 指令前缀  SuperUsers: []string{&#34;123456&#34;}, // 超级用户账号 一般填你自己的QQ号  }) select {} // 阻塞主goroutine, 防止退出程序  // 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞  /* c := make(chan os.Signal, 1) signal.Notify(c, os.Interrupt, os.Kill) &lt;-c Release() // 释放资源 */ } 设置日志输出 #  在 ZeroBot 中使用了sirupsen/logrus来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板， 如果想偷懒，这里给出一个简单的模板
+import ( log &#34;github.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="First" />
+<meta property="og:description" content="开始使用 #  最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
+func main() { zero.Run(zero.Option{ Host: &#34;127.0.0.1&#34;, // cqhttp的ip地址  Port: &#34;6700&#34;, // cqhttp的端口  AccessToken: &#34;&#34;, NickName: []string{&#34;机器人的昵称&#34;}, CommandPrefix: &#34;/&#34;, // 指令前缀  SuperUsers: []string{&#34;123456&#34;}, // 超级用户账号 一般填你自己的QQ号  }) select {} // 阻塞主goroutine, 防止退出程序  // 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞  /* c := make(chan os.Signal, 1) signal.Notify(c, os.Interrupt, os.Kill) &lt;-c Release() // 释放资源 */ } 设置日志输出 #  在 ZeroBot 中使用了sirupsen/logrus来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板， 如果想偷懒，这里给出一个简单的模板
+import ( log &#34;github." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://docs.wdvxdr.top/start/quick_start/" />
+<meta property="article:published_time" content="2020-12-26T12:57:28+08:00" />
+<meta property="article:modified_time" content="2020-12-26T12:57:28+08:00" />
+<title>First | ZeroBot Document</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.134b70e5316650a530cb42e4e8630b2a01d532bebfc0337028211175336e4806.css" integrity="sha256-E0tw5TFmUKUwy0Lk6GMLKgHVMr6/wDNwKCERdTNuSAY=">
+<script defer src="/en.search.min.80e5c4051d8815b58a6b1320e6cafcda841b546f4b0f575c87752a7b7eff0e11.js" integrity="sha256-gOXEBR2IFbWKaxMg5sr82oQbVG9LD1dch3Uqe37/DhE="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>ZeroBot Document</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li><a href="/start/">开始</a>
+<ul>
+<li><a href="/start/install/">安装</a></li>
+<li><a href="/start/quick_start/"class=active>开始使用</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>First</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#开始使用">开始使用</a></li>
+    <li><a href="#最小化实例">最小化实例</a></li>
+    <li><a href="#设置日志输出">设置日志输出</a></li>
+    <li><a href="#添加一个插件">添加一个插件</a></li>
+    <li><a href="#编写一个插件">编写一个插件</a>
+      <ul>
+        <li><a href="#编写一个复读插件">编写一个复读插件</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="开始使用">
+  开始使用
+  <a class="anchor" href="#%e5%bc%80%e5%a7%8b%e4%bd%bf%e7%94%a8">#</a>
+</h2>
+<h2 id="最小化实例">
+  最小化实例
+  <a class="anchor" href="#%e6%9c%80%e5%b0%8f%e5%8c%96%e5%ae%9e%e4%be%8b">#</a>
+</h2>
+<p>创建一个新项目，启动Bot只需要main中使用下面代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Option</span>{
+        <span style="color:#a6e22e">Host</span>:          <span style="color:#e6db74">&#34;127.0.0.1&#34;</span>, <span style="color:#75715e">// cqhttp的ip地址
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Port</span>:          <span style="color:#e6db74">&#34;6700&#34;</span>, <span style="color:#75715e">// cqhttp的端口
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">AccessToken</span>:   <span style="color:#e6db74">&#34;&#34;</span>,
+        <span style="color:#a6e22e">NickName</span>:      []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;机器人的昵称&#34;</span>},
+        <span style="color:#a6e22e">CommandPrefix</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#75715e">// 指令前缀
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">SuperUsers</span>:    []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;123456&#34;</span>}, <span style="color:#75715e">// 超级用户账号 一般填你自己的QQ号
+</span><span style="color:#75715e"></span>    })
+    <span style="color:#66d9ef">select</span> {} <span style="color:#75715e">// 阻塞主goroutine, 防止退出程序
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">/*
+</span><span style="color:#75715e">    c := make(chan os.Signal, 1)
+</span><span style="color:#75715e">    signal.Notify(c, os.Interrupt, os.Kill)
+</span><span style="color:#75715e">    &lt;-c
+</span><span style="color:#75715e">    Release() // 释放资源
+</span><span style="color:#75715e">    */</span>
+}
+</code></pre></div><h2 id="设置日志输出">
+  设置日志输出
+  <a class="anchor" href="#%e8%ae%be%e7%bd%ae%e6%97%a5%e5%bf%97%e8%be%93%e5%87%ba">#</a>
+</h2>
+<p>在 ZeroBot 中使用了<code>sirupsen/logrus</code>来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板，
+如果想偷懒，这里给出一个简单的模板</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">import</span> (
+    <span style="color:#a6e22e">log</span> <span style="color:#e6db74">&#34;github.com/sirupsen/logrus&#34;</span>
+    <span style="color:#a6e22e">easy</span> <span style="color:#e6db74">&#34;github.com/t-tomalak/logrus-easy-formatter&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">SetFormatter</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">easy</span>.<span style="color:#a6e22e">Formatter</span>{
+        <span style="color:#a6e22e">TimestampFormat</span>: <span style="color:#e6db74">&#34;2006-01-02 15:04:05&#34;</span>,
+        <span style="color:#a6e22e">LogFormat</span>:       <span style="color:#e6db74">&#34;[zero][%time%][%lvl%]: %msg% \n&#34;</span>,
+    })
+    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">SetLevel</span>(<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">DebugLevel</span>)
+}
+</code></pre></div><h2 id="添加一个插件">
+  添加一个插件
+  <a class="anchor" href="#%e6%b7%bb%e5%8a%a0%e4%b8%80%e4%b8%aa%e6%8f%92%e4%bb%b6">#</a>
+</h2>
+<p>得益于 GO111MODULE 和 <code>init</code> 函数，在ZeroBot里添加一个插件十分简单，如果想要添加<code>example</code>代码中的插件，只需要</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">import</span> <span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;github.com/wdvxdr1123/ZeroBot/example/music&#34;</span>
+</code></pre></div><p>添加这个导入后即可为你的机器人添加点歌插件</p>
+<h2 id="编写一个插件">
+  编写一个插件
+  <a class="anchor" href="#%e7%bc%96%e5%86%99%e4%b8%80%e4%b8%aa%e6%8f%92%e4%bb%b6">#</a>
+</h2>
+<p>在 ZeroBot 中，插件是以接口的形式实现的</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// IPlugin is the plugin of the ZeroBot
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IPlugin</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#75715e">// 获取插件信息
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">GetPluginInfo</span>() <span style="color:#a6e22e">PluginInfo</span>
+    <span style="color:#75715e">// 开启工作
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Start</span>()
+}
+</code></pre></div><p>编写一个插件你需要新建一个文件夹，然后自定义一个类型，为它实现<code>IPlugin</code>接口,
+并在<code>init</code>函数中，注册该插件,例如</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">package</span> <span style="color:#a6e22e">test</span>
+
+<span style="color:#f92672">import</span> (
+    <span style="color:#e6db74">&#34;github.com/wdvxdr1123/ZeroBot&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+    <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">RegisterPlugin</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">testPlugin</span>{}) <span style="color:#75715e">// 注册插件
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">testPlugin</span> <span style="color:#66d9ef">struct</span>{}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">_</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testPlugin</span>) <span style="color:#a6e22e">GetPluginInfo</span>() <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">PluginInfo</span> { <span style="color:#75715e">// 返回插件信息
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">PluginInfo</span>{       <span style="color:#75715e">// 插件信息本身没什么用，但是可以方便别人了解你写的插件
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Author</span>:     <span style="color:#e6db74">&#34;wdvxdr1123&#34;</span>, <span style="color:#75715e">// 作者
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">PluginName</span>: <span style="color:#e6db74">&#34;test&#34;</span>,       <span style="color:#75715e">// 插件名 
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Version</span>:    <span style="color:#e6db74">&#34;0.1.0&#34;</span>,      <span style="color:#75715e">// 版本
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Details</span>:    <span style="color:#e6db74">&#34;这是一个测试插件&#34;</span>, <span style="color:#75715e">// 插件信息
+</span><span style="color:#75715e"></span>    }
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">_</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testPlugin</span>) <span style="color:#a6e22e">Start</span>() { <span style="color:#75715e">// 插件主体
+</span><span style="color:#75715e"></span>    panic(<span style="color:#e6db74">&#34;impl me&#34;</span>)
+}
+</code></pre></div><h3 id="编写一个复读插件">
+  编写一个复读插件
+  <a class="anchor" href="#%e7%bc%96%e5%86%99%e4%b8%80%e4%b8%aa%e5%a4%8d%e8%af%bb%e6%8f%92%e4%bb%b6">#</a>
+</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">_</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testPlugin</span>) <span style="color:#a6e22e">Start</span>() { <span style="color:#75715e">// 插件主体
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">OnCommand</span>(<span style="color:#e6db74">&#34;echo&#34;</span>).<span style="color:#a6e22e">Handle</span>(<span style="color:#a6e22e">handleEcho</span>) <span style="color:#75715e">// 注册一个叫echo的指令，逻辑处理函数为 handleEcho
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">handleEcho</span>(<span style="color:#a6e22e">_</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Matcher</span>, <span style="color:#a6e22e">event</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Event</span>, <span style="color:#a6e22e">state</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">State</span>) <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Response</span> {
+    <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Send</span>(<span style="color:#a6e22e">event</span>, <span style="color:#a6e22e">state</span>[<span style="color:#e6db74">&#34;args&#34;</span>]) <span style="color:#75715e">// 发送echo的参数
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">FinishResponse</span> <span style="color:#75715e">// 所有处理已完毕，返回Finish
+</span><span style="color:#75715e"></span>}
+</code></pre></div></article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#开始使用">开始使用</a></li>
+    <li><a href="#最小化实例">最小化实例</a></li>
+    <li><a href="#设置日志输出">设置日志输出</a></li>
+    <li><a href="#添加一个插件">添加一个插件</a></li>
+    <li><a href="#编写一个插件">编写一个插件</a>
+      <ul>
+        <li><a href="#编写一个复读插件">编写一个复读插件</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
