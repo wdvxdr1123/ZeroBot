@@ -5,12 +5,12 @@ import (
 )
 
 func init() {
-	zero.RegisterPlugin(&testPlugin{}) // 注册插件
+	zero.RegisterPlugin(testPlugin{}) // 注册插件
 }
 
 type testPlugin struct{}
 
-func (_ *testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
+func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 	return zero.PluginInfo{
 		Author:     "wdvxdr1123",
 		PluginName: "test",
@@ -19,7 +19,7 @@ func (_ *testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 	}
 }
 
-func (_ *testPlugin) Start() { // 插件主体
+func (_ testPlugin) Start() { // 插件主体
 	zero.OnPrefixGroup([]string{"复读", "fudu"}, zero.OnlyToMe).
 		Got(
 			"echo",
