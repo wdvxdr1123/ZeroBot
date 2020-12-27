@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 type bot struct {
@@ -95,11 +94,11 @@ func handleResponse(response []byte) {
 		}
 	} else {
 		log.Debug("接收到事件: ", string(response))
-		go processEvent(response)
+		go processEvent(response, rsp)
 	}
 }
 
-func processEvent(response []byte) {
+func processEvent(response []byte, parsedResponse gjson.Result) {
 	defer func() {
 		if pa := recover(); pa != nil {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
@@ -108,7 +107,7 @@ func processEvent(response []byte) {
 
 	var event Event
 	_ = json.Unmarshal(response, &event)
-	event.RawEvent = gjson.Parse(helper.BytesToString(response))
+	event.RawEvent = parsedResponse
 	switch event.PostType { // process DetailType
 	case "message":
 		event.DetailType = event.MessageType
