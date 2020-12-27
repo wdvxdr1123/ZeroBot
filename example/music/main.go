@@ -2,6 +2,7 @@ package music
 
 import (
 	zero "github.com/wdvxdr1123/ZeroBot"
+	. "github.com/wdvxdr1123/ZeroBot/extension"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
@@ -52,7 +53,7 @@ func (m music) Start() {
 				if songName, ok := state["args"].(string); ok {
 					if songName == "" {
 						zero.Send(event, "请输入要点的歌曲!")
-						zero.ForMessage().Rule(zero.CheckUser(event.UserID)).Handle(
+						ForMessage().Rule(zero.CheckUser(event.UserID)).Handle(
 							func(m message.Message) Response {
 								msg := ""
 								for _, val := range m {

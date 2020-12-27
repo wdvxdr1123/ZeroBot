@@ -3,14 +3,15 @@ package zero
 import (
 	"errors"
 	"fmt"
-	"github.com/gorilla/websocket"
-	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
-	"github.com/wdvxdr1123/ZeroBot/message"
 	"runtime/debug"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 type bot struct {
@@ -106,7 +107,7 @@ func processEvent(response []byte) {
 
 	var event Event
 	_ = json.Unmarshal(response, &event)
-	event.RawEvent = response
+	_ = json.Unmarshal(response, event.RawEvent)
 	switch event.PostType { // process DetailType
 	case "message":
 		event.DetailType = event.MessageType

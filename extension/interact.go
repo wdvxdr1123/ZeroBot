@@ -1,39 +1,41 @@
-package zero
+package extension
 
 import (
-	"github.com/wdvxdr1123/ZeroBot/message"
 	"sync"
 	"sync/atomic"
+
+	"github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 type (
 	nextMessage struct {
-		rule []Rule
+		rule []zero.Rule
 		fn   func(m message.Message)
 	}
 
 	forMessage struct {
-		rule []Rule
-		fn   func(m message.Message) Response
+		rule []zero.Rule
+		fn   func(m message.Message) zero.Response
 	}
 
 	selectMessage struct {
-		cases []Case
+		cases []messageCase
 	}
 
-	Case struct {
+	messageCase struct {
 	}
 )
 
 // NextMessage is a basic interact method.
 func NextMessage() *nextMessage {
 	return &nextMessage{
-		rule: []Rule{},
+		rule: []zero.Rule{},
 	}
 }
 
 // Rule is the next message trigger condition.
-func (n *nextMessage) Rule(rule ...Rule) *nextMessage {
+func (n *nextMessage) Rule(rule ...zero.Rule) *nextMessage {
 	n.rule = append(n.rule, rule...)
 	return n
 }
@@ -47,15 +49,15 @@ func (n *nextMessage) Handle(fn func(m message.Message)) *nextMessage {
 // Do start wait next message.
 func (n *nextMessage) Do() {
 	ch := make(chan message.Message)
-	StoreTempMatcher(&Matcher{
-		Type:     Type("message"),
+	zero.StoreTempMatcher(&zero.Matcher{
+		Type:     zero.Type("message"),
 		Block:    true,
 		Priority: 0,
 		Rules:    n.rule,
-		handlers: []Handler{
-			func(_ *Matcher, e Event, _ State) Response {
+		Handlers: []zero.Handler{
+			func(_ *zero.Matcher, e zero.Event, _ zero.State) zero.Response {
 				ch <- e.Message
-				return FinishResponse
+				return zero.FinishResponse
 			},
 		},
 	})
@@ -68,13 +70,13 @@ func ForMessage() *forMessage {
 }
 
 // Rule is the next message trigger condition.
-func (n *forMessage) Rule(rule ...Rule) *forMessage {
+func (n *forMessage) Rule(rule ...zero.Rule) *forMessage {
 	n.rule = append(n.rule, rule...)
 	return n
 }
 
 // Handle is the logic of handle next message.
-func (n *forMessage) Handle(fn func(m message.Message) Response) *forMessage {
+func (n *forMessage) Handle(fn func(m message.Message) zero.Response) *forMessage {
 	n.fn = fn
 	return n
 }
@@ -84,7 +86,7 @@ func (n *forMessage) Do() {
 	cond := sync.NewCond(&sync.Mutex{})
 	var state uint32 = 0
 	waitNextMessage := NextMessage().Rule(n.rule...).Handle(func(m message.Message) {
-		if n.fn(m) == FinishResponse {
+		if n.fn(m) == zero.FinishResponse {
 			atomic.StoreUint32(&state, 1)
 		}
 		cond.Signal()
@@ -102,7 +104,7 @@ func Select() *selectMessage {
 	return &selectMessage{}
 }
 
-func (s *selectMessage) AddCase(cases ...Case) *selectMessage {
+func (s *selectMessage) AddCase(cases ...messageCase) *selectMessage {
 	s.cases = append(s.cases, cases...)
 	return s
 }

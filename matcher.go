@@ -25,7 +25,7 @@ type Matcher struct {
 	Event    *Event
 	Type     Rule
 	Rules    []Rule
-	handlers []Handler
+	Handlers []Handler
 }
 
 var (
@@ -65,7 +65,7 @@ func On(type_ string, rules ...Rule) *Matcher {
 		State:    map[string]interface{}{},
 		Type:     Type(type_),
 		Rules:    rules,
-		handlers: []Handler{},
+		Handlers: []Handler{},
 	}
 	StoreMatcher(matcher)
 	return matcher
@@ -98,8 +98,8 @@ func (m *Matcher) Delete() {
 
 func (m *Matcher) run(event Event) {
 	m.Event = &event
-	for _, handler := range m.handlers {
-		m.handlers = m.handlers[1:] // delete the handling handler
+	for _, handler := range m.Handlers {
+		m.Handlers = m.Handlers[1:] // delete the handling handler
 		switch handler(m, event, m.State) {
 		case SuccessResponse:
 			continue
@@ -114,7 +114,7 @@ func (m *Matcher) run(event Event) {
 				Rules: []Rule{
 					CheckUser(event.UserID),
 				},
-				handlers: append([]Handler{handler}, m.handlers...),
+				Handlers: append([]Handler{handler}, m.Handlers...),
 			})
 			return
 		}
@@ -134,7 +134,7 @@ func (m *Matcher) Get(prompt string) string {
 		Rules: []Rule{
 			CheckUser(event.UserID),
 		},
-		handlers: []Handler{
+		Handlers: []Handler{
 			func(_ *Matcher, ev Event, _ State) Response {
 				ch <- ev.RawMessage
 				return SuccessResponse
@@ -145,13 +145,13 @@ func (m *Matcher) Get(prompt string) string {
 }
 
 func (m *Matcher) copy() *Matcher {
-	newHandlers := make([]Handler, len(m.handlers))
-	copy(newHandlers, m.handlers) // 复制
+	newHandlers := make([]Handler, len(m.Handlers))
+	copy(newHandlers, m.Handlers) // 复制
 	return &Matcher{
 		State:    copyState(m.State),
 		Type:     m.Type,
 		Rules:    m.Rules,
-		handlers: newHandlers,
+		Handlers: newHandlers,
 		Block:    m.Block,
 		Priority: m.Priority,
 		Temp:     m.Temp,
@@ -169,13 +169,13 @@ func copyState(src State) State {
 
 // Handle 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
-	m.handlers = append(m.handlers, handler)
+	m.Handlers = append(m.Handlers, handler)
 	return m
 }
 
 // Receive 接收一条消息后处理事件
 func (m *Matcher) Receive(handler Handler) *Matcher {
-	m.handlers = append(m.handlers, func(matcher *Matcher, event Event, state State) Response {
+	m.Handlers = append(m.Handlers, func(matcher *Matcher, event Event, state State) Response {
 		StoreTempMatcher(&Matcher{
 			Type:     Type("message"),
 			Priority: matcher.Priority,
@@ -184,7 +184,7 @@ func (m *Matcher) Receive(handler Handler) *Matcher {
 			Rules: []Rule{
 				CheckUser(event.UserID),
 			},
-			handlers: append([]Handler{handler}, m.handlers...),
+			Handlers: append([]Handler{handler}, m.Handlers...),
 		})
 		return FinishResponse
 	})
@@ -193,8 +193,8 @@ func (m *Matcher) Receive(handler Handler) *Matcher {
 
 // Got 判断State是否含有"name"键，若无则向用户索取
 func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
-	m.handlers = append(
-		m.handlers,
+	m.Handlers = append(
+		m.Handlers,
 		// Got Handler
 		func(matcher *Matcher, event Event, state State) Response {
 			if _, ok := state[key]; !ok {

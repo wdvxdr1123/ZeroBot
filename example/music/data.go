@@ -1,14 +1,11 @@
 package music
 
 import (
-	jsoniter "github.com/json-iterator/go"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func QueryNeteaseMusic(musicName string) string {
 	client := http.Client{}
