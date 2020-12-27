@@ -185,7 +185,7 @@ func SetGroupSpecialTitle(groupId int64, userId int64, specialTitle string) {
 
 // SetFriendAddRequest 处理加好友请求
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_friend_add_request-%E5%A4%84%E7%90%86%E5%8A%A0%E5%A5%BD%E5%8F%8B%E8%AF%B7%E6%B1%82
-func SetFriendAddRequest(flag string, approve string, remark string) {
+func SetFriendAddRequest(flag string, approve bool, remark string) {
 	CallAction("set_friend_add_request", Params{
 		"flag":    flag,
 		"approve": approve,
@@ -195,7 +195,7 @@ func SetFriendAddRequest(flag string, approve string, remark string) {
 
 // SetGroupAddRequest 处理加群请求／邀请
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_add_request-%E5%A4%84%E7%90%86%E5%8A%A0%E7%BE%A4%E8%AF%B7%E6%B1%82%E9%82%80%E8%AF%B7
-func SetGroupAddRequest(flag string, subType string, approve string, reason string) {
+func SetGroupAddRequest(flag string, subType string, approve bool, reason string) {
 	CallAction("set_group_add_request", Params{
 		"flag":     flag,
 		"sub_type": subType,
@@ -307,7 +307,7 @@ func SetGroupPortrait(groupID int64, file string) {
 // OCRImage 图片OCR
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E5%9B%BE%E7%89%87ocr
 func OCRImage(file string) gjson.Result {
-	return CallAction(".ocr_image", Params{
+	return CallAction("ocr_image", Params{
 		"file": file,
 	})
 }

@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 type bot struct {
@@ -107,7 +108,7 @@ func processEvent(response []byte) {
 
 	var event Event
 	_ = json.Unmarshal(response, &event)
-	_ = json.Unmarshal(response, event.RawEvent)
+	event.RawEvent = gjson.Parse(helper.BytesToString(response))
 	switch event.PostType { // process DetailType
 	case "message":
 		event.DetailType = event.MessageType
