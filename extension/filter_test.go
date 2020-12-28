@@ -1,6 +1,8 @@
 package extension
 
 import (
+	"encoding/json"
+	"github.com/tidwall/gjson"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,20 +10,26 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	event := zero.Event{
-		PostType:    "message",
-		DetailType:  "group",
-		MessageType: "group",
-		SubType:     "abc",
+	e := map[string]interface{}{
+		"post_type": "notice",
+		"user_id":   "notice",
 	}
-
+	b, _ := json.Marshal(e)
+	rawEvent := gjson.ParseBytes(b)
+	event := &zero.Event{
+		RawEvent: rawEvent,
+	}
 	result := Filter(
-		Or(
-			PostType("notice"),
-			PostType("message"),
+		Field("post_type").Select(
+			Equal("notice"),
+			Not(
+				In("message"),
+			),
 		),
-		SubType("abc"),
-	)(&event, nil)
+		Field("user_id").Match(
+			NotEqual("abs"),
+		),
+	)(event, nil)
 
 	assert.Equal(t, true, result)
 }

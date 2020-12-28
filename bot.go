@@ -104,7 +104,6 @@ func processEvent(response []byte, parsedResponse gjson.Result) {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
 		}
 	}()
-
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = parsedResponse
