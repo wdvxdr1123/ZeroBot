@@ -50,7 +50,7 @@ func (m *Matcher) SetBlock(block bool) *Matcher {
 	return m
 }
 
-// SetBlock 设置当前 Matcher 优先级
+// SetPriority 设置当前 Matcher 优先级
 func (m *Matcher) SetPriority(priority int) *Matcher {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
@@ -206,7 +206,7 @@ func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
 	return m
 }
 
-// 消息触发器
+// OnMessage 消息触发器
 func OnMessage(rules ...Rule) *Matcher {
 	return On("message", rules...)
 }
