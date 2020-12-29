@@ -26,7 +26,7 @@ func Type(type_ string) Rule {
 // PrefixRule check if the message has the prefix and trim the prefix
 func PrefixRule(prefixes ...string) Rule {
 	return func(event *Event, state State) bool {
-		if event.Message == nil && event.Message[0].Type != "text" { // 确保无空指针
+		if event.Message == nil || event.Message[0].Type != "text" { // 确保无空指针
 			return false
 		}
 		first := event.Message[0]
@@ -34,7 +34,7 @@ func PrefixRule(prefixes ...string) Rule {
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(firstMessage, prefix) {
 				state["prefix"] = prefix
-				state["args"] = strings.TrimLeft(strings.TrimPrefix(firstMessage, prefix), " ")
+				state["args"] = strings.TrimLeft(firstMessage[len(prefix):], " ")
 				return true
 			}
 		}
@@ -56,7 +56,7 @@ func SuffixRule(suffixes ...string) Rule {
 		for _, suffix := range suffixes {
 			if strings.HasSuffix(lastMessage, suffix) {
 				state["suffix"] = suffix
-				state["args"] = strings.TrimLeft(strings.TrimPrefix(lastMessage, suffix), " ")
+				state["args"] = strings.TrimRight(lastMessage[:len(lastMessage)-len(suffix)], " ")
 				return true
 			}
 		}
@@ -67,15 +67,15 @@ func SuffixRule(suffixes ...string) Rule {
 // CommandRule check if the message is a command and trim the command name
 func CommandRule(commands ...string) Rule {
 	return func(event *Event, state State) bool {
-		if event.Message == nil && event.Message[0].Type != "text" {
+		if event.Message == nil || event.Message[0].Type != "text" {
 			return false
 		}
 		first := event.Message[0]
 		firstMessage := first.Data["text"]
-		cmdMessage := strings.TrimPrefix(firstMessage, zeroBot.commandPrefix)
-		if cmdMessage == firstMessage {
+		if !strings.HasPrefix(firstMessage, zeroBot.commandPrefix) {
 			return false
 		}
+		cmdMessage := firstMessage[len(zeroBot.commandPrefix):]
 		for _, command := range commands {
 			if strings.HasPrefix(cmdMessage, command) {
 				state["command"] = command
@@ -129,7 +129,7 @@ func FullMatchRule(src ...string) Rule {
 
 // OnlyToMe only triggered in conditions of @bot or begin with the nicknames
 func OnlyToMe(event *Event, _ State) bool {
-	return event.IsToMe == true
+	return event.IsToMe
 }
 
 // CheckUser only triggered by specific person
@@ -144,12 +144,12 @@ func CheckUser(userId ...int64) Rule {
 	}
 }
 
-// OnlyPrivate requres that the event is private message
+// OnlyPrivate requires that the event is private message
 func OnlyPrivate(event *Event, _ State) bool {
 	return event.PostType == "message" && event.DetailType == "private"
 }
 
-// OnlyPrivate requres that the event is public/group message
+// OnlyGroup requires that the event is public/group message
 func OnlyGroup(event *Event, _ State) bool {
 	return event.PostType == "message" && event.DetailType == "group"
 }
