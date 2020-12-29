@@ -14,15 +14,6 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-type bot struct {
-	conn          *websocket.Conn
-	option        Option
-	id            string
-	nicknames     []string
-	commandPrefix string
-	SuperUsers    []string
-}
-
 type Option struct {
 	Host          string   `json:"host"`
 	Port          string   `json:"port"`
@@ -33,27 +24,25 @@ type Option struct {
 }
 
 var (
-	zeroBot bot
-	seq     uint64 = 0
-	seqMap         = seqSyncMap{}
-	sending        = make(chan []byte)
+	option        Option
+	selfID        string
+	websocketConn *websocket.Conn
+	seq           uint64 = 0
+	seqMap               = seqSyncMap{}
+	sending              = make(chan []byte)
 )
 
 func init() {
 	pluginPool = []IPlugin{} // 初始化
-	zeroBot.nicknames = []string{}
 }
 
-func Run(option Option) {
+func Run(op Option) {
 	for _, plugin := range pluginPool {
 		plugin.Start() // 加载插件
 	}
-	zeroBot.option = option
-	zeroBot.nicknames = option.NickName
-	zeroBot.commandPrefix = option.CommandPrefix
-	zeroBot.SuperUsers = option.SuperUsers
-	zeroBot.conn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
-	zeroBot.id = GetLoginInfo().Get("user_id").String()
+	option = op
+	websocketConn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
+	selfID = GetLoginInfo().Get("user_id").String()
 }
 
 // send message to server and return the response from server.
@@ -149,7 +138,7 @@ func preprocessMessageEvent(e *Event) {
 		e.IsToMe = false
 		for i, m := range e.Message {
 			if m.Type == "at" {
-				if m.Data["qq"] == zeroBot.id {
+				if m.Data["qq"] == selfID {
 					e.IsToMe = true
 					e.Message = append(e.Message[:i], e.Message[i+1:]...)
 					return
@@ -161,7 +150,7 @@ func preprocessMessageEvent(e *Event) {
 		}
 		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
 		text := e.Message[0].Data["text"]
-		for _, nickname := range zeroBot.nicknames {
+		for _, nickname := range option.NickName {
 			if strings.HasPrefix(text, nickname) {
 				e.IsToMe = true
 				e.Message[0].Data["text"] = text[len(nickname):]
@@ -177,6 +166,6 @@ func (m *Message) Delete() {
 	DeleteMessage(m.MessageId)
 }
 
-func getSeq() uint64 {
+func nextSeq() uint64 {
 	return atomic.AddUint64(&seq, 1)
 }

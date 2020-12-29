@@ -30,6 +30,5 @@ func TestFilter(t *testing.T) {
 			NotEqual("abs"),
 		),
 	)(event, nil)
-
 	assert.Equal(t, true, result)
 }

@@ -14,7 +14,7 @@ func CallAction(action string, params Params) gjson.Result {
 	req := WebSocketRequest{
 		Action: action,
 		Params: params,
-		Echo:   getSeq(),
+		Echo:   nextSeq(),
 	}
 	rsp, err := sendAndWait(req)
 	if err == nil {

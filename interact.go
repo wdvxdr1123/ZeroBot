@@ -1,22 +1,24 @@
-package extension
+package zero
 
 import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 type (
 	nextMessage struct {
-		rule []zero.Rule
-		fn   func(m message.Message)
+		matcher *Matcher
+		rule    []Rule
+		fn      func(m message.Message)
 	}
 
 	forMessage struct {
-		rule []zero.Rule
-		fn   func(m message.Message) zero.Response
+		matcher *Matcher
+		next    *nextMessage
+		rule    []Rule
+		fn      func(m message.Message) Response
 	}
 
 	selectMessage struct {
@@ -28,14 +30,15 @@ type (
 )
 
 // NextMessage is a basic interact method.
-func NextMessage() *nextMessage {
+func (m *Matcher) NextMessage() *nextMessage {
 	return &nextMessage{
-		rule: []zero.Rule{},
+		rule:    []Rule{},
+		matcher: m,
 	}
 }
 
 // Rule is the next message trigger condition.
-func (n *nextMessage) Rule(rule ...zero.Rule) *nextMessage {
+func (n *nextMessage) Rule(rule ...Rule) *nextMessage {
 	n.rule = append(n.rule, rule...)
 	return n
 }
@@ -49,34 +52,34 @@ func (n *nextMessage) Handle(fn func(m message.Message)) *nextMessage {
 // Do start wait next message.
 func (n *nextMessage) Do() {
 	ch := make(chan message.Message)
-	zero.StoreTempMatcher(&zero.Matcher{
-		Type:     zero.Type("message"),
-		Block:    true,
-		Priority: 0,
+	StoreTempMatcher(&Matcher{
+		Type:     Type("message"),
+		Block:    n.matcher.Block,
+		Priority: n.matcher.Priority,
 		Rules:    n.rule,
-		Handlers: []zero.Handler{
-			func(_ *zero.Matcher, e zero.Event, _ zero.State) zero.Response {
-				ch <- e.Message
-				return zero.FinishResponse
-			},
+		Handler: func(_ *Matcher, e Event, _ State) Response {
+			ch <- e.Message
+			return FinishResponse
 		},
 	})
 	n.fn(<-ch)
 }
 
 // ForMessage is a loop of NextMessage
-func ForMessage() *forMessage {
-	return &forMessage{}
+func (m *Matcher) ForMessage() *forMessage {
+	return &forMessage{
+		next: m.NextMessage(),
+	}
 }
 
 // Rule is the next message trigger condition.
-func (n *forMessage) Rule(rule ...zero.Rule) *forMessage {
-	n.rule = append(n.rule, rule...)
+func (n *forMessage) Rule(rule ...Rule) *forMessage {
+	n.next.Rule(rule...)
 	return n
 }
 
 // Handle is the logic of handle next message.
-func (n *forMessage) Handle(fn func(m message.Message) zero.Response) *forMessage {
+func (n *forMessage) Handle(fn func(m message.Message) Response) *forMessage {
 	n.fn = fn
 	return n
 }
@@ -85,8 +88,8 @@ func (n *forMessage) Handle(fn func(m message.Message) zero.Response) *forMessag
 func (n *forMessage) Do() {
 	cond := sync.NewCond(&sync.Mutex{})
 	var state uint32 = 0
-	waitNextMessage := NextMessage().Rule(n.rule...).Handle(func(m message.Message) {
-		if n.fn(m) == zero.FinishResponse {
+	waitNextMessage := n.next.Handle(func(m message.Message) {
+		if n.fn(m) == FinishResponse {
 			atomic.StoreUint32(&state, 1)
 		}
 		cond.Signal()
@@ -100,7 +103,7 @@ func (n *forMessage) Do() {
 }
 
 // Select
-func Select() *selectMessage {
+func (m *Matcher) Select() *selectMessage {
 	return &selectMessage{}
 }
 

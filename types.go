@@ -1,10 +1,11 @@
 package zero
 
 import (
+	"strconv"
+
 	jsoniter "github.com/json-iterator/go"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"strconv"
 )
 
 // Modified from https://github.com/catsworld/qq-bot-api

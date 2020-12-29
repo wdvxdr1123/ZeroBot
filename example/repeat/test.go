@@ -20,15 +20,6 @@ func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 }
 
 func (_ testPlugin) Start() { // 插件主体
-	zero.OnPrefixGroup([]string{"复读", "fudu"}, zero.OnlyToMe).
-		Got(
-			"echo",
-			"请输入复读内容",
-			func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-				zero.Send(event, matcher.State["echo"])
-				return zero.FinishResponse
-			},
-		)
 
 	zero.OnCommand("echo").Handle(handleCommand)
 
@@ -45,16 +36,6 @@ func (_ testPlugin) Start() { // 插件主体
 		zero.Send(event, echo)
 		return zero.FinishResponse
 	})
-
-	zero.OnCommand("next_echo").Receive(receiveNextEcho)
-}
-
-func receiveNextEcho(_ *zero.Matcher, event zero.Event, _ zero.State) zero.Response {
-	zero.Send(event, event.Message)
-	if event.Message.CQString() == "哈哈哈" {
-		return zero.RejectResponse
-	}
-	return zero.FinishResponse
 }
 
 func handleCommand(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {

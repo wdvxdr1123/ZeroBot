@@ -25,7 +25,7 @@ type Matcher struct {
 	Event    *Event
 	Type     Rule
 	Rules    []Rule
-	Handlers []Handler
+	Handler  Handler
 }
 
 var (
@@ -62,10 +62,9 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 // On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		State:    map[string]interface{}{},
-		Type:     Type(type_),
-		Rules:    rules,
-		Handlers: []Handler{},
+		State: map[string]interface{}{},
+		Type:  Type(type_),
+		Rules: rules,
 	}
 	StoreMatcher(matcher)
 	return matcher
@@ -98,26 +97,22 @@ func (m *Matcher) Delete() {
 
 func (m *Matcher) run(event Event) {
 	m.Event = &event
-	for _, handler := range m.Handlers {
-		m.Handlers = m.Handlers[1:] // delete the handling handler
-		switch handler(m, event, m.State) {
-		case SuccessResponse:
-			continue
-		case FinishResponse:
-			return
-		case RejectResponse:
-			StoreTempMatcher(&Matcher{
-				Type:     Type("message"),
-				Block:    m.Block,
-				Priority: m.Priority,
-				State:    m.State,
-				Rules: []Rule{
-					CheckUser(event.UserID),
-				},
-				Handlers: append([]Handler{handler}, m.Handlers...),
-			})
-			return
-		}
+	if m.Handler == nil {
+		return
+	}
+	switch m.Handler(m, event, m.State) {
+	case RejectResponse:
+		StoreTempMatcher(&Matcher{
+			Type:     Type("message"),
+			Block:    m.Block,
+			Priority: m.Priority,
+			State:    m.State,
+			Rules: []Rule{
+				CheckUser(event.UserID),
+			},
+			Handler: m.Handler,
+		})
+		return
 	}
 }
 
@@ -134,26 +129,22 @@ func (m *Matcher) Get(prompt string) string {
 		Rules: []Rule{
 			CheckUser(event.UserID),
 		},
-		Handlers: []Handler{
-			func(_ *Matcher, ev Event, _ State) Response {
-				ch <- ev.RawMessage
-				return SuccessResponse
-			},
+		Handler: func(_ *Matcher, ev Event, _ State) Response {
+			ch <- ev.RawMessage
+			return SuccessResponse
 		},
 	})
 	return <-ch
 }
 
 func (m *Matcher) copy() *Matcher {
-	newHandlers := make([]Handler, len(m.Handlers))
-	copy(newHandlers, m.Handlers) // 复制
 	return &Matcher{
 		State:    copyState(m.State),
 		Type:     m.Type,
 		Rules:    m.Rules,
-		Handlers: newHandlers,
 		Block:    m.Block,
 		Priority: m.Priority,
+		Handler:  m.Handler,
 		Temp:     m.Temp,
 	}
 }
@@ -169,40 +160,7 @@ func copyState(src State) State {
 
 // Handle 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
-	m.Handlers = append(m.Handlers, handler)
-	return m
-}
-
-// Receive 接收一条消息后处理事件
-func (m *Matcher) Receive(handler Handler) *Matcher {
-	m.Handlers = append(m.Handlers, func(matcher *Matcher, event Event, state State) Response {
-		StoreTempMatcher(&Matcher{
-			Type:     Type("message"),
-			Priority: matcher.Priority,
-			Block:    matcher.Block,
-			State:    matcher.State,
-			Rules: []Rule{
-				CheckUser(event.UserID),
-			},
-			Handlers: append([]Handler{handler}, m.Handlers...),
-		})
-		return FinishResponse
-	})
-	return m
-}
-
-// Got 判断State是否含有"name"键，若无则向用户索取
-func (m *Matcher) Got(key, prompt string, handler Handler) *Matcher {
-	m.Handlers = append(
-		m.Handlers,
-		// Got Handler
-		func(matcher *Matcher, event Event, state State) Response {
-			if _, ok := state[key]; !ok {
-				state[key] = matcher.Get(prompt)
-			}
-			return handler(matcher, event, matcher.State)
-		},
-	)
+	m.Handler = handler
 	return m
 }
 

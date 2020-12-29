@@ -72,10 +72,10 @@ func CommandRule(commands ...string) Rule {
 		}
 		first := event.Message[0]
 		firstMessage := first.Data["text"]
-		if !strings.HasPrefix(firstMessage, zeroBot.commandPrefix) {
+		if !strings.HasPrefix(firstMessage, option.CommandPrefix) {
 			return false
 		}
-		cmdMessage := firstMessage[len(zeroBot.commandPrefix):]
+		cmdMessage := firstMessage[len(option.CommandPrefix):]
 		for _, command := range commands {
 			if strings.HasPrefix(cmdMessage, command) {
 				state["command"] = command
@@ -157,7 +157,7 @@ func OnlyGroup(event *Event, _ State) bool {
 // SuperUserPermission only triggered by the bot's owner
 func SuperUserPermission(event *Event, _ State) bool {
 	uid := strconv.FormatInt(event.UserID, 10)
-	for _, su := range zeroBot.SuperUsers {
+	for _, su := range option.SuperUsers {
 		if su == uid {
 			return true
 		}

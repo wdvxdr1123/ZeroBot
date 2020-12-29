@@ -1,8 +1,9 @@
 package zero
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMatcher_Delete(t *testing.T) {
