@@ -145,7 +145,7 @@ func preprocessMessageEvent(e *Event) {
 				}
 			}
 		}
-		if e.Message == nil || e.Message[0].Type != "text" {
+		if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
 			return
 		}
 		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
@@ -158,6 +158,9 @@ func preprocessMessageEvent(e *Event) {
 			}
 		}
 	}()
+	if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
+		return
+	}
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
 }
 
