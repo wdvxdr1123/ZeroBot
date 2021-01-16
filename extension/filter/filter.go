@@ -1,4 +1,4 @@
-package extension
+package filter
 
 import (
 	"regexp"
@@ -58,15 +58,15 @@ func Field(str string) *field {
 	return &field{key: str}
 }
 
-// Select...
-func (f *field) Select(filter ...FilterFunc) FilterFunc {
+// Any...
+func (f *field) Any(filter ...FilterFunc) FilterFunc {
 	return func(result gjson.Result) bool {
 		return Or(filter...)(result.Get(f.key))
 	}
 }
 
-// Match...
-func (f *field) Match(filter ...FilterFunc) FilterFunc {
+// All...
+func (f *field) All(filter ...FilterFunc) FilterFunc {
 	return func(result gjson.Result) bool {
 		return And(filter...)(result.Get(f.key))
 	}

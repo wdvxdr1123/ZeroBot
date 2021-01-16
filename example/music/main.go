@@ -21,28 +21,23 @@ func (music) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 }
 
 func (m music) Start() {
-	zero.OnCommandGroup([]string{"music","点歌"}).SetBlock(true).SetPriority(8).
+	zero.OnCommandGroup([]string{"music", "点歌"}).SetBlock(true).SetPriority(8).
 		Handle(
 			func(matcher *Matcher, event Event, state State) Response {
 				if songName, ok := state["args"].(string); ok {
 					if songName == "" {
 						zero.Send(event, "请输入要点的歌曲!")
-						matcher.ForMessage().Rule(zero.CheckUser(event.UserID)).Handle(
-							func(m message.Message) Response {
-								msg := ""
-								for _, val := range m {
-									if val.Type == "text" {
-										msg += val.Data["text"]
-									}
-								}
-								if msg != "" {
-									songName = msg
-									return zero.FinishResponse
-								}
-								zero.Send(event, "歌曲名不合法oxo")
-								return zero.RejectResponse
-							},
-						).Do()
+						next := matcher.NextEvent("message", zero.CheckUser(event.UserID))
+						recv, cancel := next.Repeat()
+						for e := range recv {
+							msg := e.ExtractPlainMessage()
+							if msg != "" {
+								songName = msg
+								cancel()
+								continue
+							}
+							zero.Send(event, "歌曲名不合法oxo")
+						}
 					}
 					zero.Send(event, message.Music("163", QueryNeteaseMusic(songName)))
 					return zero.FinishResponse

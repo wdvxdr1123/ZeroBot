@@ -78,6 +78,16 @@ type Event struct {
 	RawEvent      gjson.Result        `json:"-"` // raw event is a map
 }
 
+func (e *Event) ExtractPlainMessage() string {
+	msg := ""
+	for _, val := range e.Message {
+		if val.Type == "text" {
+			msg += val.Data["text"]
+		}
+	}
+	return msg
+}
+
 type Message struct {
 	Elements    message.Message
 	MessageId   int64
@@ -122,3 +132,14 @@ func (u *User) String() string {
 	}
 	return p + u.Name()
 }
+
+type EventType uint32
+
+const (
+	MessageType uint8 = 1 << iota
+	RequestType
+	NoticeType
+	MetaType
+	GroupType
+	PrivateType
+)

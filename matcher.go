@@ -79,9 +79,10 @@ func StoreMatcher(m *Matcher) {
 }
 
 // StoreTempMatcher store a matcher only triggered once.
-func StoreTempMatcher(m *Matcher) {
+func StoreTempMatcher(m *Matcher) *Matcher {
 	m.Temp = true
 	StoreMatcher(m)
+	return m
 }
 
 // Delete remove the matcher from list

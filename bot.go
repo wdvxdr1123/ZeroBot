@@ -164,11 +164,6 @@ func preprocessMessageEvent(e *Event) {
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
 }
 
-// 快捷撤回
-func (m *Message) Delete() {
-	DeleteMessage(m.MessageId)
-}
-
 func nextSeq() uint64 {
 	return atomic.AddUint64(&seq, 1)
 }

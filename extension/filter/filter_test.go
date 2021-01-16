@@ -1,4 +1,4 @@
-package extension
+package filter
 
 import (
 	"encoding/json"
@@ -20,13 +20,13 @@ func TestFilter(t *testing.T) {
 		RawEvent: rawEvent,
 	}
 	result := Filter(
-		Field("post_type").Select(
+		Field("post_type").Any(
 			Equal("notice"),
 			Not(
 				In("message"),
 			),
 		),
-		Field("user_id").Match(
+		Field("user_id").All(
 			NotEqual("abs"),
 		),
 	)(event, nil)
