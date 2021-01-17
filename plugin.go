@@ -1,7 +1,5 @@
 package zero
 
-import log "github.com/sirupsen/logrus"
-
 // PluginInfo is the plugin's information
 type PluginInfo struct {
 	Author     string // 作者
@@ -22,13 +20,5 @@ type IPlugin interface {
 
 // RegisterPlugin register the plugin to ZeroBot
 func RegisterPlugin(plugin IPlugin) {
-	info := plugin.GetPluginInfo()
-	log.Infof(
-		"加载插件: %v [作者] %v [版本] %v [说明] %v",
-		info.PluginName,
-		info.Author,
-		info.Version,
-		info.Details,
-	)
 	pluginPool = append(pluginPool, plugin)
 }

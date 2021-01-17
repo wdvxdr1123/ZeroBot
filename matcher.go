@@ -66,16 +66,16 @@ func On(type_ string, rules ...Rule) *Matcher {
 		Type:  Type(type_),
 		Rules: rules,
 	}
-	StoreMatcher(matcher)
-	return matcher
+	return StoreMatcher(matcher)
 }
 
 // StoreMatcher store a matcher to matcher list.
-func StoreMatcher(m *Matcher) {
+func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
 	matcherList = append(matcherList, m)
 	sortMatcher()
+	return m
 }
 
 // StoreTempMatcher store a matcher only triggered once.

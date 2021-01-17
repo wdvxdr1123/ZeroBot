@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -24,12 +23,11 @@ type Option struct {
 }
 
 var (
-	option        Option
-	selfID        string
-	websocketConn *websocket.Conn
-	seq           uint64 = 0
-	seqMap               = seqSyncMap{}
-	sending              = make(chan []byte)
+	option  Option
+	selfID  string
+	seq     uint64 = 0
+	seqMap         = seqSyncMap{}
+	sending        = make(chan []byte)
 )
 
 func init() {
@@ -38,10 +36,18 @@ func init() {
 
 func Run(op Option) {
 	for _, plugin := range pluginPool {
+		info := plugin.GetPluginInfo()
+		log.Infof(
+			"加载插件: %v [作者] %v [版本] %v [说明] %v",
+			info.PluginName,
+			info.Author,
+			info.Version,
+			info.Details,
+		)
 		plugin.Start() // 加载插件
 	}
 	option = op
-	websocketConn = connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
+	connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
 	selfID = GetLoginInfo().Get("user_id").String()
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 // 连接服务器
-func connectWebsocketServer(url, token string) *websocket.Conn {
+func connectWebsocketServer(url, token string) {
 	var err error
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
 	header := http.Header{
@@ -33,7 +33,7 @@ func connectWebsocketServer(url, token string) *websocket.Conn {
 	sending = make(chan []byte)
 	go sendChannel(conn, sending)
 	log.Infof("连接Websocket服务器: %v 成功", url)
-	return conn
+	return
 }
 
 func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器上报的事件
@@ -51,7 +51,7 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 	log.Warn("Websocket服务器连接断开...")
 	time.Sleep(time.Millisecond * time.Duration(3))
 	op := option
-	websocketConn = connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port), op.AccessToken)
+	connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port), op.AccessToken)
 }
 
 func sendChannel(c *websocket.Conn, ch <-chan []byte) {

@@ -16,6 +16,7 @@ func (m *Matcher) NextEvent(eventType string, rule ...Rule) (next *nextEvent) {
 	return
 }
 
+// Recv returns a channel to receive next
 func (n *nextEvent) Recv() <-chan Event {
 	ch := make(chan Event)
 	StoreTempMatcher(&Matcher{
@@ -37,22 +38,22 @@ func (n *nextEvent) Repeat() (recv <-chan Event, cancel func()) {
 	go func() {
 		defer close(ch)
 		in := make(chan Event)
+		matcher := StoreMatcher(&Matcher{
+			Type:     Type(n.eventType),
+			Block:    n.matcher.Block,
+			Priority: n.matcher.Priority,
+			Rules:    n.rule,
+			Handler: func(_ *Matcher, e Event, _ State) Response {
+				in <- e
+				return FinishResponse
+			},
+		})
 		for {
-			temp := StoreTempMatcher(&Matcher{
-				Type:     Type(n.eventType),
-				Block:    n.matcher.Block,
-				Priority: n.matcher.Priority,
-				Rules:    n.rule,
-				Handler: func(_ *Matcher, e Event, _ State) Response {
-					in <- e
-					return FinishResponse
-				},
-			})
 			select {
 			case e := <-in:
 				ch <- e
 			case <-done:
-				temp.Delete()
+				matcher.Delete()
 				close(in)
 				return
 			}

@@ -93,3 +93,14 @@ func (m Message) CQString() string {
 	}
 	return str
 }
+
+// ExtractPlainText 提取消息中的纯文本
+func (m Message) ExtractPlainText() string {
+	msg := ""
+	for _, val := range m {
+		if val.Type == "text" {
+			msg += val.Data["text"]
+		}
+	}
+	return msg
+}
