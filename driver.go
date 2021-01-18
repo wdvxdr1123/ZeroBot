@@ -15,7 +15,7 @@ func connectWebsocketServer(url, token string) {
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
-		"User-Agent":    []string{"ZeroBot/0.1.1"},
+		"User-Agent":    []string{"ZeroBot/0.2.0"},
 	}
 	if token != "" {
 		header["Authorization"] = []string{"Bear " + token}

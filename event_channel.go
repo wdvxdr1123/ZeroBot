@@ -1,29 +1,43 @@
 package zero
 
-type nextEvent struct {
-	eventType string
-	matcher   *Matcher
-	rule      []Rule
+// FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件
+type FutureEvent struct {
+	Type     string
+	Priority int
+	Rule     []Rule
+	Block    bool
 }
 
-//NextEvent
-func (m *Matcher) NextEvent(eventType string, rule ...Rule) (next *nextEvent) {
-	next = &nextEvent{
-		eventType: eventType,
-		matcher:   m,
-		rule:      rule,
+// NewFutureEvent 创建一个FutureEvent, 并返回其指针
+func NewFutureEvent(Type string, Priority int, Block bool, rule ...Rule) *FutureEvent {
+	return &FutureEvent{
+		Type:     Type,
+		Priority: Priority,
+		Rule:     rule,
+		Block:    Block,
 	}
-	return
 }
 
-// Recv returns a channel to receive next
-func (n *nextEvent) Recv() <-chan Event {
+//FutureEvent 返回一个 FutureEvent 实例指针，用于获取满足 Rule 的 未来事件
+func (m *Matcher) FutureEvent(Type string, rule ...Rule) *FutureEvent {
+	return &FutureEvent{
+		Type:     Type,
+		Priority: m.Priority,
+		Block:    m.Block,
+		Rule:     rule,
+	}
+}
+
+// Next 返回一个 chan 用于接收下一个指定事件
+//
+// 该 chan 必须接收，如需手动取消监听，请使用 Repeat 方法
+func (n *FutureEvent) Next() <-chan Event {
 	ch := make(chan Event)
 	StoreTempMatcher(&Matcher{
-		Type:     Type(n.eventType),
-		Block:    n.matcher.Block,
-		Priority: n.matcher.Priority,
-		Rules:    n.rule,
+		Type:     Type(n.Type),
+		Block:    n.Block,
+		Priority: n.Priority,
+		Rules:    n.Rule,
 		Handler: func(_ *Matcher, e Event, _ State) Response {
 			ch <- e
 			close(ch)
@@ -33,16 +47,19 @@ func (n *nextEvent) Recv() <-chan Event {
 	return ch
 }
 
-func (n *nextEvent) Repeat() (recv <-chan Event, cancel func()) {
+// Repeat 返回一个 chan 用于接收无穷个指定事件，和一个取消监听的函数
+//
+// 如果没有取消监听，将不断监听指定事件
+func (n *FutureEvent) Repeat() (recv <-chan Event, cancel func()) {
 	ch, done := make(chan Event), make(chan struct{})
 	go func() {
 		defer close(ch)
 		in := make(chan Event)
 		matcher := StoreMatcher(&Matcher{
-			Type:     Type(n.eventType),
-			Block:    n.matcher.Block,
-			Priority: n.matcher.Priority,
-			Rules:    n.rule,
+			Type:     Type(n.Type),
+			Block:    n.Block,
+			Priority: n.Priority,
+			Rules:    n.Rule,
 			Handler: func(_ *Matcher, e Event, _ State) Response {
 				in <- e
 				return FinishResponse
@@ -64,7 +81,8 @@ func (n *nextEvent) Repeat() (recv <-chan Event, cancel func()) {
 	}
 }
 
-func (n *nextEvent) Take(num int) <-chan Event {
+// Take 基于 Repeat 封装，返回一个 chan 接收指定数量的事件
+func (n *FutureEvent) Take(num int) <-chan Event {
 	recv, cancel := n.Repeat()
 	ch := make(chan Event, num)
 	go func() {

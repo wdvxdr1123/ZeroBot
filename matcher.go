@@ -7,6 +7,7 @@ import (
 
 type (
 	Response uint8
+	// Rule filter the event
 	Rule     func(event *Event, state State) bool
 	Handler  func(matcher *Matcher, event Event, state State) Response
 )
@@ -17,14 +18,23 @@ const (
 	FinishResponse
 )
 
+// Matcher是 ZeroBot 匹配和处理事件的最小单元
 type Matcher struct {
+	// Temp 是否为临时Matcher，临时 Matcher 匹配一次后就会删除当前 Matcher
 	Temp     bool
+	// Block 是否阻断后续 Matcher，为 true 时当前Matcher匹配成功后，后续Matcher不参与匹配
 	Block    bool
+	// Priority 优先级，越小优先级越高
 	Priority int
+	// State 上下文
 	State    State
+	// Event 当前匹配到的事件
 	Event    *Event
+	// Type 匹配的事件类型
 	Type     Rule
+	// Rules 匹配规则
 	Rules    []Rule
+	// Handler 处理事件的函数
 	Handler  Handler
 }
 
