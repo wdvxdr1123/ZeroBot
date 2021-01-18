@@ -5,22 +5,22 @@
   <meta name="generator" content="Hugo 0.80.0" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="开始使用 #  最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
+<meta name="description" content="最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
 func main() { zero.Run(zero.Option{ Host: &#34;127.0.0.1&#34;, // cqhttp的ip地址  Port: &#34;6700&#34;, // cqhttp的端口  AccessToken: &#34;&#34;, NickName: []string{&#34;机器人的昵称&#34;}, CommandPrefix: &#34;/&#34;, // 指令前缀  SuperUsers: []string{&#34;123456&#34;}, // 超级用户账号 一般填你自己的QQ号  }) select {} // 阻塞主goroutine, 防止退出程序  // 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞  /* c := make(chan os.Signal, 1) signal.Notify(c, os.Interrupt, os.Kill) &lt;-c Release() // 释放资源 */ } 设置日志输出 #  在 ZeroBot 中使用了sirupsen/logrus来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板， 如果想偷懒，这里给出一个简单的模板
-import ( log &#34;github.">
-<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="First" />
-<meta property="og:description" content="开始使用 #  最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
+import ( log &#34;github.com/sirupsen/logrus&#34; easy &#34;github.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="开始使用" />
+<meta property="og:description" content="最小化实例 #  创建一个新项目，启动Bot只需要main中使用下面代码
 func main() { zero.Run(zero.Option{ Host: &#34;127.0.0.1&#34;, // cqhttp的ip地址  Port: &#34;6700&#34;, // cqhttp的端口  AccessToken: &#34;&#34;, NickName: []string{&#34;机器人的昵称&#34;}, CommandPrefix: &#34;/&#34;, // 指令前缀  SuperUsers: []string{&#34;123456&#34;}, // 超级用户账号 一般填你自己的QQ号  }) select {} // 阻塞主goroutine, 防止退出程序  // 如果你的机器人有使用数据库或者其他资源文件,可以使用下面方法阻塞  /* c := make(chan os.Signal, 1) signal.Notify(c, os.Interrupt, os.Kill) &lt;-c Release() // 释放资源 */ } 设置日志输出 #  在 ZeroBot 中使用了sirupsen/logrus来管理日志，但是并没有提供日志的模板，你可以自己定义日志输出模板， 如果想偷懒，这里给出一个简单的模板
-import ( log &#34;github." />
+import ( log &#34;github.com/sirupsen/logrus&#34; easy &#34;github." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://docs.wdvxdr.top/start/quick_start/" />
 <meta property="article:published_time" content="2020-12-26T12:57:28+08:00" />
 <meta property="article:modified_time" content="2020-12-26T12:57:28+08:00" />
-<title>First | ZeroBot Document</title>
+<title>开始使用 | ZeroBot Document</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.134b70e5316650a530cb42e4e8630b2a01d532bebfc0337028211175336e4806.css" integrity="sha256-E0tw5TFmUKUwy0Lk6GMLKgHVMr6/wDNwKCERdTNuSAY=">
-<script defer src="/en.search.min.80e5c4051d8815b58a6b1320e6cafcda841b546f4b0f575c87752a7b7eff0e11.js" integrity="sha256-gOXEBR2IFbWKaxMg5sr82oQbVG9LD1dch3Uqe37/DhE="></script>
+<script defer src="/en.search.min.d211283fdb6048963a4e1eb52e4463d09ce19a58d40a6fd623915d4bb492a6ea.js" integrity="sha256-0hEoP9tgSJY6Th61LkRj0JzhmljUCm/WI5FdS7SSpuo="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -59,10 +59,21 @@ https://github.com/alex-shpak/hugo-book
 
 
   <ul>
-<li><a href="/start/">开始</a>
+<li>
+<p><a href="/start/install/">开始</a></p>
 <ul>
-<li><a href="/start/install/">安装</a></li>
-<li><a href="/start/quick_start/"class=active>开始使用</a></li>
+<li>
+<p><a href="/start/install/">安装</a></p>
+</li>
+<li>
+<p><a href="/start/quick_start/"class=active>开始使用</a></p>
+</li>
+</ul>
+</li>
+<li>
+<p><a href="/advanced/basic/">进阶</a></p>
+<ul>
+<li><a href="/advanced/basic/">基本</a></li>
 </ul>
 </li>
 </ul>
@@ -95,7 +106,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <strong>First</strong>
+  <strong>开始使用</strong>
 
   <label for="toc-control">
     
@@ -110,7 +121,6 @@ https://github.com/alex-shpak/hugo-book
     
   <nav id="TableOfContents">
   <ul>
-    <li><a href="#开始使用">开始使用</a></li>
     <li><a href="#最小化实例">最小化实例</a></li>
     <li><a href="#设置日志输出">设置日志输出</a></li>
     <li><a href="#添加一个插件">添加一个插件</a></li>
@@ -130,11 +140,7 @@ https://github.com/alex-shpak/hugo-book
 
       
       
-  <article class="markdown"><h2 id="开始使用">
-  开始使用
-  <a class="anchor" href="#%e5%bc%80%e5%a7%8b%e4%bd%bf%e7%94%a8">#</a>
-</h2>
-<h2 id="最小化实例">
+  <article class="markdown"><h2 id="最小化实例">
   最小化实例
   <a class="anchor" href="#%e6%9c%80%e5%b0%8f%e5%8c%96%e5%ae%9e%e4%be%8b">#</a>
 </h2>
@@ -266,7 +272,6 @@ https://github.com/alex-shpak/hugo-book
       
   <nav id="TableOfContents">
   <ul>
-    <li><a href="#开始使用">开始使用</a></li>
     <li><a href="#最小化实例">最小化实例</a></li>
     <li><a href="#设置日志输出">设置日志输出</a></li>
     <li><a href="#添加一个插件">添加一个插件</a></li>

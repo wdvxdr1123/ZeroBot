@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Advanceds on ZeroBot Document</title>
+    <link>http://docs.wdvxdr.top/advanced/</link>
+    <description>Recent content in Advanceds on ZeroBot Document</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 29 Dec 2020 13:55:32 +0800</lastBuildDate><atom:link href="http://docs.wdvxdr.top/advanced/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rule</title>
+      <link>http://docs.wdvxdr.top/advanced/basic/</link>
+      <pubDate>Tue, 29 Dec 2020 13:55:32 +0800</pubDate>
+      
+      <guid>http://docs.wdvxdr.top/advanced/basic/</guid>
+      <description>Rule #  Rule 是ZeroBot过滤事件的核心,其定义如下所示
+// State store the context of a matcher. type State map[string]interface{} // Rule filter the event type Rule func(event *Event, state State) bool 其中 State 保存了在进行过滤事件中运算的结果，比如ZeroBot自带的 KeywordRule中，就将匹配到的关键词保存到了state[&amp;quot;keyword&amp;quot;]中
+// KeywordRule check if the message has a keyword or keywords func KeywordRule(src ...string) Rule { return func(event *Event, state State) bool { msg := event.Message.CQString() for _, str := range src { if strings.Contains(msg, str) { state[&amp;#34;keyword&amp;#34;] = str return true } } return false } } ZeroBot中自带了一些Rule，你可以在rule.</description>
+    </item>
+    
+  </channel>
+</rss>
