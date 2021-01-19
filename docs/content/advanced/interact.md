@@ -32,7 +32,7 @@ type FutureEvent struct {
 
 `FutureEvent`提供了两个基本方法，用于获取符合条件的事件。
 
-### Recv
+### Next
 
 Next 返回一个 `channel` 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 `channel`,
 
