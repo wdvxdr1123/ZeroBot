@@ -17,7 +17,7 @@
 其核心为 FutureEvent，其定义如下
 // FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件 type FutureEvent struct { // 需要获取的事件类型  //  // 形如 message/group, 具体为 post_type / detail_type / sub_type  Type string // 优先级， 同 Matcher  Priority int // 同 Matcher  Rule []Rule // 同 Matcher  Block bool } 你可以使用 zero.NewFutureEvent 创建，或者使用matcher.FutureEvent来创建一个与当前matcher 优先级和阻断性相同的FutureEvent
 FutureEvent提供了两个基本方法，用于获取符合条件的事件。
-Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel,</description>
+Next #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel,</description>
     </item>
     
     <item>

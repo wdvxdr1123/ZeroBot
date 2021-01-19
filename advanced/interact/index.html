@@ -9,13 +9,13 @@
 其核心为 FutureEvent，其定义如下
 // FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件 type FutureEvent struct { // 需要获取的事件类型  //  // 形如 message/group, 具体为 post_type / detail_type / sub_type  Type string // 优先级， 同 Matcher  Priority int // 同 Matcher  Rule []Rule // 同 Matcher  Block bool } 你可以使用 zero.NewFutureEvent 创建，或者使用matcher.FutureEvent来创建一个与当前matcher 优先级和阻断性相同的FutureEvent
 FutureEvent提供了两个基本方法，用于获取符合条件的事件。
-Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel,">
+Next #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel,">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Event Channel" />
 <meta property="og:description" content="Event Channel #  在 ZeroBot 中，提供了用于异步获取指定事件的方法，通过返回channel，搭配 go 语言的select和其他语言特性， 可以很轻松的实现交互式机器人。
 其核心为 FutureEvent，其定义如下
 // FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件 type FutureEvent struct { // 需要获取的事件类型  //  // 形如 message/group, 具体为 post_type / detail_type / sub_type  Type string // 优先级， 同 Matcher  Priority int // 同 Matcher  Rule []Rule // 同 Matcher  Block bool } 你可以使用 zero.NewFutureEvent 创建，或者使用matcher.FutureEvent来创建一个与当前matcher 优先级和阻断性相同的FutureEvent
 FutureEvent提供了两个基本方法，用于获取符合条件的事件。
-Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel," />
+Next #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel," />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://docs.wdvxdr.top/advanced/interact/" />
 <meta property="article:published_time" content="2021-01-19T16:43:41+08:00" />
@@ -24,7 +24,7 @@ Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该�
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.134b70e5316650a530cb42e4e8630b2a01d532bebfc0337028211175336e4806.css" integrity="sha256-E0tw5TFmUKUwy0Lk6GMLKgHVMr6/wDNwKCERdTNuSAY=">
-<script defer src="/en.search.min.8ad6eeeb08be86cf73e632f4c7c76a53eb163e838d41ac393b8194892023b1f7.js" integrity="sha256-itbu6wi&#43;hs9z5jL0x8dqU&#43;sWPoONQaw5O4GUiSAjsfc="></script>
+<script defer src="/en.search.min.9b7892d9c8ae4a018711bf552d1c1a3de5790ee3c1b0d801e043c46aeba367c7.js" integrity="sha256-m3iS2ciuSgGHEb9VLRwaPeV5DuPBsNgB4EPEauujZ8c="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -132,7 +132,7 @@ https://github.com/alex-shpak/hugo-book
   <ul>
     <li><a href="#event-channel">Event Channel</a>
       <ul>
-        <li><a href="#recv">Recv</a></li>
+        <li><a href="#next">Next</a></li>
         <li><a href="#repeat">Repeat</a></li>
         <li><a href="#灵活使用">灵活使用</a></li>
         <li><a href="#实战">实战</a></li>
@@ -172,9 +172,9 @@ https://github.com/alex-shpak/hugo-book
 </code></pre></div><p>你可以使用 <code>zero.NewFutureEvent</code> 创建，或者使用<code>matcher.FutureEvent</code>来创建一个与当前<code>matcher</code>
 优先级和阻断性相同的<code>FutureEvent</code></p>
 <p><code>FutureEvent</code>提供了两个基本方法，用于获取符合条件的事件。</p>
-<h3 id="recv">
-  Recv
-  <a class="anchor" href="#recv">#</a>
+<h3 id="next">
+  Next
+  <a class="anchor" href="#next">#</a>
 </h3>
 <p>Next 返回一个 <code>channel</code> 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 <code>channel</code>,</p>
 <p>该 chan 必须接收，如需手动取消监听，请使用 Repeat 方法</p>
@@ -269,7 +269,7 @@ https://github.com/alex-shpak/hugo-book
   <ul>
     <li><a href="#event-channel">Event Channel</a>
       <ul>
-        <li><a href="#recv">Recv</a></li>
+        <li><a href="#next">Next</a></li>
         <li><a href="#repeat">Repeat</a></li>
         <li><a href="#灵活使用">灵活使用</a></li>
         <li><a href="#实战">实战</a></li>
