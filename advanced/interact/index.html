@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.80.0" />
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Event Channel #  在 ZeroBot 中，提供了用于异步获取指定事件的方法，通过返回channel，搭配 go 语言的select和其他语言特性， 可以很轻松的实现交互式机器人。
+其核心为 FutureEvent，其定义如下
+// FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件 type FutureEvent struct { // 需要获取的事件类型  //  // 形如 message/group, 具体为 post_type / detail_type / sub_type  Type string // 优先级， 同 Matcher  Priority int // 同 Matcher  Rule []Rule // 同 Matcher  Block bool } 你可以使用 zero.NewFutureEvent 创建，或者使用matcher.FutureEvent来创建一个与当前matcher 优先级和阻断性相同的FutureEvent
+FutureEvent提供了两个基本方法，用于获取符合条件的事件。
+Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel,">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Event Channel" />
+<meta property="og:description" content="Event Channel #  在 ZeroBot 中，提供了用于异步获取指定事件的方法，通过返回channel，搭配 go 语言的select和其他语言特性， 可以很轻松的实现交互式机器人。
+其核心为 FutureEvent，其定义如下
+// FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件 type FutureEvent struct { // 需要获取的事件类型  //  // 形如 message/group, 具体为 post_type / detail_type / sub_type  Type string // 优先级， 同 Matcher  Priority int // 同 Matcher  Rule []Rule // 同 Matcher  Block bool } 你可以使用 zero.NewFutureEvent 创建，或者使用matcher.FutureEvent来创建一个与当前matcher 优先级和阻断性相同的FutureEvent
+FutureEvent提供了两个基本方法，用于获取符合条件的事件。
+Recv #  Next 返回一个 channel 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 channel," />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://docs.wdvxdr.top/advanced/interact/" />
+<meta property="article:published_time" content="2021-01-19T16:43:41+08:00" />
+<meta property="article:modified_time" content="2021-01-19T16:43:41+08:00" />
+<title>Event Channel | ZeroBot Document</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.134b70e5316650a530cb42e4e8630b2a01d532bebfc0337028211175336e4806.css" integrity="sha256-E0tw5TFmUKUwy0Lk6GMLKgHVMr6/wDNwKCERdTNuSAY=">
+<script defer src="/en.search.min.8ad6eeeb08be86cf73e632f4c7c76a53eb163e838d41ac393b8194892023b1f7.js" integrity="sha256-itbu6wi&#43;hs9z5jL0x8dqU&#43;sWPoONQaw5O4GUiSAjsfc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>ZeroBot Document</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li>
+<p><a href="/start/install/">开始</a></p>
+<ul>
+<li>
+<p><a href="/start/install/">安装</a></p>
+</li>
+<li>
+<p><a href="/start/quick_start/">开始使用</a></p>
+</li>
+</ul>
+</li>
+<li>
+<p><a href="/advanced/basic/">更多</a></p>
+<ul>
+<li>
+<p><a href="/advanced/basic/">基本</a></p>
+</li>
+<li>
+<p><a href="/advanced/interact/"class=active>交互</a></p>
+</li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Event Channel</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#event-channel">Event Channel</a>
+      <ul>
+        <li><a href="#recv">Recv</a></li>
+        <li><a href="#repeat">Repeat</a></li>
+        <li><a href="#灵活使用">灵活使用</a></li>
+        <li><a href="#实战">实战</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="event-channel">
+  Event Channel
+  <a class="anchor" href="#event-channel">#</a>
+</h2>
+<p>在 ZeroBot 中，提供了用于异步获取指定事件的方法，通过返回channel，搭配 go 语言的select和其他语言特性，
+可以很轻松的实现交互式机器人。</p>
+<p>其核心为 FutureEvent，其定义如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">FutureEvent</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#75715e">// 需要获取的事件类型
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 形如 message/group, 具体为 post_type / detail_type / sub_type
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Type</span>     <span style="color:#66d9ef">string</span>
+    <span style="color:#75715e">// 优先级， 同 Matcher
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Priority</span> <span style="color:#66d9ef">int</span>
+    <span style="color:#75715e">// 同 Matcher
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Rule</span>     []<span style="color:#a6e22e">Rule</span>
+    <span style="color:#75715e">// 同 Matcher
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Block</span>    <span style="color:#66d9ef">bool</span>
+}
+</code></pre></div><p>你可以使用 <code>zero.NewFutureEvent</code> 创建，或者使用<code>matcher.FutureEvent</code>来创建一个与当前<code>matcher</code>
+优先级和阻断性相同的<code>FutureEvent</code></p>
+<p><code>FutureEvent</code>提供了两个基本方法，用于获取符合条件的事件。</p>
+<h3 id="recv">
+  Recv
+  <a class="anchor" href="#recv">#</a>
+</h3>
+<p>Next 返回一个 <code>channel</code> 用于接收下一个指定事件，并且该事件传输完成后，就会关闭该 <code>channel</code>,</p>
+<p>该 chan 必须接收，如需手动取消监听，请使用 Repeat 方法</p>
+<h3 id="repeat">
+  Repeat
+  <a class="anchor" href="#repeat">#</a>
+</h3>
+<p>Repeat 返回一个 <code>channel</code> 用于接收无穷个指定事件，和一个取消监听的函数，
+如果没有取消监听，将不断监听指定事件</p>
+<h3 id="灵活使用">
+  灵活使用
+  <a class="anchor" href="#%e7%81%b5%e6%b4%bb%e4%bd%bf%e7%94%a8">#</a>
+</h3>
+<p>可以使用这些<code>channel</code>配合go强大的channel支持，组合出一些其他用法，如下面这个例子</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Take 基于 Repeat 封装，返回一个 chan 接收指定数量的事件
+</span><span style="color:#75715e">//
+</span><span style="color:#75715e">// 该 chan 对象必须接收，否则将有 goroutine 泄漏，如需手动取消请使用 Repeat
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">FutureEvent</span>) <span style="color:#a6e22e">Take</span>(<span style="color:#a6e22e">num</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">Event</span> {
+    <span style="color:#a6e22e">recv</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Repeat</span>()
+    <span style="color:#a6e22e">ch</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">Event</span>, <span style="color:#a6e22e">num</span>)
+    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+        <span style="color:#66d9ef">defer</span> close(<span style="color:#a6e22e">ch</span>)
+        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">num</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+            <span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">recv</span>
+        }
+        <span style="color:#a6e22e">cancel</span>()
+    }()
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ch</span>
+}
+</code></pre></div><h3 id="实战">
+  实战
+  <a class="anchor" href="#%e5%ae%9e%e6%88%98">#</a>
+</h3>
+<p>例如 example 中的 复读例子</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">OnCommand</span>(<span style="color:#e6db74">&#34;开启复读&#34;</span>).<span style="color:#a6e22e">SetBlock</span>(<span style="color:#66d9ef">true</span>).<span style="color:#a6e22e">SetPriority</span>(<span style="color:#ae81ff">10</span>).
+    <span style="color:#a6e22e">Handle</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">matcher</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Matcher</span>, <span style="color:#a6e22e">event</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Event</span>, <span style="color:#a6e22e">state</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">State</span>) <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Response</span> {
+        <span style="color:#a6e22e">stop</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">NewFutureEvent</span>(<span style="color:#e6db74">&#34;message/group&#34;</span>, <span style="color:#ae81ff">8</span>, <span style="color:#66d9ef">true</span>, <span style="color:#75715e">// 关闭指令要比复读指令优先级高
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">CommandRule</span>(<span style="color:#e6db74">&#34;关闭复读&#34;</span>),      <span style="color:#75715e">// 关闭复读指令
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">CheckUser</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UserID</span>)). <span style="color:#75715e">// 只有开启者可以关闭复读模式
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">Next</span>()                         <span style="color:#75715e">// 关闭需要一次
+</span><span style="color:#75715e"></span>
+        <span style="color:#a6e22e">echo</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">matcher</span>.<span style="color:#a6e22e">FutureEvent</span>(<span style="color:#e6db74">&#34;message/group&#34;</span>, <span style="color:#75715e">// 优先级 和 开启复读指令相同
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">CheckUser</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UserID</span>)). <span style="color:#75715e">// 只复读开启复读模式的人的消息
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">Repeat</span>()                       <span style="color:#75715e">// 不断监听复读
+</span><span style="color:#75715e"></span>
+        <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Send</span>(<span style="color:#a6e22e">event</span>, <span style="color:#e6db74">&#34;已开启复读模式!&#34;</span>)
+        <span style="color:#66d9ef">for</span> {
+            <span style="color:#66d9ef">select</span> {
+            <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">echo</span>: <span style="color:#75715e">// 接收到需要复读的消息
+</span><span style="color:#75715e"></span>                <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Send</span>(<span style="color:#a6e22e">event</span>, <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">RawMessage</span>)
+            <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">stop</span>: <span style="color:#75715e">// 收到关闭复读指令
+</span><span style="color:#75715e"></span>                <span style="color:#a6e22e">cancel</span>() <span style="color:#75715e">// 取消复读监听
+</span><span style="color:#75715e"></span>                <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">Send</span>(<span style="color:#a6e22e">event</span>, <span style="color:#e6db74">&#34;已关闭复读模式!&#34;</span>)
+                <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">zero</span>.<span style="color:#a6e22e">FinishResponse</span> <span style="color:#75715e">// 返回
+</span><span style="color:#75715e"></span>            }
+        }
+    })
+</code></pre></div><p>这里我们通过 for select 与 channel相配合，轻松的写出了一个可开启，关闭的复读插件</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#event-channel">Event Channel</a>
+      <ul>
+        <li><a href="#recv">Recv</a></li>
+        <li><a href="#repeat">Repeat</a></li>
+        <li><a href="#灵活使用">灵活使用</a></li>
+        <li><a href="#实战">实战</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
