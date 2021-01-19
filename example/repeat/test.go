@@ -20,25 +20,27 @@ func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 }
 
 func (_ testPlugin) Start() { // 插件主体
+	zero.OnCommand("开启复读").SetBlock(true).SetPriority(10).
+		Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
+			stop := zero.NewFutureEvent("message/group", 8, true,
+				zero.CommandRule("关闭复读"),      // 关闭复读指令
+				zero.CheckUser(event.UserID)). // 只有开启者可以关闭复读模式
+				Next()                         // 关闭需要一次
 
-	zero.OnCommand("echo").Handle(handleCommand)
+			echo, cancel := matcher.FutureEvent("message/group",
+				zero.CheckUser(event.UserID)). // 只复读开启复读模式的人的消息
+				Repeat()                       // 不断监听复读
 
-	zero.OnCommand("cmd_echo").Handle(handleCommand)
-
-	zero.OnSuffix("复读").Handle(func(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, state["args"])
-		return zero.FinishResponse
-	})
-
-	zero.OnFullMatch("你是谁", zero.OnlyToMe).Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-		zero.Send(event, "我是一个复读机~~~")
-		echo := matcher.Get("我想要复读你的话!")
-		zero.Send(event, echo)
-		return zero.FinishResponse
-	})
-}
-
-func handleCommand(_ *zero.Matcher, event zero.Event, state zero.State) zero.Response {
-	zero.Send(event, state["args"])
-	return zero.FinishResponse
+			zero.Send(event, "已开启复读模式!")
+			for {
+				select {
+				case e := <-echo: // 接收到需要复读的消息
+					zero.Send(event, e.RawMessage)
+				case <-stop: // 收到关闭复读指令
+					cancel() // 取消复读监听
+					zero.Send(event, "已关闭复读模式!")
+					return zero.FinishResponse // 返回
+				}
+			}
+		})
 }

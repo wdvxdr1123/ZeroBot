@@ -8,5 +8,8 @@ headless = true
 
     - [开始使用]({{< relref "/start/quick_start" >}})
 
-- [进阶]({{< relref "/advanced/basic" >}})
+- [更多]({{< relref "/advanced/basic" >}})
+
     - [基本]({{< relref "/advanced/basic" >}})
+    
+    - [交互]({{< relref "/advanced/interact" >}})

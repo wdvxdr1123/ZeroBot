@@ -82,6 +82,8 @@ func (n *FutureEvent) Repeat() (recv <-chan Event, cancel func()) {
 }
 
 // Take 基于 Repeat 封装，返回一个 chan 接收指定数量的事件
+//
+// 该 chan 对象必须接收，否则将有 goroutine 泄漏，如需手动取消请使用 Repeat
 func (n *FutureEvent) Take(num int) <-chan Event {
 	recv, cancel := n.Repeat()
 	ch := make(chan Event, num)
