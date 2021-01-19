@@ -11,7 +11,7 @@ var _ = zero.OnCommandGroup([]string{"music", "点歌"}).
 	Handle(func(matcher *Matcher, event Event, state State) Response {
 		if songName, ok := state["args"].(string); ok {
 			if songName == "" {
-				zero.Send(event, "请输入要点的歌曲!")
+				zero.Send(event, message.Message{message.Text("请输入要点的歌曲!")})
 				next := matcher.FutureEvent("message", zero.CheckUser(event.UserID))
 				recv, cancel := next.Repeat()
 				for e := range recv {

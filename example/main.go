@@ -22,7 +22,7 @@ func main() {
 		Host:          "127.0.0.1",
 		Port:          "6700",
 		AccessToken:   "",
-		NickName:      []string{"xcw"},
+		NickName:      []string{"bot"},
 		CommandPrefix: "/",
 		SuperUsers:    []string{"123456"},
 	})

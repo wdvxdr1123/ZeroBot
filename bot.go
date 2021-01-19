@@ -3,6 +3,7 @@ package zero
 import (
 	"errors"
 	"fmt"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 	"runtime/debug"
 	"strings"
 	"sync/atomic"
@@ -55,13 +56,12 @@ func Run(op Option) {
 func sendAndWait(request WebSocketRequest) (APIResponse, error) {
 	ch := make(chan APIResponse)
 	seqMap.Store(request.Echo, ch)
-	defer seqMap.Delete(request.Echo)
 	data, err := json.Marshal(request)
 	if err != nil {
 		return APIResponse{}, err
 	}
 	sending <- data
-	log.Debug("向服务器发送请求: ", string(data))
+	log.Debug("向服务器发送请求: ", helper.BytesToString(data))
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
@@ -88,7 +88,9 @@ func handleResponse(response []byte) {
 			}
 		}
 	} else {
-		log.Debug("接收到事件: ", string(response))
+		if rsp.Get("meta_event_type").Str != "heartbeat" { // 忽略心跳事件
+			log.Debug("接收到事件: ", helper.BytesToString(response))
+		}
 		go processEvent(response, rsp)
 	}
 }
@@ -139,7 +141,11 @@ loop:
 
 func preprocessMessageEvent(e *Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
-
+	if e.DetailType == "group" {
+		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
+	} else {
+		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
+	}
 	func() { // 处理是否at机器人
 		e.IsToMe = false
 		for i, m := range e.Message {

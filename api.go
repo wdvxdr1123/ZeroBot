@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -28,6 +29,19 @@ func CallAction(action string, params Params) gjson.Result {
 	return gjson.Result{}
 }
 
+func formatMessage(msg interface{}) string {
+	switch m := msg.(type) {
+	case string:
+		return m
+	case message.Message:
+		return m.CQString()
+	case message.MessageSegment:
+		return m.CQCode()
+	default:
+		return ""
+	}
+}
+
 // Send 快捷发送消息
 func Send(event Event, message interface{}) int64 {
 	if event.GroupID != 0 {
@@ -44,6 +58,7 @@ func SendGroupMessage(groupID int64, message interface{}) int64 {
 		"message":  message,
 	}).Get("message_id")
 	if rsp.Exists() {
+		log.Infof("发送群消息(%v): %v (id=%v)", groupID, formatMessage(message), rsp.Int())
 		return rsp.Int()
 	}
 	return 0 // 无法获取返回值
@@ -51,12 +66,13 @@ func SendGroupMessage(groupID int64, message interface{}) int64 {
 
 // SendPrivateMessage 发送私聊消息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#send_private_msg-%E5%8F%91%E9%80%81%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
-func SendPrivateMessage(userId int64, message interface{}) int64 {
+func SendPrivateMessage(userID int64, message interface{}) int64 {
 	rsp := CallAction("send_private_msg", Params{
-		"user_id": userId,
+		"user_id": userID,
 		"message": message,
 	}).Get("message_id")
 	if rsp.Exists() {
+		log.Infof("发送私聊消息(%v): %v (id=%v)", userID, formatMessage(message), rsp.Int())
 		return rsp.Int()
 	}
 	return 0 // 无法获取返回值
@@ -77,11 +93,11 @@ func GetMessage(messageId int64) Message {
 		"message_id": messageId,
 	})
 	m := Message{
-		Elements:    message.ParseMessage([]byte(rsp.Get("message").Raw)),
+		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
 		MessageId:   rsp.Get("message_id").Int(),
 		MessageType: rsp.Get("message_type").String(),
 	}
-	err := json.Unmarshal([]byte(rsp.Get("sender").Raw), m.Sender)
+	err := json.Unmarshal(helper.StringToBytes(rsp.Get("sender").Raw), m.Sender)
 	if err != nil {
 		return Message{}
 	}

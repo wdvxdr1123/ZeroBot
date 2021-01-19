@@ -75,7 +75,7 @@ type Event struct {
 	Sender        *User               `json:"sender"`
 	NativeMessage jsoniter.RawMessage `json:"message"`
 	IsToMe        bool                `json:"-"`
-	RawEvent      gjson.Result        `json:"-"` // raw event is a map
+	RawEvent      gjson.Result        `json:"-"` // raw event
 }
 
 type Message struct {
