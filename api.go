@@ -333,7 +333,7 @@ func OCRImage(file string) gjson.Result {
 func SendGroupForwardMessage(groupID int64, message message.Message) gjson.Result {
 	return CallAction("send_group_forward_msg", Params{
 		"group_id": groupID,
-		"message":  message,
+		"messages": message,
 	})
 }
 

@@ -25,7 +25,7 @@ type Option struct {
 
 var (
 	option  Option
-	selfID  string
+	SelfID  string // 机器人账号
 	seq     uint64 = 0
 	seqMap         = seqSyncMap{}
 	sending        = make(chan []byte)
@@ -49,7 +49,7 @@ func Run(op Option) {
 	}
 	option = op
 	connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
-	selfID = GetLoginInfo().Get("user_id").String()
+	SelfID = GetLoginInfo().Get("user_id").String()
 }
 
 // send message to server and return the response from server.
@@ -150,7 +150,7 @@ func preprocessMessageEvent(e *Event) {
 		e.IsToMe = false
 		for i, m := range e.Message {
 			if m.Type == "at" {
-				if m.Data["qq"] == selfID {
+				if m.Data["qq"] == SelfID {
 					e.IsToMe = true
 					e.Message = append(e.Message[:i], e.Message[i+1:]...)
 					return
