@@ -34,7 +34,11 @@ func PrefixRule(prefixes ...string) Rule {
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(firstMessage, prefix) {
 				state["prefix"] = prefix
-				state["args"] = strings.TrimLeft(firstMessage[len(prefix):], " ")
+				arg := strings.TrimLeft(firstMessage[len(prefix):], " ")
+				if len(event.Message) > 1 {
+					arg += event.Message[1:].ExtractPlainText()
+				}
+				state["args"] = arg
 				return true
 			}
 		}
@@ -45,10 +49,11 @@ func PrefixRule(prefixes ...string) Rule {
 // SuffixRule check if the message has the suffix and trim the suffix
 func SuffixRule(suffixes ...string) Rule {
 	return func(event *Event, state State) bool {
-		if event.Message == nil { // 确保无空指针
+		mLen := len(event.Message)
+		if mLen <= 0 { // 确保无空指针
 			return false
 		}
-		last := event.Message[len(event.Message)-1]
+		last := event.Message[mLen-1]
 		if last.Type != "text" {
 			return false
 		}
@@ -56,7 +61,11 @@ func SuffixRule(suffixes ...string) Rule {
 		for _, suffix := range suffixes {
 			if strings.HasSuffix(lastMessage, suffix) {
 				state["suffix"] = suffix
-				state["args"] = strings.TrimRight(lastMessage[:len(lastMessage)-len(suffix)], " ")
+				arg := strings.TrimRight(lastMessage[:len(lastMessage)-len(suffix)], " ")
+				if mLen >= 2 {
+					arg += event.Message[:mLen].ExtractPlainText()
+				}
+				state["args"] = arg
 				return true
 			}
 		}
@@ -79,7 +88,11 @@ func CommandRule(commands ...string) Rule {
 		for _, command := range commands {
 			if strings.HasPrefix(cmdMessage, command) {
 				state["command"] = command
-				state["args"] = strings.TrimLeft(cmdMessage[len(command):], " ")
+				arg := strings.TrimLeft(cmdMessage[len(command):], " ")
+				if len(event.Message) > 1 {
+					arg += event.Message[1:].ExtractPlainText()
+				}
+				state["args"] = arg
 				return true
 			}
 		}
@@ -120,6 +133,7 @@ func FullMatchRule(src ...string) Rule {
 		msg := event.Message.CQString()
 		for _, str := range src {
 			if str == msg {
+				state["matched"] = msg
 				return true
 			}
 		}

@@ -1,6 +1,8 @@
 package zero
 
 import (
+	"fmt"
+	"reflect"
 	"strconv"
 
 	jsoniter "github.com/json-iterator/go"
@@ -133,3 +135,21 @@ const (
 	GroupType
 	PrivateType
 )
+
+func (state State) Parse(model interface{}) (err error) {
+	var (
+		t = reflect.TypeOf(model).Elem()
+		v = reflect.ValueOf(model).Elem()
+	)
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("parse state error: %v", r)
+		}
+	}()
+	for i := 0; i < t.NumField(); i++ {
+		if key, ok := t.Field(i).Tag.Lookup("zero"); ok {
+			v.Field(i).Set(reflect.ValueOf(state[key]))
+		}
+	}
+	return nil
+}
