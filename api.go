@@ -96,6 +96,7 @@ func GetMessage(messageId int64) Message {
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
 		MessageId:   rsp.Get("message_id").Int(),
 		MessageType: rsp.Get("message_type").String(),
+		Sender:      &User{},
 	}
 	err := json.Unmarshal(helper.StringToBytes(rsp.Get("sender").Raw), m.Sender)
 	if err != nil {
