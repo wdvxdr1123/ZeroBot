@@ -50,7 +50,7 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 	}
 	log.Warn("Websocket服务器连接断开...")
 	time.Sleep(time.Millisecond * time.Duration(3))
-	op := option
+	op := BotConfig
 	connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port), op.AccessToken)
 }
 

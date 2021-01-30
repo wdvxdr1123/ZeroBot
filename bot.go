@@ -3,7 +3,6 @@ package zero
 import (
 	"errors"
 	"fmt"
-	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 	"runtime/debug"
 	"strings"
 	"sync/atomic"
@@ -12,30 +11,37 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-type Option struct {
+// Config is config of zero bot
+type Config struct {
 	Host          string   `json:"host"`
 	Port          string   `json:"port"`
 	AccessToken   string   `json:"access_token"`
 	NickName      []string `json:"nickname"`
 	CommandPrefix string   `json:"command_prefix"`
 	SuperUsers    []string `json:"super_users"`
+	SelfID        string   `json:"self_id"` // 机器人账号
 }
 
+// Option
+//
+// Deprecated: use zero.Config instead.
+type Option = Config
+
 var (
-	option  Option
-	SelfID  string // 机器人账号
-	seq     uint64 = 0
-	seqMap         = seqSyncMap{}
-	sending        = make(chan []byte)
+	BotConfig Config
+	seq       uint64 = 0
+	seqMap           = seqSyncMap{}
+	sending          = make(chan []byte)
 )
 
 func init() {
 	pluginPool = []IPlugin{} // 初始化
 }
 
-func Run(op Option) {
+func Run(op Config) {
 	for _, plugin := range pluginPool {
 		info := plugin.GetPluginInfo()
 		log.Infof(
@@ -47,9 +53,9 @@ func Run(op Option) {
 		)
 		plugin.Start() // 加载插件
 	}
-	option = op
-	connectWebsocketServer(fmt.Sprint("ws://", option.Host, ":", option.Port), option.AccessToken)
-	SelfID = GetLoginInfo().Get("user_id").String()
+	BotConfig = op
+	connectWebsocketServer(fmt.Sprint("ws://", BotConfig.Host, ":", BotConfig.Port), BotConfig.AccessToken)
+	BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
 }
 
 // send message to server and return the response from server.
@@ -150,7 +156,7 @@ func preprocessMessageEvent(e *Event) {
 		e.IsToMe = false
 		for i, m := range e.Message {
 			if m.Type == "at" {
-				if m.Data["qq"] == SelfID {
+				if m.Data["qq"] == BotConfig.SelfID {
 					e.IsToMe = true
 					e.Message = append(e.Message[:i], e.Message[i+1:]...)
 					return
@@ -162,7 +168,7 @@ func preprocessMessageEvent(e *Event) {
 		}
 		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
 		text := e.Message[0].Data["text"]
-		for _, nickname := range option.NickName {
+		for _, nickname := range BotConfig.NickName {
 			if strings.HasPrefix(text, nickname) {
 				e.IsToMe = true
 				e.Message[0].Data["text"] = text[len(nickname):]
