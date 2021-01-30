@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"sync"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/modern-go/reflect2"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
@@ -136,20 +138,46 @@ const (
 	PrivateType
 )
 
+// decoder 反射获取的数据
+type decoder []struct {
+	fieldID int
+	key     string
+}
+
+// decoder 缓存
+var decoderCache = sync.Map{}
+
+// Parse 将 State 映射到结构体
 func (state State) Parse(model interface{}) (err error) {
 	var (
-		t = reflect.TypeOf(model).Elem()
-		v = reflect.ValueOf(model).Elem()
+		v        = reflect.ValueOf(model).Elem()
+		ty2      = reflect2.TypeOf(model)
+		modelDec decoder
 	)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("parse state error: %v", r)
 		}
 	}()
-	for i := 0; i < t.NumField(); i++ {
-		if key, ok := t.Field(i).Tag.Lookup("zero"); ok {
-			v.Field(i).Set(reflect.ValueOf(state[key]))
+	dec, ok := decoderCache.Load(ty2)
+	if ok {
+		modelDec = dec.(decoder)
+	} else {
+		var t = reflect.TypeOf(model).Elem()
+		modelDec = decoder{}
+		for i := 0; i < t.NumField(); i++ {
+			if key, ok := t.Field(i).Tag.Lookup("zero"); ok {
+				modelDec = append(modelDec, struct {
+					fieldID int
+					key     string
+				}{fieldID: i, key: key})
+			}
 		}
+		decoderCache.Store(ty2, modelDec)
+	}
+	for _, dec := range modelDec {
+		var val2 = reflect.ValueOf(state[dec.key])
+		v.Field(dec.fieldID).Set(val2)
 	}
 	return nil
 }
