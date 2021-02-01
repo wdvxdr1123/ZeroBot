@@ -149,7 +149,7 @@ type decoder []struct {
 var decoderCache = sync.Map{}
 
 // Parse 将 State 映射到结构体
-func (state State) Parse2(model interface{}) (err error) {
+func (state State) Parse(model interface{}) (err error) {
 	var (
 		ty2      = reflect2.TypeOf(model)
 		modelDec decoder
