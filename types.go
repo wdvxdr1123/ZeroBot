@@ -2,9 +2,9 @@ package zero
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"sync"
+	"unsafe"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/modern-go/reflect2"
@@ -140,17 +140,17 @@ const (
 
 // decoder 反射获取的数据
 type decoder []struct {
-	fieldID int
-	key     string
+	offset uintptr
+	t      reflect2.Type
+	key    string
 }
 
 // decoder 缓存
 var decoderCache = sync.Map{}
 
 // Parse 将 State 映射到结构体
-func (state State) Parse(model interface{}) (err error) {
+func (state State) Parse2(model interface{}) (err error) {
 	var (
-		v        = reflect.ValueOf(model).Elem()
 		ty2      = reflect2.TypeOf(model)
 		modelDec decoder
 	)
@@ -163,21 +163,29 @@ func (state State) Parse(model interface{}) (err error) {
 	if ok {
 		modelDec = dec.(decoder)
 	} else {
-		var t = reflect.TypeOf(model).Elem()
+		t := ty2.(reflect2.PtrType).Elem().(reflect2.StructType)
 		modelDec = decoder{}
 		for i := 0; i < t.NumField(); i++ {
-			if key, ok := t.Field(i).Tag.Lookup("zero"); ok {
+			t1 := t.Field(i)
+			if key, ok := t1.Tag().Lookup("zero"); ok {
 				modelDec = append(modelDec, struct {
-					fieldID int
-					key     string
-				}{fieldID: i, key: key})
+					offset uintptr
+					t      reflect2.Type
+					key    string
+				}{
+					t:      t1.Type(),
+					offset: t1.Offset(),
+					key:    key,
+				})
 			}
 		}
 		decoderCache.Store(ty2, modelDec)
 	}
 	for _, dec := range modelDec {
-		var val2 = reflect.ValueOf(state[dec.key])
-		v.Field(dec.fieldID).Set(val2)
+		dec.t.UnsafeSet(
+			unsafe.Pointer(uintptr(reflect2.PtrOf(model))+dec.offset),
+			reflect2.PtrOf(state[dec.key]),
+		)
 	}
 	return nil
 }
