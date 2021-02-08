@@ -113,6 +113,20 @@ func RegexRule(regexPattern string) Rule {
 	}
 }
 
+// ReplyRule check if the message is replying some message
+func ReplyRule(messageID int64) Rule {
+	var mid = strconv.FormatInt(messageID, 10)
+	return func(event *Event, state State) bool {
+		if len(event.Message) <= 0 {
+			return false
+		}
+		if event.Message[0].Type != "reply" {
+			return false
+		}
+		return event.Message[0].Data["id"] == mid
+	}
+}
+
 // KeywordRule check if the message has a keyword or keywords
 func KeywordRule(src ...string) Rule {
 	return func(event *Event, state State) bool {

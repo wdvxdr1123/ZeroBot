@@ -15,7 +15,7 @@ func connectWebsocketServer(url, token string) {
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
-		"User-Agent":    []string{"ZeroBot/0.2.0"},
+		"User-Agent":    []string{"ZeroBot/0.2.1"},
 	}
 	if token != "" {
 		header["Authorization"] = []string{"Bear " + token}
@@ -51,7 +51,7 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 	log.Warn("Websocket服务器连接断开...")
 	time.Sleep(time.Millisecond * time.Duration(3))
 	op := BotConfig
-	connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port), op.AccessToken)
+	connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port, "/ws"), op.AccessToken)
 }
 
 func sendChannel(c *websocket.Conn, ch <-chan []byte) {

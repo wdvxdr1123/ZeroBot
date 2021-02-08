@@ -18,7 +18,7 @@ func init() {
 }
 
 func main() {
-	zero.Run(zero.Option{
+	zero.Run(zero.Config{
 		Host:          "127.0.0.1",
 		Port:          "6700",
 		AccessToken:   "",

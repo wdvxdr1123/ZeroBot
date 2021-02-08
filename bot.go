@@ -54,7 +54,7 @@ func Run(op Config) {
 		plugin.Start() // 加载插件
 	}
 	BotConfig = op
-	connectWebsocketServer(fmt.Sprint("ws://", BotConfig.Host, ":", BotConfig.Port), BotConfig.AccessToken)
+	connectWebsocketServer(fmt.Sprint("ws://", BotConfig.Host, ":", BotConfig.Port, "/ws"), BotConfig.AccessToken)
 	BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
 }
 
