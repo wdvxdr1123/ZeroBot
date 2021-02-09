@@ -48,23 +48,8 @@ func BenchmarkState_Parse(b *testing.B) {
 	}
 }
 
-func BenchmarkState_Parse2(b *testing.B) {
-	var a = &testModel{}
-	for i := 0; i < b.N; i++ {
-		a.Hello = testState["hello"].(string)
-		a.Pkg = testState["pkg"].(int32)
-		a.Help = testState["help"].(pt)
-		a.Love = testState["love"].(float64)
-	}
-}
-
 func TestState_Parse2(t *testing.T) {
-	//var a = &testModel{}
-	//var b = &testModel{}
-	var c = &testModel{}
-	//_ = testState.Parse(a)
-	//_ = testState.Parse2(b)
-	//_ = testState.Parse2(c)
-	//assert.Equal(t, a,b)
-	assert.Equal(t, 520.1314, c.Love)
+	var a = &testModel{}
+	_ = testState.Parse(a)
+	assert.Equal(t, 520.1314, a.Love)
 }
