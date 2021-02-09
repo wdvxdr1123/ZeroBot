@@ -49,7 +49,7 @@ func ParseMessageFromArray(msgs gjson.Result) Message {
 	return message
 }
 
-// ParseMessageSegmentsFromString parses msg as type string to a sort of MessageSegment.
+// ParseMessageFromString parses msg as type string to a sort of MessageSegment.
 // msg is the value of key "message" of the data unmarshalled from the
 // API response JSON.
 func ParseMessageFromString(str string) Message {

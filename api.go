@@ -12,7 +12,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // CallAction 调用 cqhttp API
 func CallAction(action string, params Params) gjson.Result {
-	req := WebSocketRequest{
+	req := webSocketRequest{
 		Action: action,
 		Params: params,
 		Echo:   nextSeq(),
@@ -20,7 +20,7 @@ func CallAction(action string, params Params) gjson.Result {
 	rsp, err := sendAndWait(req)
 	if err == nil {
 		if rsp.RetCode != 0 {
-			log.Errorf("调用 API: %v 时出现错误, RetCode: %v", action, rsp.RetCode)
+			log.Errorf("调用 API: %v 时出现错误, RetCode: %v, Msg: %v, Wording: %v", action, rsp.RetCode, rsp.Msg, rsp.Wording)
 			return gjson.Result{}
 		}
 		return rsp.Data

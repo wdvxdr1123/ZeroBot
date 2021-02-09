@@ -17,18 +17,20 @@ import (
 // Params is the params of call api
 type Params map[string]interface{}
 
-// APIResponse is the response of calling API
+// apiResponse is the response of calling API
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
-type APIResponse struct {
+type apiResponse struct {
 	Status  string       `json:"status"`
 	Data    gjson.Result `json:"data"`
+	Msg     string       `json:"msg"`
+	Wording string       `json:"wording"`
 	RetCode int64        `json:"retcode"`
 	Echo    uint64       `json:"echo"`
 }
 
-// WebSocketRequest is the request sending to the cqhttp
+// webSocketRequest is the request sending to the cqhttp
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
-type WebSocketRequest struct {
+type webSocketRequest struct {
 	Action string `json:"action"`
 	Params Params `json:"params"`
 	Echo   uint64 `json:"echo"`

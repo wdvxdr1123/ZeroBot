@@ -59,23 +59,23 @@ func Run(op Config) {
 }
 
 // send message to server and return the response from server.
-func sendAndWait(request WebSocketRequest) (APIResponse, error) {
-	ch := make(chan APIResponse)
+func sendAndWait(request webSocketRequest) (apiResponse, error) {
+	ch := make(chan apiResponse)
 	seqMap.Store(request.Echo, ch)
 	data, err := json.Marshal(request)
 	if err != nil {
-		return APIResponse{}, err
+		return apiResponse{}, err
 	}
 	sending <- data
 	log.Debug("向服务器发送请求: ", helper.BytesToString(data))
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
-			return APIResponse{}, errors.New("channel closed")
+			return apiResponse{}, errors.New("channel closed")
 		}
 		return rsp, nil
 	case <-time.After(30 * time.Second):
-		return APIResponse{}, errors.New("timed out")
+		return apiResponse{}, errors.New("timed out")
 	}
 }
 
@@ -86,9 +86,11 @@ func handleResponse(response []byte) {
 		log.Debug("接收到API调用返回: ", strings.TrimSpace(string(response)))
 		if c, ok := seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
 			defer close(c)
-			c <- APIResponse{ // 发送api调用响应
+			c <- apiResponse{ // 发送api调用响应
 				Status:  rsp.Get("status").String(),
 				Data:    rsp.Get("data"),
+				Msg:     rsp.Get("msg").Str,
+				Wording: rsp.Get("wording").Str,
 				RetCode: rsp.Get("retcode").Int(),
 				Echo:    rsp.Get("echo").Uint(),
 			}
