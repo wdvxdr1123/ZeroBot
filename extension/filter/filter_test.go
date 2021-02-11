@@ -2,10 +2,10 @@ package filter
 
 import (
 	"encoding/json"
-	"github.com/tidwall/gjson"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 	zero "github.com/wdvxdr1123/ZeroBot"
 )
 

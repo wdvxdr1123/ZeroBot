@@ -8,7 +8,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+var json = jsoniter.ConfigFastest
 
 // CallAction 调用 cqhttp API
 func CallAction(action string, params Params) gjson.Result {
