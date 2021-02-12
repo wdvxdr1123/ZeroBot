@@ -10,7 +10,11 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/extension/kv"
 )
 
-var bucket = kv.New("manager")
+var (
+	bucket   = kv.New("manager")
+	managers = map[string]Manager{}
+	mu       = sync.RWMutex{}
+)
 
 type Manager interface {
 	zero.Hooker
@@ -20,7 +24,7 @@ type Manager interface {
 
 func New(service string, o *Options) Manager {
 	data, _ := bucket.Get([]byte(service))
-	return &manager{
+	m := &manager{
 		service: service,
 		options: func() Options {
 			if o == nil {
@@ -30,6 +34,10 @@ func New(service string, o *Options) Manager {
 		}(),
 		states: unpack(data),
 	}
+	mu.Lock()
+	defer mu.Unlock()
+	managers[service] = m
+	return m
 }
 
 type manager struct {
@@ -68,6 +76,22 @@ func (m *manager) Hook() zero.Rule {
 			m.Enable(event.GroupID)
 		}
 		return !m.options.DisableOnDefault
+	}
+}
+
+func Lookup(service string) Manager {
+	mu.RLock()
+	defer mu.RUnlock()
+	return managers[service]
+}
+
+func ForEach(iterator func(key string, manager Manager) bool) {
+	mu.RLock()
+	defer mu.RUnlock()
+	for k, v := range managers {
+		if !iterator(k, v) {
+			return
+		}
 	}
 }
 
