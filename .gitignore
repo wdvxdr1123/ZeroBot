@@ -16,6 +16,7 @@
 
 # ide and reference document
 .idea
+.db/
 onebot
 TODO
 /docs/resources/_gen/

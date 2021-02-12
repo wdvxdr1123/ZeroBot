@@ -53,3 +53,8 @@ func TestState_Parse2(t *testing.T) {
 	_ = testState.Parse(a)
 	assert.Equal(t, 520.1314, a.Love)
 }
+
+func TestMatcher_Delete(t *testing.T) {
+	OnCommand("").Delete()
+	assert.Empty(t, matcherList)
+}

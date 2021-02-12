@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -87,10 +88,14 @@ func NotEqual(str string) FilterFunc {
 }
 
 // In
-func In(str ...string) FilterFunc {
+func In(i ...interface{}) FilterFunc {
+	var ss []string
+	for _, v := range i {
+		ss = append(ss, fmt.Sprint(v))
+	}
 	return func(result gjson.Result) bool {
-		for _, s := range str {
-			if s == result.Str {
+		for _, s := range ss {
+			if s == result.String() {
 				return true
 			}
 		}

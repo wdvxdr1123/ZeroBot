@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"runtime"
 	"sort"
 	"sync"
 )
@@ -71,10 +72,28 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 
 // On 添加新的主匹配器
 func On(type_ string, rules ...Rule) *Matcher {
+	var i = 1
+	var hooked Rule
+	for {
+		_, file, _, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		if hooker, ok := hooks[file]; ok { // find hook -> add hook
+			hooked = hooker.Hook()
+			break
+		}
+		i++
+	}
 	var matcher = &Matcher{
 		State: map[string]interface{}{},
 		Type:  Type(type_),
-		Rules: rules,
+		Rules: func() []Rule {
+			if hooked != nil {
+				return append(rules, hooked)
+			}
+			return rules
+		}(),
 	}
 	return StoreMatcher(matcher)
 }

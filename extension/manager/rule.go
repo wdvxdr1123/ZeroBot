@@ -13,20 +13,22 @@ import (
 var bucket = kv.New("manager")
 
 type Manager interface {
-	Hook() zero.Rule
+	zero.Hooker
 	Enable(groupID int64)
 	Disable(groupID int64)
 }
 
-func New(service string, o Options) Manager {
-	data, err := bucket.Get([]byte(service))
-	if err != nil {
-		panic(err)
-	}
+func New(service string, o *Options) Manager {
+	data, _ := bucket.Get([]byte(service))
 	return &manager{
 		service: service,
-		options: o,
-		states:  unpack(data),
+		options: func() Options {
+			if o == nil {
+				return Options{}
+			}
+			return *o
+		}(),
+		states: unpack(data),
 	}
 }
 
@@ -47,13 +49,13 @@ func (m *manager) Enable(groupID int64) {
 func (m *manager) Disable(groupID int64) {
 	m.Lock()
 	defer m.Unlock()
-	m.states[groupID] = true
+	m.states[groupID] = false
 	_ = bucket.Put([]byte(m.service), pack(m.states))
 }
 
 func (m *manager) Hook() zero.Rule {
 	return func(event *zero.Event, state zero.State) bool {
-		m.RLocker()
+		m.RLock()
 		state["manager"] = Manager(m)
 		if st, ok := m.states[event.GroupID]; ok {
 			m.RUnlock()
@@ -77,7 +79,7 @@ func pack(m map[int64]bool) []byte {
 	for k, v := range m {
 		binary.LittleEndian.PutUint64(b, uint64(k))
 		if v {
-			b[7] = b[7] | 0x8
+			b[7] = b[7] | 0x80
 		}
 		buf.Write(b[:8])
 	}

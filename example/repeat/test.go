@@ -2,10 +2,13 @@ package repeat
 
 import (
 	"github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/extension/manager"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 func init() {
+	var m = manager.New("echo", nil)
+	zero.AddHook(m)
 	zero.RegisterPlugin(testPlugin{}) // 注册插件
 }
 
