@@ -2,15 +2,24 @@ package music
 
 import (
 	"fmt"
+	"time"
+
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension"
+	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
+
+var limit = rate.NewManager(time.Minute*1, 1)
 
 var _ = zero.OnCommandGroup([]string{"music", "点歌"}).
 	SetBlock(true).
 	SetPriority(8).
 	Handle(func(matcher *Matcher, event Event, state State) Response {
+		if limit.Load(event.UserID).Acquire() == false {
+			zero.Send(event, "您的请求太快，请稍后重试0x0...")
+			return zero.FinishResponse
+		}
 		var cmd extension.CommandModel
 		err := state.Parse(&cmd)
 		if err != nil {
