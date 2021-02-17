@@ -88,7 +88,7 @@ func (m Message) CQString() string {
 		if media.Type != "text" {
 			str += media.CQCode()
 		} else {
-			str += media.Data["text"]
+			str += EscapeCQText(media.Data["text"])
 		}
 	}
 	return str

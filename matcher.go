@@ -19,7 +19,7 @@ const (
 	FinishResponse
 )
 
-// Matcher是 ZeroBot 匹配和处理事件的最小单元
+// Matcher 是 ZeroBot 匹配和处理事件的最小单元
 type Matcher struct {
 	// Temp 是否为临时Matcher，临时 Matcher 匹配一次后就会删除当前 Matcher
 	Temp bool
