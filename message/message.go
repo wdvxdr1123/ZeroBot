@@ -11,6 +11,7 @@ import (
 type Message []MessageSegment
 
 // MessageSegment impl the single message
+// MessageSegment 消息数组
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type MessageSegment struct {
 	Type string            `json:"type"`
@@ -18,6 +19,7 @@ type MessageSegment struct {
 }
 
 // EscapeCQText escapes special characters in a non-media plain message.
+// EscapeCQText cq码字符转换
 func EscapeCQText(str string) string {
 	str = strings.Replace(str, "&", "&amp;", -1)
 	str = strings.Replace(str, "[", "&#91;", -1)
@@ -26,6 +28,7 @@ func EscapeCQText(str string) string {
 }
 
 // UnescapeCQText unescapes special characters in a non-media plain message.
+// UnescapeCQText cq码反解析
 func UnescapeCQText(str string) string {
 	str = strings.Replace(str, "&#93;", "]", -1)
 	str = strings.Replace(str, "&#91;", "[", -1)
@@ -35,6 +38,7 @@ func UnescapeCQText(str string) string {
 
 // EscapeCQCodeText escapes special characters in a cqcode value.
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
+// EscapeCQText cq码字符转换
 func EscapeCQCodeText(str string) string {
 	str = strings.Replace(str, "&", "&amp;", -1)
 	str = strings.Replace(str, "[", "&#91;", -1)
@@ -45,6 +49,7 @@ func EscapeCQCodeText(str string) string {
 
 // UnescapeCQCodeText unescapes special characters in a cqcode value.
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
+// UnescapeCQText cq码反解析
 func UnescapeCQCodeText(str string) string {
 	str = strings.Replace(str, "&#44;", ",", -1)
 	str = strings.Replace(str, "&#93;", "]", -1)

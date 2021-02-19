@@ -16,13 +16,13 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	Host          string   `json:"host"`
-	Port          string   `json:"port"`
-	AccessToken   string   `json:"access_token"`
-	NickName      []string `json:"nickname"`
-	CommandPrefix string   `json:"command_prefix"`
-	SuperUsers    []string `json:"super_users"`
-	SelfID        string   `json:"self_id"` // 机器人账号
+	Host          string   `json:"host"`           //host地址
+	Port          string   `json:"port"`           //端口
+	AccessToken   string   `json:"access_token"`   //认证token
+	NickName      []string `json:"nickname"`       //机器人名称
+	CommandPrefix string   `json:"command_prefix"` //触发命令
+	SuperUsers    []string `json:"super_users"`    //超级用户
+	SelfID        string   `json:"self_id"`        // 机器人账号
 }
 
 // Option
@@ -41,6 +41,7 @@ func init() {
 	pluginPool = []IPlugin{} // 初始化
 }
 
+//主函数初始化
 func Run(op Config) {
 	for _, plugin := range pluginPool {
 		info := plugin.GetPluginInfo()
@@ -59,6 +60,7 @@ func Run(op Config) {
 }
 
 // send message to server and return the response from server.
+// sendAndWait ws发消息的主函数
 func sendAndWait(request webSocketRequest) (apiResponse, error) {
 	ch := make(chan apiResponse)
 	seqMap.Store(request.Echo, ch)
@@ -80,6 +82,7 @@ func sendAndWait(request webSocketRequest) (apiResponse, error) {
 }
 
 // handle the message from server.
+// handleResponse 线程中等待返回信息
 func handleResponse(response []byte) {
 	rsp := gjson.ParseBytes(response)
 	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
@@ -103,6 +106,7 @@ func handleResponse(response []byte) {
 	}
 }
 
+// processEvent 心跳处理
 func processEvent(response []byte, parsedResponse gjson.Result) {
 	defer func() {
 		if pa := recover(); pa != nil {
@@ -147,6 +151,7 @@ loop:
 	}
 }
 
+// preprocessMessageEvent 返回信息事件
 func preprocessMessageEvent(e *Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
 	if e.DetailType == "group" {

@@ -29,6 +29,7 @@ func CallAction(action string, params Params) gjson.Result {
 	return gjson.Result{}
 }
 
+// formatMessage 格式化消息数组
 func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:

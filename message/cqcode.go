@@ -29,6 +29,7 @@ func ParseMessage(msg []byte) Message {
 // ParseMessageFromArray parses msg as type array to a Message.
 // msg is the value of key "message" of the data unmarshalled from the
 // API response JSON.
+// ParseMessageFromArray cq字符串转化为json对象
 func ParseMessageFromArray(msgs gjson.Result) Message {
 	var message = Message{}
 	parse2map := func(val gjson.Result) map[string]string {
@@ -52,6 +53,7 @@ func ParseMessageFromArray(msgs gjson.Result) Message {
 // ParseMessageFromString parses msg as type string to a sort of MessageSegment.
 // msg is the value of key "message" of the data unmarshalled from the
 // API response JSON.
+// ParseMessageFromString cq信息转为字符串
 func ParseMessageFromString(str string) Message {
 	var m = Message{}
 	i := matchReg.FindAllStringSubmatchIndex(str, -1)
@@ -82,6 +84,7 @@ func ParseMessageFromString(str string) Message {
 
 // CQString returns the CQEncoded string. All media in the message will be converted
 // to its CQCode.
+// CQString 解码cq字符串
 func (m Message) CQString() string {
 	var str = ""
 	for _, media := range m {

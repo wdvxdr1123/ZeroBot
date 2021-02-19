@@ -24,6 +24,7 @@ func Type(type_ string) Rule {
 }
 
 // PrefixRule check if the message has the prefix and trim the prefix
+// PrefixRule 检查消息前缀
 func PrefixRule(prefixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		if event.Message == nil || event.Message[0].Type != "text" { // 确保无空指针
@@ -47,6 +48,7 @@ func PrefixRule(prefixes ...string) Rule {
 }
 
 // SuffixRule check if the message has the suffix and trim the suffix
+// SuffixRule 检查消息后缀
 func SuffixRule(suffixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		mLen := len(event.Message)
