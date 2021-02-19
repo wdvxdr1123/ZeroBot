@@ -36,8 +36,8 @@ func (l *LimiterManager) Load(key int64) *Limiter {
 type Limiter struct {
 	sync.Mutex
 	limit    float64
-	burst    int
 	tokens   float64
+	burst    int
 	lastTime time.Time
 }
 

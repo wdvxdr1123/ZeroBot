@@ -148,23 +148,11 @@ func (m *Matcher) run(event Event) {
 
 // Get ..
 func (m *Matcher) Get(prompt string) string {
-	ch := make(chan string)
 	event := m.Event
-	Send(*event, prompt)
-	StoreTempMatcher(&Matcher{
-		Priority: m.Priority,
-		Block:    m.Block,
-		Type:     Type("message"),
-		State:    map[string]interface{}{},
-		Rules: []Rule{
-			CheckUser(event.UserID),
-		},
-		Handler: func(_ *Matcher, ev Event, _ State) Response {
-			ch <- ev.RawMessage
-			return SuccessResponse
-		},
-	})
-	return <-ch
+	if prompt != "" {
+		Send(*event, prompt)
+	}
+	return (<-m.FutureEvent("message", CheckUser(event.UserID)).Next()).RawMessage
 }
 
 func (m *Matcher) copy() *Matcher {

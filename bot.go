@@ -41,7 +41,7 @@ func init() {
 	pluginPool = []IPlugin{} // 初始化
 }
 
-//主函数初始化
+// Run 主函数初始化
 func Run(op Config) {
 	for _, plugin := range pluginPool {
 		info := plugin.GetPluginInfo()
