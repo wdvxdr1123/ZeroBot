@@ -12,9 +12,9 @@ var pluginPool []IPlugin
 
 // IPlugin is the plugin of the ZeroBot
 type IPlugin interface {
-	// 获取插件信息
+	// GetPluginInfo 获取插件信息
 	GetPluginInfo() PluginInfo
-	// 开启工作
+	// Start 开启工作
 	Start()
 }
 

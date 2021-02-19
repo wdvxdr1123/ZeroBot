@@ -3,7 +3,6 @@ package repeat
 import (
 	"github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/manager"
-	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 func init() {
@@ -40,10 +39,7 @@ func (_ testPlugin) Start() { // 插件主体
 				case e := <-echo: // 接收到需要复读的消息
 					zero.Send(event, e.RawMessage)
 				case <-stop: // 收到关闭复读指令
-					cancel() // 取消复读监听
-					zero.SendGroupForwardMessage(event.GroupID, []message.MessageSegment{
-						message.CustomNode("bot", zero.BotConfig.SelfID, "取消复读"),
-					})
+					cancel()                   // 取消复读监听
 					return zero.FinishResponse // 返回
 				}
 			}

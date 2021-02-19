@@ -1,7 +1,6 @@
 package message
 
 import (
-	"fmt"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -58,7 +57,7 @@ func UnescapeCQCodeText(str string) string {
 func (m MessageSegment) CQCode() string {
 	cqcode := "[CQ:" + m.Type  // 消息类型
 	for k, v := range m.Data { // 消息参数
-		cqcode = fmt.Sprintf("%v,%v=%v", cqcode, k, EscapeCQCodeText(v))
+		cqcode = cqcode + "," + k + "=" + EscapeCQCodeText(v)
 	}
 	return cqcode + "]"
 }
