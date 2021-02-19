@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// 连接服务器
+// connectWebsocketServer 连接服务器
 func connectWebsocketServer(url, token string) {
 	var err error
 	log.Infof("开始尝试连接到Websocket服务器: %v", url)
@@ -36,7 +36,8 @@ func connectWebsocketServer(url, token string) {
 	return
 }
 
-func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器上报的事件
+// listenEvent 监听服务器上报的事件
+func listenEvent(c *websocket.Conn, handler func([]byte)) {
 	defer c.Close()
 	for {
 		t, payload, err := c.ReadMessage()
@@ -54,6 +55,7 @@ func listenEvent(c *websocket.Conn, handler func([]byte)) { // 监听服务器�
 	connectWebsocketServer(fmt.Sprint("ws://", op.Host, ":", op.Port, "/ws"), op.AccessToken)
 }
 
+// sendChannel ws发送信息通道
 func sendChannel(c *websocket.Conn, ch <-chan []byte) {
 	for rawMsg := range ch {
 		err := c.WriteMessage(websocket.TextMessage, rawMsg)
