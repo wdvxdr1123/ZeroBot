@@ -156,33 +156,34 @@ func preprocessMessageEvent(e *Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
 	if e.DetailType == "group" {
 		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
-	} else {
-		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
-	}
-	func() { // 处理是否at机器人
-		e.IsToMe = false
-		for i, m := range e.Message {
-			if m.Type == "at" {
-				if m.Data["qq"] == BotConfig.SelfID {
+		func() { // 处理是否at机器人
+			e.IsToMe = false
+			for i, m := range e.Message {
+				if m.Type == "at" {
+					if m.Data["qq"] == BotConfig.SelfID {
+						e.IsToMe = true
+						e.Message = append(e.Message[:i], e.Message[i+1:]...)
+						return
+					}
+				}
+			}
+			if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
+				return
+			}
+			e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
+			text := e.Message[0].Data["text"]
+			for _, nickname := range BotConfig.NickName {
+				if strings.HasPrefix(text, nickname) {
 					e.IsToMe = true
-					e.Message = append(e.Message[:i], e.Message[i+1:]...)
+					e.Message[0].Data["text"] = text[len(nickname):]
 					return
 				}
 			}
-		}
-		if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
-			return
-		}
-		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
-		text := e.Message[0].Data["text"]
-		for _, nickname := range BotConfig.NickName {
-			if strings.HasPrefix(text, nickname) {
-				e.IsToMe = true
-				e.Message[0].Data["text"] = text[len(nickname):]
-				return
-			}
-		}
-	}()
+		}()
+	} else {
+		e.IsToMe = true // 私聊也判断为at
+		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
+	}
 	if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
 		return
 	}

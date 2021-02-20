@@ -24,7 +24,8 @@ func Type(type_ string) Rule {
 }
 
 // PrefixRule check if the message has the prefix and trim the prefix
-// PrefixRule 检查消息前缀
+//
+// 检查消息前缀
 func PrefixRule(prefixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		if event.Message == nil || event.Message[0].Type != "text" { // 确保无空指针
@@ -48,7 +49,8 @@ func PrefixRule(prefixes ...string) Rule {
 }
 
 // SuffixRule check if the message has the suffix and trim the suffix
-// SuffixRule 检查消息后缀
+//
+// 检查消息后缀
 func SuffixRule(suffixes ...string) Rule {
 	return func(event *Event, state State) bool {
 		mLen := len(event.Message)
@@ -204,4 +206,11 @@ func AdminPermission(event *Event, state State) bool {
 func OwnerPermission(event *Event, state State) bool {
 	return SuperUserPermission(event, state) ||
 		(event.Sender.Role != "member" && event.Sender.Role != "admin")
+}
+
+// CheckSession 判断会话连续性
+func CheckSession(e1 *Event) Rule {
+	return func(e2 *Event, state State) bool {
+		return e1.UserID == e2.UserID && e1.GroupID == e2.GroupID // 私聊时GroupID为0，也相等
+	}
 }
