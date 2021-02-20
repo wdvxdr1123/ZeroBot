@@ -183,10 +183,10 @@ func (state State) Parse(model interface{}) (err error) {
 		}
 		decoderCache.Store(ty2, modelDec)
 	}
-	for _, dec := range modelDec {
-		dec.t.UnsafeSet(
-			unsafe.Pointer(uintptr(reflect2.PtrOf(model))+dec.offset),
-			reflect2.PtrOf(state[dec.key]),
+	for i := range modelDec { // decoder类型非小内存，无法被编译器优化为快速拷贝
+		modelDec[i].t.UnsafeSet(
+			unsafe.Pointer(uintptr(reflect2.PtrOf(model))+modelDec[i].offset),
+			reflect2.PtrOf(state[modelDec[i].key]),
 		)
 	}
 	return nil
