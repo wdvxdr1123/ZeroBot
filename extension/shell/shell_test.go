@@ -8,7 +8,7 @@ import (
 )
 
 func Test_parse(t *testing.T) {
-	var shellTests = []struct {
+	var shellTests = [...]struct {
 		shell    string
 		expected []string
 		err      error

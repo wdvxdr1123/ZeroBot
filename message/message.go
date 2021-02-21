@@ -18,44 +18,42 @@ type MessageSegment struct {
 	Data map[string]string `json:"data"`
 }
 
-// EscapeCQText escapes special characters in a non-media plain message.
-// EscapeCQText cq码字符转换
+var (
+	escapeCQText       = strings.NewReplacer("&", "&amp;", "[", "&#91;", "]", "&#93;")
+	unescapeCQText     = strings.NewReplacer("&#93;", "]", "&#91;", "[", "&amp;", "&")
+	escapeCQCodeText   = strings.NewReplacer("&", "&amp;", "[", "&#91;", "]", "&#93;", ",", "&#44;")
+	unescapeCQCodeText = strings.NewReplacer("&#44;", ",", "&#93;", "]", "&#91;", "[", "&amp;", "&")
+)
+
+// EscapeCQText escapes special characters in a non-media plain message.\
+//
+// CQ码字符转换
 func EscapeCQText(str string) string {
-	str = strings.Replace(str, "&", "&amp;", -1)
-	str = strings.Replace(str, "[", "&#91;", -1)
-	str = strings.Replace(str, "]", "&#93;", -1)
-	return str
+	return escapeCQText.Replace(str)
 }
 
 // UnescapeCQText unescapes special characters in a non-media plain message.
-// UnescapeCQText cq码反解析
+//
+// CQ码反解析
 func UnescapeCQText(str string) string {
-	str = strings.Replace(str, "&#93;", "]", -1)
-	str = strings.Replace(str, "&#91;", "[", -1)
-	str = strings.Replace(str, "&amp;", "&", -1)
-	return str
+	return unescapeCQText.Replace(str)
 }
 
 // EscapeCQCodeText escapes special characters in a cqcode value.
+//
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
-// EscapeCQText cq码字符转换
+//
+// cq码字符转换
 func EscapeCQCodeText(str string) string {
-	str = strings.Replace(str, "&", "&amp;", -1)
-	str = strings.Replace(str, "[", "&#91;", -1)
-	str = strings.Replace(str, "]", "&#93;", -1)
-	str = strings.Replace(str, ",", "&#44;", -1)
-	return str
+	return escapeCQCodeText.Replace(str)
 }
 
 // UnescapeCQCodeText unescapes special characters in a cqcode value.
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
-// UnescapeCQText cq码反解析
+//
+// cq码反解析
 func UnescapeCQCodeText(str string) string {
-	str = strings.Replace(str, "&#44;", ",", -1)
-	str = strings.Replace(str, "&#93;", "]", -1)
-	str = strings.Replace(str, "&#91;", "[", -1)
-	str = strings.Replace(str, "&amp;", "&", -1)
-	return str
+	return unescapeCQCodeText.Replace(str)
 }
 
 // CQCode 将数组消息转换为CQ码
