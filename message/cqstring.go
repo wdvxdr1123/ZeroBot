@@ -1,14 +1,31 @@
 package message
 
-func ParseMessageFromString2(s string) Message {
+import (
+	"reflect"
+	"unsafe"
+)
+
+func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(ptr) + offset)
+}
+
+// ParseMessageFromString parses msg as type string to a sort of MessageSegment.
+// msg is the value of key "message" of the data unmarshalled from the
+// API response JSON.
+//
+// CQ字符串转为消息
+func ParseMessageFromString(s string) Message {
 	var seg MessageSegment
 	var m = Message{}
 	var key = ""
+
+	ptr := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&s)).Data)
 	l := len(s)
 	i, j := 0, 0
 S1: // Plain Text
 	for ; i < l; i++ {
-		if s[i] == '[' && s[i:i+4] == "[CQ:" {
+		if *(*byte)(add(ptr, uintptr(i))) == '[' && i+4 < l && //TODO: BigEndian
+			*(*uint32)(add(ptr, uintptr(i))) == 978404187 { // Magic :uint32([]byte("[CQ:"))
 			if i > j {
 				m = append(m, Text(s[j:i]))
 			}
@@ -21,7 +38,7 @@ S1: // Plain Text
 S2: // CQCode Type
 	seg = MessageSegment{Data: map[string]string{}}
 	for ; i < l; i++ {
-		switch s[i] {
+		switch *(*byte)(add(ptr, uintptr(i))) {
 		case ',': // CQ Code with params
 			seg.Type = s[j:i]
 			i++
@@ -38,7 +55,7 @@ S2: // CQCode Type
 	goto End
 S3: // CQCode param key
 	for ; i < l; i++ {
-		if s[i] == '=' {
+		if *(*byte)(add(ptr, uintptr(i))) == '=' {
 			key = s[j:i]
 			i++
 			j = i
@@ -48,7 +65,7 @@ S3: // CQCode param key
 	goto End
 S4: // CQCode param value
 	for ; i < l; i++ {
-		switch s[i] {
+		switch *(*byte)(add(ptr, uintptr(i))) {
 		case ',': // more param
 			seg.Data[key] = s[j:i]
 			i++

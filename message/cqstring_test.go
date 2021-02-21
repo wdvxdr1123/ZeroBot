@@ -1,9 +1,12 @@
 package message
 
 import (
-	"github.com/stretchr/testify/assert"
+	"encoding/binary"
+	"fmt"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseMessageFromString2(t *testing.T) {
@@ -31,26 +34,28 @@ func TestParseMessageFromString2(t *testing.T) {
 				MessageSegment{Type: "ɌćƞßɌĆnƅŕĉ", Data: map[string]string{"ɌcńƁ": "ȓČņÞ"}},
 			},
 		},
+		{
+			`[CQ:face,id=123][CQ:face,id=1234]  [`,
+			Message{Face("123"), Face("1234"), Text("  [")},
+		},
+		{
+			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234]  [][][CQ:]`,
+			Message{Face("123"), Face("1234"), Text("  [][]"), MessageSegment{Type: "", Data: map[string]string{}}},
+		},
 	}
-
+	fmt.Println(binary.BigEndian.Uint32([]byte("[CQ:")))
 	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			got := ParseMessageFromString2(test.CQString)
+			got := ParseMessageFromString(test.CQString)
 			assert.Equal(t, test.Expected, got)
 		})
 	}
 }
 
-const bench = `[CQ:rcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞ,a=b]`
+const bench = `rcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQ[CQ:face,id=123][CQ:face,id=1234][CQ:face,id=123][CQ:face,id=1234]ȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞ,a=b][CQ:rcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞ`
 
 func BenchmarkParseMessageFromString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		ParseMessageFromString(bench)
-	}
-}
-
-func BenchmarkParseMessageFromString2(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ParseMessageFromString2(bench)
 	}
 }
