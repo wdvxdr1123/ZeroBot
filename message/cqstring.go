@@ -27,7 +27,7 @@ S1: // Plain Text
 		if *(*byte)(add(ptr, uintptr(i))) == '[' && i+4 < l && //TODO: BigEndian
 			*(*uint32)(add(ptr, uintptr(i))) == 978404187 { // Magic :uint32([]byte("[CQ:"))
 			if i > j {
-				m = append(m, Text(s[j:i]))
+				m = append(m, Text(UnescapeCQText(s[j:i])))
 			}
 			i += 4
 			j = i
@@ -67,12 +67,12 @@ S4: // CQCode param value
 	for ; i < l; i++ {
 		switch *(*byte)(add(ptr, uintptr(i))) {
 		case ',': // more param
-			seg.Data[key] = s[j:i]
+			seg.Data[key] = UnescapeCQCodeText(s[j:i])
 			i++
 			j = i
 			goto S3
 		case ']':
-			seg.Data[key] = s[j:i]
+			seg.Data[key] = UnescapeCQCodeText(s[j:i])
 			i++
 			j = i
 			m = append(m, seg)
@@ -82,7 +82,7 @@ S4: // CQCode param value
 	goto End
 End:
 	if i > j {
-		m = append(m, Text(s[j:i]))
+		m = append(m, Text(UnescapeCQText(s[j:i])))
 	}
 	return m
 }
