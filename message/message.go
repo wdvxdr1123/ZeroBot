@@ -18,25 +18,24 @@ type MessageSegment struct {
 	Data map[string]string `json:"data"`
 }
 
-var (
-	escapeCQText       = strings.NewReplacer("&", "&amp;", "[", "&#91;", "]", "&#93;")
-	unescapeCQText     = strings.NewReplacer("&#93;", "]", "&#91;", "[", "&amp;", "&")
-	escapeCQCodeText   = strings.NewReplacer("&", "&amp;", "[", "&#91;", "]", "&#93;", ",", "&#44;")
-	unescapeCQCodeText = strings.NewReplacer("&#44;", ",", "&#93;", "]", "&#91;", "[", "&amp;", "&")
-)
-
 // EscapeCQText escapes special characters in a non-media plain message.\
 //
 // CQ码字符转换
 func EscapeCQText(str string) string {
-	return escapeCQText.Replace(str)
+	str = strings.Replace(str, "&", "&amp;", -1)
+	str = strings.Replace(str, "[", "&#91;", -1)
+	str = strings.Replace(str, "]", "&#93;", -1)
+	return str
 }
 
 // UnescapeCQText unescapes special characters in a non-media plain message.
 //
 // CQ码反解析
 func UnescapeCQText(str string) string {
-	return unescapeCQText.Replace(str)
+	str = strings.Replace(str, "&#93;", "]", -1)
+	str = strings.Replace(str, "&#91;", "[", -1)
+	str = strings.Replace(str, "&amp;", "&", -1)
+	return str
 }
 
 // EscapeCQCodeText escapes special characters in a cqcode value.
@@ -45,7 +44,11 @@ func UnescapeCQText(str string) string {
 //
 // cq码字符转换
 func EscapeCQCodeText(str string) string {
-	return escapeCQCodeText.Replace(str)
+	str = strings.Replace(str, "&", "&amp;", -1)
+	str = strings.Replace(str, "[", "&#91;", -1)
+	str = strings.Replace(str, "]", "&#93;", -1)
+	str = strings.Replace(str, ",", "&#44;", -1)
+	return str
 }
 
 // UnescapeCQCodeText unescapes special characters in a cqcode value.
@@ -53,7 +56,11 @@ func EscapeCQCodeText(str string) string {
 //
 // cq码反解析
 func UnescapeCQCodeText(str string) string {
-	return unescapeCQCodeText.Replace(str)
+	str = strings.Replace(str, "&#44;", ",", -1)
+	str = strings.Replace(str, "&#93;", "]", -1)
+	str = strings.Replace(str, "&#91;", "[", -1)
+	str = strings.Replace(str, "&amp;", "&", -1)
+	return str
 }
 
 // CQCode 将数组消息转换为CQ码

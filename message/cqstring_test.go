@@ -33,8 +33,8 @@ func TestParseMessageFromString(t *testing.T) {
 			},
 		},
 		{
-			`[CQ:face,id=123][CQ:face,id=1234]  [`,
-			Message{Face("123"), Face("1234"), Text("  [")},
+			`[CQ:face,id=123]🍟🍟🍟[CQ:face,id=1234]  [`,
+			Message{Face("123"), Text(`🍟🍟🍟`), Face("1234"), Text("  [")},
 		},
 		{
 			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234]  [][][CQ:]`,
