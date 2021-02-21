@@ -1,15 +1,13 @@
 package message
 
 import (
-	"encoding/binary"
-	"fmt"
 	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseMessageFromString2(t *testing.T) {
+func TestParseMessageFromString(t *testing.T) {
 	var tests = []struct {
 		CQString string
 		Expected Message
@@ -43,7 +41,6 @@ func TestParseMessageFromString2(t *testing.T) {
 			Message{Face("123"), Face("1234"), Text("  [][]"), MessageSegment{Type: "", Data: map[string]string{}}},
 		},
 	}
-	fmt.Println(binary.BigEndian.Uint32([]byte("[CQ:")))
 	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			got := ParseMessageFromString(test.CQString)

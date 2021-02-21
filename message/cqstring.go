@@ -1,9 +1,25 @@
 package message
 
 import (
+	"encoding/binary"
 	"reflect"
 	"unsafe"
 )
+
+const sizeInt = int(unsafe.Sizeof(0))
+
+var magicCQ = uint32(0)
+
+func init() {
+	x := 0x1234
+	p := unsafe.Pointer(&x)
+	p2 := (*[sizeInt]byte)(p)
+	if p2[0] == 0 {
+		magicCQ = binary.BigEndian.Uint32([]byte("[CQ:"))
+	} else {
+		magicCQ = binary.LittleEndian.Uint32([]byte("[CQ:"))
+	}
+}
 
 func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(ptr) + offset)
@@ -24,8 +40,8 @@ func ParseMessageFromString(s string) Message {
 	i, j := 0, 0
 S1: // Plain Text
 	for ; i < l; i++ {
-		if *(*byte)(add(ptr, uintptr(i))) == '[' && i+4 < l && //TODO: BigEndian
-			*(*uint32)(add(ptr, uintptr(i))) == 978404187 { // Magic :uint32([]byte("[CQ:"))
+		if *(*byte)(add(ptr, uintptr(i))) == '[' && i+4 < l &&
+			*(*uint32)(add(ptr, uintptr(i))) == magicCQ { // Magic :uint32([]byte("[CQ:"))
 			if i > j {
 				m = append(m, Text(UnescapeCQText(s[j:i])))
 			}
