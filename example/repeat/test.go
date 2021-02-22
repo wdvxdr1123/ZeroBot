@@ -1,7 +1,7 @@
 package repeat
 
 import (
-	"github.com/wdvxdr1123/ZeroBot"
+	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/manager"
 )
 

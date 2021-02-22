@@ -20,12 +20,14 @@ func connectWebsocketServer(url, token string) {
 	if token != "" {
 		header["Authorization"] = []string{"Bear " + token}
 	}
-	conn, _, err := websocket.DefaultDialer.Dial(url, header)
+RETRY:
+	conn, res, err := websocket.DefaultDialer.Dial(url, header)
 	for err != nil {
 		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", url, err)
 		time.Sleep(2 * time.Second) // 等待两秒后重新连接
-		conn, _, err = websocket.DefaultDialer.Dial(url, header)
+		goto RETRY
 	}
+	res.Body.Close()
 	go listenEvent(conn, handleResponse)
 
 	// 处理goroutine 泄露

@@ -54,42 +54,42 @@ func Not(filter FilterFunc) FilterFunc {
 	}
 }
 
-// Field...
+// Field ...
 func Field(str string) *field {
 	return &field{key: str}
 }
 
-// Any...
+// Any ...
 func (f *field) Any(filter ...FilterFunc) FilterFunc {
 	return func(result gjson.Result) bool {
 		return Or(filter...)(result.Get(f.key))
 	}
 }
 
-// All...
+// All ...
 func (f *field) All(filter ...FilterFunc) FilterFunc {
 	return func(result gjson.Result) bool {
 		return And(filter...)(result.Get(f.key))
 	}
 }
 
-// Equal
+// Equal ...
 func Equal(str string) FilterFunc {
 	return func(result gjson.Result) bool {
 		return str == result.String()
 	}
 }
 
-// NotEqual
+// NotEqual ...
 func NotEqual(str string) FilterFunc {
 	return func(result gjson.Result) bool {
 		return str != result.String()
 	}
 }
 
-// In
+// In ...
 func In(i ...interface{}) FilterFunc {
-	var ss []string
+	ss := make([]string, 0)
 	for _, v := range i {
 		ss = append(ss, fmt.Sprint(v))
 	}
@@ -103,14 +103,14 @@ func In(i ...interface{}) FilterFunc {
 	}
 }
 
-// Contain...
+// Contain ...
 func Contain(str string) FilterFunc {
 	return func(result gjson.Result) bool {
 		return strings.Contains(result.String(), str)
 	}
 }
 
-// Regex...
+// Regex ...
 func Regex(str string) FilterFunc {
 	pat := regexp.MustCompile(str)
 	return func(result gjson.Result) bool {

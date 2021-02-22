@@ -3,7 +3,7 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
-	"github.com/wdvxdr1123/ZeroBot"
+	zero "github.com/wdvxdr1123/ZeroBot"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"
 	_ "github.com/wdvxdr1123/ZeroBot/example/priority"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
