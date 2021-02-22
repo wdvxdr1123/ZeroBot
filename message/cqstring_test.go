@@ -12,10 +12,7 @@ func TestParseMessageFromString(t *testing.T) {
 		CQString string
 		Expected Message
 	}{
-		{
-			``,
-			Message{},
-		},
+		{``, Message{}},
 		{
 			`Gorilla[CQ:text]`,
 			Message{Text("Gorilla"), MessageSegment{Type: "text", Data: map[string]string{}}},
@@ -39,6 +36,10 @@ func TestParseMessageFromString(t *testing.T) {
 		{
 			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234]  [][][CQ:]`,
 			Message{Face("123"), Face("1234"), Text("  [][]"), MessageSegment{Type: "", Data: map[string]string{}}},
+		},
+		{
+			`[CQ:image,file=file:///C:\path\to\my\img-123\###.png]`, // https://github.com/Mrs4s/go-cqhttp/issues/169
+			Message{MessageSegment{Type: "image", Data: map[string]string{"file": "file:///C:\\path\\to\\my\\img-123\\###.png"}}},
 		},
 	}
 	for i, test := range tests {

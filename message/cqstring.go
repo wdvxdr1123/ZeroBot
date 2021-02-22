@@ -33,9 +33,9 @@ func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
 func ParseMessageFromString(s string) Message {
 	var seg MessageSegment
 	var m = Message{}
-	var key = ""
+	var key string
 
-	ptr := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&s)).Data)
+	ptr := unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&s)).Data)
 	l := len(s)
 	i, j := 0, 0
 S1: // Plain Text

@@ -15,7 +15,7 @@ type multiHooker struct {
 func (m *multiHooker) Hook() Rule {
 	return func(event *Event, state State) bool {
 		for i := range m.hookers {
-			if m.hookers[i].Hook()(event, state) == false {
+			if !m.hookers[i].Hook()(event, state) {
 				return false
 			}
 		}

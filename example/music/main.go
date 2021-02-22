@@ -16,7 +16,7 @@ var _ = zero.OnCommandGroup([]string{"music", "点歌"}).
 	SetBlock(true).
 	SetPriority(8).
 	Handle(func(matcher *Matcher, event Event, state State) Response {
-		if limit.Load(event.UserID).Acquire() == false {
+		if !limit.Load(event.UserID).Acquire() {
 			zero.Send(event, "您的请求太快，请稍后重试0x0...")
 			return zero.FinishResponse
 		}

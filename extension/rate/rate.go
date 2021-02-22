@@ -23,7 +23,7 @@ func NewManager(interval time.Duration, burst int) *LimiterManager {
 }
 
 // Load ...
-func (l *LimiterManager) Load(key int64) *Limiter {
+func (l *LimiterManager) Load(key interface{}) *Limiter {
 	if val, ok := l.limiters.Load(key); ok {
 		return val.(*Limiter)
 	}

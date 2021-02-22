@@ -1,10 +1,11 @@
 package music
 
 import (
-	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/tidwall/gjson"
 )
 
 func QueryNeteaseMusic(musicName string) string {

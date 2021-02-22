@@ -10,5 +10,5 @@ type Matcher = zero.Matcher
 // Event is the short of zero.Event
 type Event = zero.Event
 
-// Event is the short of map[string]interface{}
+// State is the short of map[string]interface{}
 type State = zero.State

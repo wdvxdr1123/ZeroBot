@@ -33,7 +33,6 @@ func connectWebsocketServer(url, token string) {
 	sending = make(chan []byte)
 	go sendChannel(conn, sending)
 	log.Infof("连接Websocket服务器: %v 成功", url)
-	return
 }
 
 // listenEvent 监听服务器上报的事件
