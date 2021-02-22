@@ -117,7 +117,7 @@ func processEvent(response []byte, parsedResponse gjson.Result) {
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = parsedResponse
 	switch event.PostType { // process DetailType
-	case "message":
+	case "message", "message_sent":
 		event.DetailType = event.MessageType
 	case "notice":
 		event.DetailType = event.NoticeType
