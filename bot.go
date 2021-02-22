@@ -25,7 +25,7 @@ type Config struct {
 	SelfID        string   `json:"self_id"`        // 机器人账号
 }
 
-// Option
+// Option 配置
 //
 // Deprecated: use zero.Config instead.
 type Option = Config

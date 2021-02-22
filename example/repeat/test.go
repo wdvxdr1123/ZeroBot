@@ -13,7 +13,7 @@ func init() {
 
 type testPlugin struct{}
 
-func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
+func (testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 	return zero.PluginInfo{
 		Author:     "wdvxdr1123",
 		PluginName: "test",
@@ -22,7 +22,7 @@ func (_ testPlugin) GetPluginInfo() zero.PluginInfo { // 返回插件信息
 	}
 }
 
-func (_ testPlugin) Start() { // 插件主体
+func (testPlugin) Start() { // 插件主体
 	zero.OnCommand("开启复读").SetBlock(true).SetPriority(10).
 		Handle(func(matcher *zero.Matcher, event zero.Event, state zero.State) zero.Response {
 			stop := zero.NewFutureEvent("message/group", 8, true,

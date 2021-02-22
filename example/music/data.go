@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func QueryNeteaseMusic(musicName string) string {
+func queryNeteaseMusic(musicName string) string {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", "http://music.163.com/api/search/get?type=1&s="+url.QueryEscape(musicName), nil)
 	if err != nil {
@@ -20,7 +20,7 @@ func QueryNeteaseMusic(musicName string) string {
 		return ""
 	}
 	data, err := ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
+	_ = res.Body.Close()
 	if err != nil {
 		return ""
 	}

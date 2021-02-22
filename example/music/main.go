@@ -41,6 +41,6 @@ var _ = zero.OnCommandGroup([]string{"music", "点歌"}).
 			}
 		}
 
-		zero.Send(event, message.Music("163", QueryNeteaseMusic(cmd.Args)))
+		zero.Send(event, message.Music("163", queryNeteaseMusic(cmd.Args)))
 		return zero.FinishResponse
 	})
