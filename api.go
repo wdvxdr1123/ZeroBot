@@ -12,12 +12,11 @@ var json = jsoniter.ConfigFastest
 
 // CallAction 调用 cqhttp API
 func CallAction(action string, params Params) gjson.Result {
-	req := webSocketRequest{
+	req := APIRequest{
 		Action: action,
 		Params: params,
-		Echo:   nextSeq(),
 	}
-	rsp, err := sendAndWait(req)
+	rsp, err := BotConfig.Driver.Send(req)
 	if err == nil {
 		if rsp.RetCode != 0 {
 			log.Errorf("调用 API: %v 时出现错误, RetCode: %v, Msg: %v, Wording: %v", action, rsp.RetCode, rsp.Msg, rsp.Wording)

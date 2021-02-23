@@ -1,12 +1,8 @@
 package zero
 
 import (
-	"errors"
-	"fmt"
 	"runtime/debug"
 	"strings"
-	"sync/atomic"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -23,6 +19,7 @@ type Config struct {
 	CommandPrefix string   `json:"command_prefix"` //触发命令
 	SuperUsers    []string `json:"super_users"`    //超级用户
 	SelfID        string   `json:"self_id"`        // 机器人账号
+	Driver        Driver   `json:"-"`
 }
 
 // Option 配置
@@ -30,12 +27,15 @@ type Config struct {
 // Deprecated: use zero.Config instead.
 type Option = Config
 
-var (
-	BotConfig Config
-	seq       uint64 = 0
-	seqMap           = seqSyncMap{}
-	sending          = make(chan []byte)
-)
+// Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
+type Driver interface {
+	Connect(url string, accessToken string)
+	Listen(func([]byte))
+	Send(APIRequest) (APIResponse, error)
+}
+
+// BotConfig 运行中bot的配置，是Run函数的参数的拷贝
+var BotConfig Config
 
 func init() {
 	pluginPool = []IPlugin{} // 初始化
@@ -55,59 +55,15 @@ func Run(op Config) {
 		plugin.Start() // 加载插件
 	}
 	BotConfig = op
-	connectWebsocketServer(fmt.Sprint("ws://", BotConfig.Host, ":", BotConfig.Port, "/ws"), BotConfig.AccessToken)
-	BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
-}
-
-// send message to server and return the response from server.
-// sendAndWait ws发消息的主函数
-func sendAndWait(request webSocketRequest) (apiResponse, error) {
-	ch := make(chan apiResponse)
-	seqMap.Store(request.Echo, ch)
-	data, err := json.Marshal(request)
-	if err != nil {
-		return apiResponse{}, err
-	}
-	sending <- data
-	log.Debug("向服务器发送请求: ", helper.BytesToString(data))
-	select { // 等待数据返回
-	case rsp, ok := <-ch:
-		if !ok {
-			return apiResponse{}, errors.New("channel closed")
-		}
-		return rsp, nil
-	case <-time.After(30 * time.Second):
-		return apiResponse{}, errors.New("timed out")
-	}
-}
-
-// handle the message from server.
-// handleResponse 线程中等待返回信息
-func handleResponse(response []byte) {
-	rsp := gjson.ParseBytes(response)
-	if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
-		log.Debug("接收到API调用返回: ", strings.TrimSpace(string(response)))
-		if c, ok := seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
-			defer close(c)
-			c <- apiResponse{ // 发送api调用响应
-				Status:  rsp.Get("status").String(),
-				Data:    rsp.Get("data"),
-				Msg:     rsp.Get("msg").Str,
-				Wording: rsp.Get("wording").Str,
-				RetCode: rsp.Get("retcode").Int(),
-				Echo:    rsp.Get("echo").Uint(),
-			}
-		}
-	} else {
-		if rsp.Get("meta_event_type").Str != "heartbeat" { // 忽略心跳事件
-			log.Debug("接收到事件: ", helper.BytesToString(response))
-		}
-		go processEvent(response, rsp)
-	}
+	op.Driver.Connect("ws://"+BotConfig.Host+":"+BotConfig.Port+"/ws", BotConfig.AccessToken)
+	go func() {
+		BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
+	}()
+	op.Driver.Listen(processEvent)
 }
 
 // processEvent 心跳处理
-func processEvent(response []byte, parsedResponse gjson.Result) {
+func processEvent(response []byte) {
 	defer func() {
 		if pa := recover(); pa != nil {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
@@ -115,7 +71,7 @@ func processEvent(response []byte, parsedResponse gjson.Result) {
 	}()
 	var event Event
 	_ = json.Unmarshal(response, &event)
-	event.RawEvent = parsedResponse
+	event.RawEvent = gjson.Parse(helper.BytesToString(response))
 	switch event.PostType { // process DetailType
 	case "message", "message_sent":
 		event.DetailType = event.MessageType
@@ -188,8 +144,4 @@ func preprocessMessageEvent(e *Event) {
 		return
 	}
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
-}
-
-func nextSeq() uint64 {
-	return atomic.AddUint64(&seq, 1)
 }

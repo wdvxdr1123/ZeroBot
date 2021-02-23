@@ -17,9 +17,9 @@ import (
 // Params is the params of call api
 type Params map[string]interface{}
 
-// apiResponse is the response of calling API
+// APIResponse is the response of calling API
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
-type apiResponse struct {
+type APIResponse struct {
 	Status  string       `json:"status"`
 	Data    gjson.Result `json:"data"`
 	Msg     string       `json:"msg"`
@@ -28,12 +28,12 @@ type apiResponse struct {
 	Echo    uint64       `json:"echo"`
 }
 
-// webSocketRequest is the request sending to the cqhttp
+// APIRequest is the request sending to the cqhttp
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
-type webSocketRequest struct {
+type APIRequest struct {
 	Action string `json:"action"`
 	Params Params `json:"params"`
-	Echo   uint64 `json:"echo"`
+	Echo   uint64 `json:"echo"` // 该项不用填写，由Driver生成
 }
 
 // User is a user on QQ.
@@ -128,17 +128,6 @@ func (u *User) String() string {
 	}
 	return p + u.Name()
 }
-
-type EventType uint32
-
-const (
-	MessageType uint8 = 1 << iota
-	RequestType
-	NoticeType
-	MetaType
-	GroupType
-	PrivateType
-)
 
 // decoder 反射获取的数据
 type decoder []struct {
