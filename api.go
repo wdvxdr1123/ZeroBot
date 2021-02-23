@@ -81,17 +81,17 @@ func SendPrivateMessage(userID int64, message interface{}) int64 {
 
 // DeleteMessage 撤回消息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#delete_msg-%E6%92%A4%E5%9B%9E%E6%B6%88%E6%81%AF
-func DeleteMessage(messageId int64) {
+func DeleteMessage(messageID int64) {
 	CallAction("delete_msg", Params{
-		"message_id": messageId,
+		"message_id": messageID,
 	})
 }
 
 // GetMessage 获取消息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
-func GetMessage(messageId int64) Message {
+func GetMessage(messageID int64) Message {
 	rsp := CallAction("get_msg", Params{
-		"message_id": messageId,
+		"message_id": messageID,
 	})
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
@@ -117,86 +117,86 @@ func GetForwardMessage(id int64) gjson.Result {
 
 // SetGroupKick 群组踢人
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_kick-%E7%BE%A4%E7%BB%84%E8%B8%A2%E4%BA%BA
-func SetGroupKick(groupId, userId int64, rejectAddRequest bool) {
+func SetGroupKick(groupID, userID int64, rejectAddRequest bool) {
 	CallAction("set_group_kick", Params{
-		"group_id":           groupId,
-		"user_id":            userId,
+		"group_id":           groupID,
+		"user_id":            userID,
 		"reject_add_request": rejectAddRequest,
 	})
 }
 
 // SetGroupBan 群组单人禁言
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_ban-%E7%BE%A4%E7%BB%84%E5%8D%95%E4%BA%BA%E7%A6%81%E8%A8%80
-func SetGroupBan(groupId, userId, duration int64) {
+func SetGroupBan(groupID, userID, duration int64) {
 	CallAction("set_group_ban", Params{
-		"group_id": groupId,
-		"user_id":  userId,
+		"group_id": groupID,
+		"user_id":  userID,
 		"duration": duration,
 	})
 }
 
 // SetGroupWholeBan 群组全员禁言
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_whole_ban-%E7%BE%A4%E7%BB%84%E5%85%A8%E5%91%98%E7%A6%81%E8%A8%80
-func SetGroupWholeBan(groupId int64, enable bool) {
+func SetGroupWholeBan(groupID int64, enable bool) {
 	CallAction("set_group_whole_ban", Params{
-		"group_id": groupId,
+		"group_id": groupID,
 		"enable":   enable,
 	})
 }
 
 // SetGroupAdmin 群组设置管理员
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_whole_ban-%E7%BE%A4%E7%BB%84%E5%85%A8%E5%91%98%E7%A6%81%E8%A8%80
-func SetGroupAdmin(groupId, userId int64, enable bool) {
+func SetGroupAdmin(groupID, userID int64, enable bool) {
 	CallAction("set_group_admin", Params{
-		"group_id": groupId,
-		"user_id":  userId,
+		"group_id": groupID,
+		"user_id":  userID,
 		"enable":   enable,
 	})
 }
 
 // SetGroupAnonymous 群组匿名
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_anonymous-%E7%BE%A4%E7%BB%84%E5%8C%BF%E5%90%8D
-func SetGroupAnonymous(groupId int64, enable bool) {
+func SetGroupAnonymous(groupID int64, enable bool) {
 	CallAction("set_group_anonymous", Params{
-		"group_id": groupId,
+		"group_id": groupID,
 		"enable":   enable,
 	})
 }
 
 // SetGroupCard 设置群名片（群备注）
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_card-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E5%90%8D%E7%89%87%E7%BE%A4%E5%A4%87%E6%B3%A8
-func SetGroupCard(groupId, userId int64, card string) {
+func SetGroupCard(groupID, userID int64, card string) {
 	CallAction("set_group_card", Params{
-		"group_id": groupId,
-		"user_id":  userId,
+		"group_id": groupID,
+		"user_id":  userID,
 		"card":     card,
 	})
 }
 
 // SetGroupName 设置群名
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_name-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E5%90%8D
-func SetGroupName(groupId int64, groupName string) {
+func SetGroupName(groupID int64, groupName string) {
 	CallAction("set_group_card", Params{
-		"group_id":   groupId,
+		"group_id":   groupID,
 		"group_name": groupName,
 	})
 }
 
 // SetGroupLeave 退出群组
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_leave-%E9%80%80%E5%87%BA%E7%BE%A4%E7%BB%84
-func SetGroupLeave(groupId int64, isDismiss bool) {
+func SetGroupLeave(groupID int64, isDismiss bool) {
 	CallAction("set_group_leave", Params{
-		"group_id":   groupId,
+		"group_id":   groupID,
 		"is_dismiss": isDismiss,
 	})
 }
 
 // SetGroupSpecialTitle 设置群组专属头衔
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_special_title-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E7%BB%84%E4%B8%93%E5%B1%9E%E5%A4%B4%E8%A1%94
-func SetGroupSpecialTitle(groupId int64, userId int64, specialTitle string) {
+func SetGroupSpecialTitle(groupID int64, userID int64, specialTitle string) {
 	CallAction("set_group_special_title", Params{
-		"group_id":      groupId,
-		"user_id":       userId,
+		"group_id":      groupID,
+		"user_id":       userID,
 		"special_title": specialTitle,
 	})
 }
@@ -230,9 +230,9 @@ func GetLoginInfo() gjson.Result {
 
 // GetStrangerInfo 获取陌生人信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_stranger_info-%E8%8E%B7%E5%8F%96%E9%99%8C%E7%94%9F%E4%BA%BA%E4%BF%A1%E6%81%AF
-func GetStrangerInfo(userId int64, noCache bool) gjson.Result {
+func GetStrangerInfo(userID int64, noCache bool) gjson.Result {
 	return CallAction("get_stranger_info", Params{
-		"user_id":  userId,
+		"user_id":  userID,
 		"no_cache": noCache,
 	})
 }
@@ -245,9 +245,9 @@ func GetFriendList() gjson.Result {
 
 // GetGroupInfo 获取群信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E4%BF%A1%E6%81%AF
-func GetGroupInfo(groupId int64, noCache bool) Group {
+func GetGroupInfo(groupID int64, noCache bool) Group {
 	rsp := CallAction("get_group_info", Params{
-		"group_id": groupId,
+		"group_id": groupID,
 		"no_cache": noCache,
 	})
 	group := Group{}
@@ -263,28 +263,28 @@ func GetGroupList() gjson.Result {
 
 // GetGroupMemberInfo 获取群成员信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_member_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%88%90%E5%91%98%E4%BF%A1%E6%81%AF
-func GetGroupMemberInfo(groupId int64, userId int64, noCache bool) gjson.Result {
+func GetGroupMemberInfo(groupID int64, userID int64, noCache bool) gjson.Result {
 	return CallAction("get_group_member_info", Params{
-		"group_id": groupId,
-		"user_id":  userId,
+		"group_id": groupID,
+		"user_id":  userID,
 		"no_cache": noCache,
 	})
 }
 
 // GetGroupMemberList 获取群成员列表
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_member_list-%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%88%90%E5%91%98%E5%88%97%E8%A1%A8
-func GetGroupMemberList(groupId int64) gjson.Result {
+func GetGroupMemberList(groupID int64) gjson.Result {
 	return CallAction("get_group_member_list", Params{
-		"group_id": groupId,
+		"group_id": groupID,
 	})
 }
 
 // GetGroupHonorInfo 获取群荣誉信息
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#get_group_honor_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E8%8D%A3%E8%AA%89%E4%BF%A1%E6%81%AF
-func GetGroupHonorInfo(groupId int64, type_ string) gjson.Result {
+func GetGroupHonorInfo(groupID int64, hType string) gjson.Result {
 	return CallAction("get_group_honor_info", Params{
-		"group_id": groupId,
-		"type":     type_,
+		"group_id": groupID,
+		"type":     hType,
 	})
 }
 

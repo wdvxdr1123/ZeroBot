@@ -71,7 +71,7 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 }
 
 // On 添加新的主匹配器
-func On(type_ string, rules ...Rule) *Matcher {
+func On(mType string, rules ...Rule) *Matcher {
 	var i = 1
 	var hooked Rule
 	for {
@@ -87,7 +87,7 @@ func On(type_ string, rules ...Rule) *Matcher {
 	}
 	var matcher = &Matcher{
 		State: map[string]interface{}{},
-		Type:  Type(type_),
+		Type:  Type(mType),
 		Rules: func() []Rule {
 			if hooked != nil {
 				return append(rules, hooked)

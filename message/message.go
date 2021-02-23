@@ -1,6 +1,7 @@
 package message
 
 import (
+	"strconv"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -85,11 +86,11 @@ func Text(text string) MessageSegment {
 
 // Face QQ表情
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#qq-%E8%A1%A8%E6%83%85
-func Face(id string) MessageSegment {
+func Face(id int) MessageSegment {
 	return MessageSegment{
 		Type: "face",
 		Data: map[string]string{
-			"id": id,
+			"id": strconv.Itoa(id),
 		},
 	}
 }
@@ -118,23 +119,23 @@ func Record(file string) MessageSegment {
 
 // At @某人
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E6%9F%90%E4%BA%BA
-func At(qq string) MessageSegment {
+func At(qq int64) MessageSegment {
 	return MessageSegment{
 		Type: "at",
 		Data: map[string]string{
-			"qq": qq,
+			"qq": strconv.FormatInt(qq, 10),
 		},
 	}
 }
 
 // Music 音乐分享
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E5%88%86%E4%BA%AB-
-func Music(type_ string, id string) MessageSegment {
+func Music(mType string, id int64) MessageSegment {
 	return MessageSegment{
 		Type: "music",
 		Data: map[string]string{
-			"type": type_,
-			"id":   id,
+			"type": mType,
+			"id":   strconv.FormatInt(id, 10),
 		},
 	}
 }
@@ -156,11 +157,11 @@ func CustomMusic(subType, url, audio, title string) MessageSegment {
 
 // Reply 回复
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id string) MessageSegment {
+func Reply(id int64) MessageSegment {
 	return MessageSegment{
 		Type: "reply",
 		Data: map[string]string{
-			"id": id,
+			"id": strconv.FormatInt(id, 10),
 		},
 	}
 }
@@ -178,18 +179,18 @@ func Forward(id string) MessageSegment {
 
 // Node 合并转发节点
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%8A%82%E7%82%B9-
-func Node(id string) MessageSegment {
+func Node(id int64) MessageSegment {
 	return MessageSegment{
 		Type: "node",
 		Data: map[string]string{
-			"id": id,
+			"id": strconv.FormatInt(id, 10),
 		},
 	}
 }
 
 // CustomNode 自定义合并转发节点
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
-func CustomNode(nickname string, userId string, content interface{}) MessageSegment {
+func CustomNode(nickname string, userID int64, content interface{}) MessageSegment {
 	var str string
 	if s, ok := content.(string); ok {
 		str = s
@@ -199,7 +200,7 @@ func CustomNode(nickname string, userId string, content interface{}) MessageSegm
 	return MessageSegment{
 		Type: "node",
 		Data: map[string]string{
-			"uin":     userId,
+			"uin":     strconv.FormatInt(userID, 10),
 			"name":    nickname,
 			"content": str,
 		},
@@ -232,23 +233,25 @@ func JSON(data string) MessageSegment {
 
 // Gift 群礼物
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E7%A4%BC%E7%89%A9
-func Gift(userId string, giftId string) MessageSegment {
+//
+// Deprecated: 群礼物改版
+func Gift(userID string, giftID string) MessageSegment {
 	return MessageSegment{
 		Type: "gift",
 		Data: map[string]string{
-			"qq": userId,
-			"id": giftId,
+			"qq": userID,
+			"id": giftID,
 		},
 	}
 }
 
 // Poke 戳一戳
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%88%B3%E4%B8%80%E6%88%B3
-func Poke(userId string) MessageSegment {
+func Poke(userID int64) MessageSegment {
 	return MessageSegment{
 		Type: "poke",
 		Data: map[string]string{
-			"qq": userId,
+			"qq": strconv.FormatInt(userID, 10),
 		},
 	}
 }
@@ -265,6 +268,6 @@ func TTS(text string) MessageSegment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID string, m ...MessageSegment) Message {
+func ReplyWithMessage(messageID int64, m ...MessageSegment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }
