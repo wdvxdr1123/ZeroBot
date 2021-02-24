@@ -15,9 +15,10 @@ func TestType(t *testing.T) {
 		DetailType: "aaa",
 		SubType:    "bbb",
 	}
-	assert.Equal(t, true, t1(e1, State{}))
-	assert.Equal(t, true, t2(e1, State{}))
-	assert.Equal(t, false, t3(e1, State{}))
+	testCtx.Event = e1
+	assert.Equal(t, true, t1(testCtx))
+	assert.Equal(t, true, t2(testCtx))
+	assert.Equal(t, false, t3(testCtx))
 }
 
 type pt struct {
@@ -35,6 +36,8 @@ var testState = State{
 	"love": 520.1314,
 }
 
+var testCtx = &Ctx{State: testState}
+
 type testModel struct {
 	Hello string  `zero:"hello"`
 	Pkg   int32   `zero:"pkg"`
@@ -45,13 +48,13 @@ type testModel struct {
 func BenchmarkState_Parse(b *testing.B) {
 	var a = &testModel{}
 	for i := 0; i < b.N; i++ {
-		_ = testState.Parse(a)
+		_ = testCtx.Parse(a)
 	}
 }
 
 func TestState_Parse2(t *testing.T) {
 	var a = &testModel{}
-	_ = testState.Parse(a)
+	_ = testCtx.Parse(a)
 	assert.Equal(t, 520.1314, a.Love)
 }
 

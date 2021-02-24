@@ -6,16 +6,10 @@ import (
 )
 
 type (
-	Response uint8
 	// Rule filter the event
-	Rule    func(event *Event, state State) bool
-	Handler func(matcher *Matcher, event Event, state State) Response
-)
-
-const (
-	SuccessResponse Response = iota
-	RejectResponse
-	FinishResponse
+	Rule func(ctx *Ctx) bool
+	// Handler 事件处理函数
+	Handler func(ctx *Ctx)
 )
 
 // Matcher 是 ZeroBot 匹配和处理事件的最小单元
@@ -92,24 +86,6 @@ func (m *Matcher) Delete() {
 			matcherList = append(matcherList[:i], matcherList[i+1:]...)
 		}
 	}
-}
-
-func (m *Matcher) run(event Event) {
-	m.Event = &event
-	if m.Handler == nil {
-		return
-	}
-	switch m.Handler(m, event, nil) {
-	}
-}
-
-// Get ..
-func (m *Matcher) Get(prompt string) string {
-	event := m.Event
-	if prompt != "" {
-		Send(*event, prompt)
-	}
-	return (<-m.FutureEvent("message", CheckUser(event.UserID)).Next()).RawMessage
 }
 
 func (m *Matcher) copy() *Matcher {

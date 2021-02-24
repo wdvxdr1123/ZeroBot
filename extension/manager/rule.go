@@ -19,7 +19,6 @@ var (
 
 // Manager is the interface of plugin group manager.
 type Manager interface {
-	zero.Hooker
 	Enable(groupID int64)
 	Disable(groupID int64)
 }
@@ -68,18 +67,18 @@ func (m *manager) Disable(groupID int64) {
 
 // Hook impls the zero.Hooker, so you can use zero.AddHook to the file.
 func (m *manager) Hook() zero.Rule {
-	return func(event *zero.Event, state zero.State) bool {
+	return func(ctx *zero.Ctx) bool {
 		m.RLock()
-		state["manager"] = Manager(m)
-		if st, ok := m.states[event.GroupID]; ok {
+		ctx.State["manager"] = Manager(m)
+		if st, ok := m.states[ctx.Event.GroupID]; ok {
 			m.RUnlock()
 			return st
 		}
 		m.RUnlock()
 		if m.options.DisableOnDefault {
-			m.Disable(event.GroupID)
+			m.Disable(ctx.Event.GroupID)
 		} else {
-			m.Enable(event.GroupID)
+			m.Enable(ctx.Event.GroupID)
 		}
 		return !m.options.DisableOnDefault
 	}

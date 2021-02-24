@@ -38,16 +38,19 @@ func formatMessage(msg interface{}) string {
 	case message.MessageSegment:
 		return m.CQCode()
 	default:
-		return ""
+		s, _ := json.MarshalToString(msg)
+		return s
 	}
 }
 
 // Send 快捷发送消息
-func Send(event Event, message interface{}) int64 {
-	if event.GroupID != 0 {
-		return SendGroupMessage(event.GroupID, message)
+//
+// Deprecated: use Ctx.Send instead.
+func Send(ctx *Ctx, message interface{}) int64 {
+	if ctx.Event.GroupID != 0 {
+		return SendGroupMessage(ctx.Event.GroupID, message)
 	}
-	return SendPrivateMessage(event.UserID, message)
+	return SendPrivateMessage(ctx.Event.UserID, message)
 }
 
 // SendGroupMessage 发送群消息

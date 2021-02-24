@@ -19,7 +19,7 @@ type Config struct {
 	CommandPrefix string   `json:"command_prefix"` //触发命令
 	SuperUsers    []string `json:"super_users"`    //超级用户
 	SelfID        string   `json:"self_id"`        // 机器人账号
-	Driver        Driver   `json:"-"`
+	Driver        Driver   `json:"-"`              // 通信驱动
 }
 
 // Option 配置
@@ -37,23 +37,8 @@ type Driver interface {
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
 var BotConfig Config
 
-func init() {
-	pluginPool = []IPlugin{} // 初始化
-}
-
 // Run 主函数初始化
 func Run(op Config) {
-	for _, plugin := range pluginPool {
-		info := plugin.GetPluginInfo()
-		log.Infof(
-			"加载插件: %v [作者] %v [版本] %v [说明] %v",
-			info.PluginName,
-			info.Author,
-			info.Version,
-			info.Details,
-		)
-		plugin.Start() // 加载插件
-	}
 	BotConfig = op
 	op.Driver.Connect("ws://"+BotConfig.Host+":"+BotConfig.Port+"/ws", BotConfig.AccessToken)
 	go func() {
@@ -83,21 +68,28 @@ func processEvent(response []byte) {
 	if event.PostType == "message" {
 		preprocessMessageEvent(&event)
 	}
-
+	ctx := &Ctx{
+		Event: &event,
+		State: State{},
+	}
 loop:
 	for _, matcher := range matcherList {
-		if !matcher.Type(&event, nil) {
+		if !matcher.Type(ctx) {
 			continue
+		}
+		for k := range ctx.State { // Clear State
+			delete(ctx.State, k)
 		}
 		matcherLock.RLock()
 		m := matcher.copy()
 		matcherLock.RUnlock()
 		for _, rule := range m.Rules {
-			if !rule(&event, nil) {
+			if !rule(ctx) { // 有 Rule 的条件未满足
 				continue loop
 			}
 		}
-		m.run(event)
+		ctx.ma = matcher
+		m.Handler(ctx) // 处理事件
 		if matcher.Temp {
 			matcher.Delete()
 		}
