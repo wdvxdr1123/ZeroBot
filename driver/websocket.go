@@ -30,7 +30,7 @@ type wsDriver struct {
 	accessToken string
 }
 
-// Connect ...
+// Connect 连接ws服务端
 func (ws *wsDriver) Connect(url, accessToken string) {
 	var err error
 	ws.url = url
@@ -56,6 +56,7 @@ RETRY:
 	log.Infof("连接Websocket服务器: %v 成功", url)
 }
 
+// Listen 开始监听事件
 func (ws *wsDriver) Listen(handler func([]byte)) {
 	for {
 		t, payload, err := ws.conn.ReadMessage()
@@ -66,7 +67,7 @@ func (ws *wsDriver) Listen(handler func([]byte)) {
 		}
 
 		if t == websocket.TextMessage {
-			rsp := gjson.ParseBytes(payload)
+			rsp := gjson.Parse(helper.BytesToString(payload))
 			if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
 				log.Debug("接收到API调用返回: ", strings.TrimSpace(helper.BytesToString(payload)))
 				if c, ok := ws.seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
@@ -94,6 +95,7 @@ func (ws *wsDriver) nextSeq() uint64 {
 	return atomic.AddUint64(&ws.seq, 1)
 }
 
+// Send 发送ws请求
 func (ws *wsDriver) Send(req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse)
 	req.Echo = ws.nextSeq()
