@@ -29,6 +29,6 @@ func TestFilter(t *testing.T) {
 		Field("user_id").All(
 			NotEqual("abs"),
 		),
-	)(event, nil)
+	)(&zero.Ctx{Event: event})
 	assert.Equal(t, true, result)
 }

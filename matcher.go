@@ -99,15 +99,6 @@ func (m *Matcher) copy() *Matcher {
 	}
 }
 
-// 拷贝字典
-func copyState(src State) State {
-	dst := make(State)
-	for k, v := range src {
-		dst[k] = v
-	}
-	return dst
-}
-
 // Handle 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
 	m.Handler = handler
