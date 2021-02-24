@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"runtime"
 	"sort"
 	"sync"
 )
@@ -27,8 +26,6 @@ type Matcher struct {
 	Block bool
 	// Priority 优先级，越小优先级越高
 	Priority int
-	// State 上下文
-	State State
 	// Event 当前匹配到的事件
 	Event *Event
 	// Type 匹配的事件类型
@@ -70,34 +67,6 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 	return m
 }
 
-// On 添加新的主匹配器
-func On(mType string, rules ...Rule) *Matcher {
-	var i = 1
-	var hooked Rule
-	for {
-		_, file, _, ok := runtime.Caller(i)
-		if !ok {
-			break
-		}
-		if hooker, ok := hooks[file]; ok { // find hook -> add hook
-			hooked = hooker.Hook()
-			break
-		}
-		i++
-	}
-	var matcher = &Matcher{
-		State: map[string]interface{}{},
-		Type:  Type(mType),
-		Rules: func() []Rule {
-			if hooked != nil {
-				return append(rules, hooked)
-			}
-			return rules
-		}(),
-	}
-	return StoreMatcher(matcher)
-}
-
 // StoreMatcher store a matcher to matcher list.
 func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()
@@ -130,19 +99,7 @@ func (m *Matcher) run(event Event) {
 	if m.Handler == nil {
 		return
 	}
-	switch m.Handler(m, event, m.State) {
-	case RejectResponse:
-		StoreTempMatcher(&Matcher{
-			Type:     Type("message"),
-			Block:    m.Block,
-			Priority: m.Priority,
-			State:    m.State,
-			Rules: []Rule{
-				CheckUser(event.UserID),
-			},
-			Handler: m.Handler,
-		})
-		return
+	switch m.Handler(m, event, nil) {
 	}
 }
 
@@ -157,7 +114,6 @@ func (m *Matcher) Get(prompt string) string {
 
 func (m *Matcher) copy() *Matcher {
 	return &Matcher{
-		State:    copyState(m.State),
 		Type:     m.Type,
 		Rules:    m.Rules,
 		Block:    m.Block,
@@ -180,79 +136,4 @@ func copyState(src State) State {
 func (m *Matcher) Handle(handler Handler) *Matcher {
 	m.Handler = handler
 	return m
-}
-
-// OnMessage 消息触发器
-func OnMessage(rules ...Rule) *Matcher {
-	return On("message", rules...)
-}
-
-// OnNotice 系统提示触发器
-func OnNotice(rules ...Rule) *Matcher {
-	return On("notice", rules...)
-}
-
-// OnRequest 请求消息触发器
-func OnRequest(rules ...Rule) *Matcher {
-	return On("request", rules...)
-}
-
-// OnMetaEvent 元事件触发器
-func OnMetaEvent(rules ...Rule) *Matcher {
-	return On("meta_event", rules...)
-}
-
-// OnPrefix 前缀触发器
-func OnPrefix(prefix string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{PrefixRule(prefix)}, rules...)...)
-}
-
-// OnSuffix 后缀触发器
-func OnSuffix(suffix string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{SuffixRule(suffix)}, rules...)...)
-}
-
-// OnCommand 命令触发器
-func OnCommand(commands string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{CommandRule(commands)}, rules...)...)
-}
-
-// OnRegex 正则触发器
-func OnRegex(regexPattern string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{RegexRule(regexPattern)}, rules...)...)
-}
-
-// OnKeyword 关键词触发器
-func OnKeyword(keyword string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{KeywordRule(keyword)}, rules...)...)
-}
-
-// OnFullMatch 完全匹配触发器
-func OnFullMatch(src string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{FullMatchRule(src)}, rules...)...)
-}
-
-// OnFullMatchGroup 完全匹配触发器组
-func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{FullMatchRule(src...)}, rules...)...)
-}
-
-// OnKeywordGroup 关键词触发器组
-func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{KeywordRule(keywords...)}, rules...)...)
-}
-
-// OnCommandGroup 命令触发器组
-func OnCommandGroup(commands []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{CommandRule(commands...)}, rules...)...)
-}
-
-// OnPrefixGroup 前缀触发器组
-func OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{PrefixRule(prefix...)}, rules...)...)
-}
-
-// OnSuffixGroup 后缀触发器组
-func OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
-	return OnMessage(append([]Rule{SuffixRule(suffix...)}, rules...)...)
 }

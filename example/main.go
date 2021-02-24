@@ -6,7 +6,6 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"
-	_ "github.com/wdvxdr1123/ZeroBot/example/priority"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
 

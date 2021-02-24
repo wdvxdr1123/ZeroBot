@@ -41,7 +41,7 @@ func (n *FutureEvent) Next() <-chan Event {
 		Handler: func(_ *Matcher, e Event, _ State) Response {
 			ch <- e
 			close(ch)
-			return FinishResponse
+			return 1
 		},
 	})
 	return ch
@@ -62,7 +62,7 @@ func (n *FutureEvent) Repeat() (recv <-chan Event, cancel func()) {
 			Rules:    n.Rule,
 			Handler: func(_ *Matcher, e Event, _ State) Response {
 				in <- e
-				return FinishResponse
+				return 1
 			},
 		})
 		for {

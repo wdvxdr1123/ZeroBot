@@ -93,7 +93,7 @@ loop:
 		m := matcher.copy()
 		matcherLock.RUnlock()
 		for _, rule := range m.Rules {
-			if !rule(&event, m.State) {
+			if !rule(&event, nil) {
 				continue loop
 			}
 		}

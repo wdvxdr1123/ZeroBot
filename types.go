@@ -180,3 +180,6 @@ func (state State) Parse(model interface{}) (err error) {
 	}
 	return nil
 }
+
+// H 是 map[string]interface 的简称
+type H = map[string]interface{}
