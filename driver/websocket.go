@@ -1,7 +1,6 @@
 package driver
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	zero "github.com/wdvxdr1123/ZeroBot"
@@ -20,6 +20,7 @@ import (
 var DefaultWebSocketDriver = &wsDriver{}
 
 var nullResponse = zero.APIResponse{}
+var json = jsoniter.ConfigFastest
 
 type wsDriver struct {
 	seq         uint64
@@ -52,7 +53,6 @@ RETRY:
 	}
 	ws.conn = conn
 	res.Body.Close()
-	// 处理goroutine 泄露
 	log.Infof("连接Websocket服务器: %v 成功", url)
 }
 
@@ -97,6 +97,10 @@ func (ws *wsDriver) nextSeq() uint64 {
 
 // Send 发送ws请求
 func (ws *wsDriver) Send(req zero.APIRequest) (zero.APIResponse, error) {
+	if ws.conn == nil { //
+		return nullResponse, errors.New("connection lost")
+	}
+
 	ch := make(chan zero.APIResponse)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)
