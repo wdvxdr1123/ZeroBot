@@ -23,9 +23,9 @@ func NewCache(ttl time.Duration) *Cache {
 }
 
 func (c *Cache) gc() {
-	ticker := time.Tick(time.Minute)
+	ticker := time.NewTicker(time.Minute)
 	for {
-		<-ticker
+		<-ticker.C
 		c.Lock()
 		for key, item := range c.items {
 			if item.expired() {
