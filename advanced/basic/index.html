@@ -2,7 +2,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.80.0" />
+  <meta name="generator" content="Hugo 0.81.0" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Rule #  Rule 是ZeroBot过滤事件的核心,其定义如下所示
@@ -13,14 +13,15 @@
 // State store the context of a matcher. type State map[string]interface{} // Rule filter the event type Rule func(event *Event, state State) bool 其中 State 保存了在进行过滤事件中运算的结果，比如ZeroBot自带的 KeywordRule中，就将匹配到的关键词保存到了state[&quot;keyword&quot;]中
 // KeywordRule check if the message has a keyword or keywords func KeywordRule(src ...string) Rule { return func(event *Event, state State) bool { msg := event.Message.CQString() for _, str := range src { if strings.Contains(msg, str) { state[&#34;keyword&#34;] = str return true } } return false } } ZeroBot中自带了一些Rule，你可以在rule." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://docs.wdvxdr.top/advanced/basic/" />
-<meta property="article:published_time" content="2020-12-29T13:55:32+08:00" />
-<meta property="article:modified_time" content="2020-12-29T13:55:32+08:00" />
+<meta property="og:url" content="http://docs.wdvxdr.top/advanced/basic/" /><meta property="article:section" content="advanced" />
+<meta property="article:published_time" content="2020-12-29T13:55:32&#43;08:00" />
+<meta property="article:modified_time" content="2020-12-29T13:55:32&#43;08:00" />
+
 <title>Rule | ZeroBot Document</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
-<link rel="stylesheet" href="/book.min.134b70e5316650a530cb42e4e8630b2a01d532bebfc0337028211175336e4806.css" integrity="sha256-E0tw5TFmUKUwy0Lk6GMLKgHVMr6/wDNwKCERdTNuSAY=">
-<script defer src="/en.search.min.9b7892d9c8ae4a018711bf552d1c1a3de5790ee3c1b0d801e043c46aeba367c7.js" integrity="sha256-m3iS2ciuSgGHEb9VLRwaPeV5DuPBsNgB4EPEauujZ8c="></script>
+<link rel="stylesheet" href="/book.min.ca6f97a9e145ab5c30460391614528785edf4f97182ffc083bf82b0ff9bbe2e0.css" integrity="sha256-ym&#43;XqeFFq1wwRgORYUUoeF7fT5cYL/wIO/grD/m74uA=">
+<script defer src="/en.search.min.7ff137a39fe0e56a1f68a1d4e2579bc3fc09eea37bf09617ed85725219c87079.js" integrity="sha256-f/E3o5/g5WofaKHU4lebw/wJ7qN78JYX7YVyUhnIcHk="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -97,7 +98,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
