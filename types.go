@@ -1,13 +1,9 @@
 package zero
 
 import (
-	"fmt"
 	"strconv"
-	"sync"
-	"unsafe"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/modern-go/reflect2"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
@@ -67,6 +63,7 @@ type Event struct {
 	MessageID     int64               `json:"message_id"`
 	GroupID       int64               `json:"group_id"`
 	UserID        int64               `json:"user_id"`
+	SelfID        int64               `json:"self_id"`
 	RawMessage    string              `json:"raw_message"` // raw_message is always string
 	Anonymous     interface{}         `json:"anonymous"`
 	AnonymousFlag string              `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
@@ -84,6 +81,7 @@ type Event struct {
 	RawEvent      gjson.Result        `json:"-"` // raw event
 }
 
+// Message 消息
 type Message struct {
 	Elements    message.Message
 	MessageId   int64
@@ -91,6 +89,7 @@ type Message struct {
 	MessageType string
 }
 
+// File 文件
 type File struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
@@ -98,6 +97,7 @@ type File struct {
 	BusID int64  `json:"busid"`
 }
 
+// Group 群
 type Group struct {
 	ID             int64  `json:"group_id"`
 	Name           string `json:"group_name"`
@@ -129,54 +129,5 @@ func (u *User) String() string {
 	return p + u.Name()
 }
 
-// decoder 反射获取的数据
-type decoder []struct {
-	offset uintptr
-	t      reflect2.Type
-	key    string
-}
-
-// decoder 缓存
-var decoderCache = sync.Map{}
-
-// Parse 将 State 映射到结构体
-func (state State) Parse(model interface{}) (err error) {
-	var (
-		ty2      = reflect2.TypeOf(model)
-		modelDec decoder
-	)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("parse state error: %v", r)
-		}
-	}()
-	dec, ok := decoderCache.Load(ty2)
-	if ok {
-		modelDec = dec.(decoder)
-	} else {
-		t := ty2.(reflect2.PtrType).Elem().(reflect2.StructType)
-		modelDec = decoder{}
-		for i := 0; i < t.NumField(); i++ {
-			t1 := t.Field(i)
-			if key, ok := t1.Tag().Lookup("zero"); ok {
-				modelDec = append(modelDec, struct {
-					offset uintptr
-					t      reflect2.Type
-					key    string
-				}{
-					t:      t1.Type(),
-					offset: t1.Offset(),
-					key:    key,
-				})
-			}
-		}
-		decoderCache.Store(ty2, modelDec)
-	}
-	for i := range modelDec { // decoder类型非小内存，无法被编译器优化为快速拷贝
-		modelDec[i].t.UnsafeSet(
-			unsafe.Pointer(uintptr(reflect2.PtrOf(model))+modelDec[i].offset),
-			reflect2.PtrOf(state[modelDec[i].key]),
-		)
-	}
-	return nil
-}
+// H 是 Params 的简称
+type H = Params

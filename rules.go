@@ -6,17 +6,17 @@ import (
 	"strings"
 )
 
-// Type check the event's type
+// Type check the ctx.Event's type
 func Type(type_ string) Rule {
 	t := strings.SplitN(type_, "/", 3)
-	return func(event *Event, _ State) bool {
-		if len(t) > 0 && t[0] != event.PostType {
+	return func(ctx *Ctx) bool {
+		if len(t) > 0 && t[0] != ctx.Event.PostType {
 			return false
 		}
-		if len(t) > 1 && t[1] != event.DetailType {
+		if len(t) > 1 && t[1] != ctx.Event.DetailType {
 			return false
 		}
-		if len(t) > 2 && t[2] != event.SubType {
+		if len(t) > 2 && t[2] != ctx.Event.SubType {
 			return false
 		}
 		return true
@@ -27,20 +27,20 @@ func Type(type_ string) Rule {
 //
 // 检查消息前缀
 func PrefixRule(prefixes ...string) Rule {
-	return func(event *Event, state State) bool {
-		if event.Message == nil || event.Message[0].Type != "text" { // 确保无空指针
+	return func(ctx *Ctx) bool {
+		if ctx.Event.Message == nil || ctx.Event.Message[0].Type != "text" { // 确保无空指针
 			return false
 		}
-		first := event.Message[0]
+		first := ctx.Event.Message[0]
 		firstMessage := first.Data["text"]
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(firstMessage, prefix) {
-				state["prefix"] = prefix
+				ctx.State["prefix"] = prefix
 				arg := strings.TrimLeft(firstMessage[len(prefix):], " ")
-				if len(event.Message) > 1 {
-					arg += event.Message[1:].ExtractPlainText()
+				if len(ctx.Event.Message) > 1 {
+					arg += ctx.Event.Message[1:].ExtractPlainText()
 				}
-				state["args"] = arg
+				ctx.State["args"] = arg
 				return true
 			}
 		}
@@ -52,24 +52,24 @@ func PrefixRule(prefixes ...string) Rule {
 //
 // 检查消息后缀
 func SuffixRule(suffixes ...string) Rule {
-	return func(event *Event, state State) bool {
-		mLen := len(event.Message)
+	return func(ctx *Ctx) bool {
+		mLen := len(ctx.Event.Message)
 		if mLen <= 0 { // 确保无空指针
 			return false
 		}
-		last := event.Message[mLen-1]
+		last := ctx.Event.Message[mLen-1]
 		if last.Type != "text" {
 			return false
 		}
 		lastMessage := last.Data["text"]
 		for _, suffix := range suffixes {
 			if strings.HasSuffix(lastMessage, suffix) {
-				state["suffix"] = suffix
+				ctx.State["suffix"] = suffix
 				arg := strings.TrimRight(lastMessage[:len(lastMessage)-len(suffix)], " ")
 				if mLen >= 2 {
-					arg += event.Message[:mLen].ExtractPlainText()
+					arg += ctx.Event.Message[:mLen].ExtractPlainText()
 				}
-				state["args"] = arg
+				ctx.State["args"] = arg
 				return true
 			}
 		}
@@ -79,11 +79,11 @@ func SuffixRule(suffixes ...string) Rule {
 
 // CommandRule check if the message is a command and trim the command name
 func CommandRule(commands ...string) Rule {
-	return func(event *Event, state State) bool {
-		if event.Message == nil || event.Message[0].Type != "text" {
+	return func(ctx *Ctx) bool {
+		if ctx.Event.Message == nil || ctx.Event.Message[0].Type != "text" {
 			return false
 		}
-		first := event.Message[0]
+		first := ctx.Event.Message[0]
 		firstMessage := first.Data["text"]
 		if !strings.HasPrefix(firstMessage, BotConfig.CommandPrefix) {
 			return false
@@ -91,12 +91,12 @@ func CommandRule(commands ...string) Rule {
 		cmdMessage := firstMessage[len(BotConfig.CommandPrefix):]
 		for _, command := range commands {
 			if strings.HasPrefix(cmdMessage, command) {
-				state["command"] = command
+				ctx.State["command"] = command
 				arg := strings.TrimLeft(cmdMessage[len(command):], " ")
-				if len(event.Message) > 1 {
-					arg += event.Message[1:].ExtractPlainText()
+				if len(ctx.Event.Message) > 1 {
+					arg += ctx.Event.Message[1:].ExtractPlainText()
 				}
-				state["args"] = arg
+				ctx.State["args"] = arg
 				return true
 			}
 		}
@@ -107,10 +107,10 @@ func CommandRule(commands ...string) Rule {
 // RegexRule check if the message can be matched by the regex pattern
 func RegexRule(regexPattern string) Rule {
 	regex := regexp.MustCompile(regexPattern)
-	return func(event *Event, state State) bool {
-		msg := event.RawMessage
+	return func(ctx *Ctx) bool {
+		msg := ctx.Event.RawMessage
 		if regex.MatchString(msg) {
-			state["regex_matched"] = regex.FindStringSubmatch(msg)
+			ctx.State["regex_matched"] = regex.FindStringSubmatch(msg)
 			return true
 		}
 		return false
@@ -120,24 +120,24 @@ func RegexRule(regexPattern string) Rule {
 // ReplyRule check if the message is replying some message
 func ReplyRule(messageID int64) Rule {
 	var mid = strconv.FormatInt(messageID, 10)
-	return func(event *Event, state State) bool {
-		if len(event.Message) <= 0 {
+	return func(ctx *Ctx) bool {
+		if len(ctx.Event.Message) <= 0 {
 			return false
 		}
-		if event.Message[0].Type != "reply" {
+		if ctx.Event.Message[0].Type != "reply" {
 			return false
 		}
-		return event.Message[0].Data["id"] == mid
+		return ctx.Event.Message[0].Data["id"] == mid
 	}
 }
 
 // KeywordRule check if the message has a keyword or keywords
 func KeywordRule(src ...string) Rule {
-	return func(event *Event, state State) bool {
-		msg := event.Message.CQString()
+	return func(ctx *Ctx) bool {
+		msg := ctx.Event.Message.CQString()
 		for _, str := range src {
 			if strings.Contains(msg, str) {
-				state["keyword"] = str
+				ctx.State["keyword"] = str
 				return true
 			}
 		}
@@ -147,11 +147,11 @@ func KeywordRule(src ...string) Rule {
 
 // FullMatchRule check if src has the same copy of the message
 func FullMatchRule(src ...string) Rule {
-	return func(event *Event, state State) bool {
-		msg := event.Message.CQString()
+	return func(ctx *Ctx) bool {
+		msg := ctx.Event.Message.CQString()
 		for _, str := range src {
 			if str == msg {
-				state["matched"] = msg
+				ctx.State["matched"] = msg
 				return true
 			}
 		}
@@ -160,15 +160,15 @@ func FullMatchRule(src ...string) Rule {
 }
 
 // OnlyToMe only triggered in conditions of @bot or begin with the nicknames
-func OnlyToMe(event *Event, _ State) bool {
-	return event.IsToMe
+func OnlyToMe(ctx *Ctx) bool {
+	return ctx.Event.IsToMe
 }
 
 // CheckUser only triggered by specific person
 func CheckUser(userId ...int64) Rule {
-	return func(event *Event, state State) bool {
+	return func(ctx *Ctx) bool {
 		for _, uid := range userId {
-			if event.UserID == uid {
+			if ctx.Event.UserID == uid {
 				return true
 			}
 		}
@@ -176,19 +176,19 @@ func CheckUser(userId ...int64) Rule {
 	}
 }
 
-// OnlyPrivate requires that the event is private message
-func OnlyPrivate(event *Event, _ State) bool {
-	return event.PostType == "message" && event.DetailType == "private"
+// OnlyPrivate requires that the ctx.Event is private message
+func OnlyPrivate(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "private"
 }
 
-// OnlyGroup requires that the event is public/group message
-func OnlyGroup(event *Event, _ State) bool {
-	return event.PostType == "message" && event.DetailType == "group"
+// OnlyGroup requires that the ctx.Event is public/group message
+func OnlyGroup(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "group"
 }
 
 // SuperUserPermission only triggered by the bot's owner
-func SuperUserPermission(event *Event, _ State) bool {
-	uid := strconv.FormatInt(event.UserID, 10)
+func SuperUserPermission(ctx *Ctx) bool {
+	uid := strconv.FormatInt(ctx.Event.UserID, 10)
 	for _, su := range BotConfig.SuperUsers {
 		if su == uid {
 			return true
@@ -198,19 +198,12 @@ func SuperUserPermission(event *Event, _ State) bool {
 }
 
 // AdminPermission only triggered by the group admins or higher permission
-func AdminPermission(event *Event, state State) bool {
-	return SuperUserPermission(event, state) || event.Sender.Role != "member"
+func AdminPermission(ctx *Ctx) bool {
+	return SuperUserPermission(ctx) || ctx.Event.Sender.Role != "member"
 }
 
 // OwnerPermission only triggered by the group owner or higher permission
-func OwnerPermission(event *Event, state State) bool {
-	return SuperUserPermission(event, state) ||
-		(event.Sender.Role != "member" && event.Sender.Role != "admin")
-}
-
-// CheckSession 判断会话连续性
-func CheckSession(e1 *Event) Rule {
-	return func(e2 *Event, state State) bool {
-		return e1.UserID == e2.UserID && e1.GroupID == e2.GroupID // 私聊时GroupID为0，也相等
-	}
+func OwnerPermission(ctx *Ctx) bool {
+	return SuperUserPermission(ctx) ||
+		(ctx.Event.Sender.Role != "member" && ctx.Event.Sender.Role != "admin")
 }

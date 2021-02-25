@@ -6,7 +6,6 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"
-	_ "github.com/wdvxdr1123/ZeroBot/example/priority"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
 
@@ -20,12 +19,12 @@ func init() {
 
 func main() {
 	zero.Run(zero.Config{
-		Host:          "127.0.0.1",
-		Port:          "6700",
-		AccessToken:   "",
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
 		SuperUsers:    []string{"123456"},
-		Driver:        driver.DefaultWebSocketDriver,
+		Driver: []zero.Driver{
+			driver.NewWebSocketClient("127.0.0.1", "6700", ""),
+		},
 	})
+	select {}
 }

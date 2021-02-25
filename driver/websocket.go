@@ -16,54 +16,68 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-// DefaultWebSocketDriver 默认Driver，使用正向WS通信
-var DefaultWebSocketDriver = &wsDriver{}
-
 var nullResponse = zero.APIResponse{}
 var json = jsoniter.ConfigFastest
 
-type wsDriver struct {
+// WSClient ...
+type WSClient struct {
 	seq         uint64
 	conn        *websocket.Conn
-	mu          sync.Mutex
+	mu          sync.Mutex // 写锁
 	seqMap      seqSyncMap
-	url         string
-	accessToken string
+	Url         string // ws连接地址
+	AccessToken string
+	selfID      int64
+}
+
+// NewWebSocketClient 默认Driver，使用正向WS通信
+func NewWebSocketClient(host, port, accessToken string) *WSClient {
+	return &WSClient{
+		Url:         "ws://" + host + ":" + port + "/ws",
+		AccessToken: accessToken,
+	}
 }
 
 // Connect 连接ws服务端
-func (ws *wsDriver) Connect(url, accessToken string) {
+func (ws *WSClient) Connect() {
 	var err error
-	ws.url = url
-	ws.accessToken = accessToken
-	log.Infof("开始尝试连接到Websocket服务器: %v", url)
+	log.Infof("开始尝试连接到Websocket服务器: %v", ws.Url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
 		"User-Agent":    []string{"ZeroBot/0.9.2"},
 	}
-	if accessToken != "" {
-		header["Authorization"] = []string{"Bear " + accessToken}
+	if ws.AccessToken != "" {
+		header["Authorization"] = []string{"Bear " + ws.AccessToken}
 	}
 RETRY:
-	conn, res, err := websocket.DefaultDialer.Dial(url, header)
+	conn, res, err := websocket.DefaultDialer.Dial(ws.Url, header)
 	for err != nil {
-		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", url, err)
+		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", ws.Url, err)
 		time.Sleep(2 * time.Second) // 等待两秒后重新连接
 		goto RETRY
 	}
 	ws.conn = conn
 	res.Body.Close()
-	log.Infof("连接Websocket服务器: %v 成功", url)
+	go func() {
+		rsp, _ := ws.CallApi(zero.APIRequest{
+			Action: "get_login_info",
+			Params: nil,
+		})
+		ws.selfID = rsp.Data.Get("user_id").Int()
+		zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
+	}()
+	log.Infof("连接Websocket服务器: %v 成功", ws.Url)
 }
 
 // Listen 开始监听事件
-func (ws *wsDriver) Listen(handler func([]byte)) {
+func (ws *WSClient) Listen(handler func([]byte, zero.APICaller)) {
 	for {
 		t, payload, err := ws.conn.ReadMessage()
 		if err != nil { // reconnect
+			zero.APICallers.Delete(ws.selfID) // 断开从apicaller中删除
 			log.Warn("Websocket服务器连接断开...")
 			time.Sleep(time.Millisecond * time.Duration(3))
-			ws.Connect(ws.url, ws.accessToken)
+			ws.Connect()
 		}
 
 		if t == websocket.TextMessage {
@@ -85,22 +99,18 @@ func (ws *wsDriver) Listen(handler func([]byte)) {
 				if rsp.Get("meta_event_type").Str != "heartbeat" { // 忽略心跳事件
 					log.Debug("接收到事件: ", helper.BytesToString(payload))
 				}
-				go handler(payload)
+				go handler(payload, ws)
 			}
 		}
 	}
 }
 
-func (ws *wsDriver) nextSeq() uint64 {
+func (ws *WSClient) nextSeq() uint64 {
 	return atomic.AddUint64(&ws.seq, 1)
 }
 
-// Send 发送ws请求
-func (ws *wsDriver) Send(req zero.APIRequest) (zero.APIResponse, error) {
-	if ws.conn == nil { //
-		return nullResponse, errors.New("connection lost")
-	}
-
+// CallApi 发送ws请求
+func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)

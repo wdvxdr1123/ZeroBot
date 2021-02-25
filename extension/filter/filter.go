@@ -18,8 +18,8 @@ type (
 
 // Filter return a rule filter the message.
 func Filter(filters ...FilterFunc) zero.Rule {
-	return func(event *zero.Event, _ zero.State) bool {
-		return And(filters...)(event.RawEvent)
+	return func(ctx *zero.Ctx) bool {
+		return And(filters...)(ctx.Event.RawEvent)
 	}
 }
 

@@ -12,58 +12,41 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	Host          string   `json:"host"`           //host地址
-	Port          string   `json:"port"`           //端口
-	AccessToken   string   `json:"access_token"`   //认证token
 	NickName      []string `json:"nickname"`       //机器人名称
 	CommandPrefix string   `json:"command_prefix"` //触发命令
 	SuperUsers    []string `json:"super_users"`    //超级用户
 	SelfID        string   `json:"self_id"`        // 机器人账号
-	Driver        Driver   `json:"-"`
+	Driver        []Driver `json:"-"`              // 通信驱动
 }
 
-// Option 配置
-//
-// Deprecated: use zero.Config instead.
-type Option = Config
+// APICallers 所有的APICaller列表， 通过self-ID映射
+var APICallers callerMap
+
+// APICaller is the interface of CallApi
+type APICaller interface {
+	CallApi(request APIRequest) (APIResponse, error)
+}
 
 // Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
 type Driver interface {
-	Connect(url string, accessToken string)
-	Listen(func([]byte))
-	Send(APIRequest) (APIResponse, error)
+	Connect()
+	Listen(func([]byte, APICaller))
 }
 
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
 var BotConfig Config
 
-func init() {
-	pluginPool = []IPlugin{} // 初始化
-}
-
 // Run 主函数初始化
 func Run(op Config) {
-	for _, plugin := range pluginPool {
-		info := plugin.GetPluginInfo()
-		log.Infof(
-			"加载插件: %v [作者] %v [版本] %v [说明] %v",
-			info.PluginName,
-			info.Author,
-			info.Version,
-			info.Details,
-		)
-		plugin.Start() // 加载插件
-	}
 	BotConfig = op
-	op.Driver.Connect("ws://"+BotConfig.Host+":"+BotConfig.Port+"/ws", BotConfig.AccessToken)
-	go func() {
-		BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
-	}()
-	op.Driver.Listen(processEvent)
+	for _, driver := range op.Driver {
+		driver.Connect()
+		go driver.Listen(processEvent)
+	}
 }
 
-// processEvent 心跳处理
-func processEvent(response []byte) {
+// processEvent 处理事件
+func processEvent(response []byte, caller APICaller) {
 	defer func() {
 		if pa := recover(); pa != nil {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
@@ -83,25 +66,51 @@ func processEvent(response []byte) {
 	if event.PostType == "message" {
 		preprocessMessageEvent(&event)
 	}
-
+	ctx := &Ctx{
+		Event:  &event,
+		State:  State{},
+		caller: caller,
+	}
 loop:
 	for _, matcher := range matcherList {
-		if !matcher.Type(&event, nil) {
+		if !matcher.Type(ctx) {
 			continue
+		}
+		for k := range ctx.State { // Clear State
+			delete(ctx.State, k)
 		}
 		matcherLock.RLock()
 		m := matcher.copy()
 		matcherLock.RUnlock()
 		for _, rule := range m.Rules {
-			if !rule(&event, m.State) {
+			if !rule(ctx) { // 有 Rule 的条件未满足
 				continue loop
 			}
 		}
-		m.run(event)
-		if matcher.Temp {
+
+		// pre handler
+		for _, handler := range m.engine.preHandler {
+			if !handler(ctx) { // 有 pre handler 未满足
+				continue loop
+			}
+		}
+
+		ctx.ma = matcher
+		if m.Handler != nil {
+			m.Handler(ctx) // 处理事件
+		}
+		if matcher.Temp { // 临时 Matcher 删除
 			matcher.Delete()
 		}
-		if matcher.Block {
+
+		// post handler
+		for _, handler := range m.engine.postHandler {
+			if !handler(ctx) { // 有 post handler 未满足
+				break // 后续handler不执行
+			}
+		}
+
+		if matcher.Block { // 阻断后续
 			break loop
 		}
 	}
@@ -144,4 +153,22 @@ func preprocessMessageEvent(e *Event) {
 		return
 	}
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
+}
+
+// GetBot 获取指定的bot (Ctx)实例
+func GetBot(id int64) *Ctx {
+	caller, ok := APICallers.Load(id)
+	if !ok {
+		return nil
+	}
+	return &Ctx{caller: caller}
+}
+
+// RangeBot 遍历所有bot (Ctx)实例
+//
+// 单次操作返回 true 则继续遍历，否则退出
+func RangeBot(iter func(id int64, ctx *Ctx) bool) {
+	APICallers.Range(func(key int64, value APICaller) bool {
+		return iter(key, &Ctx{caller: value})
+	})
 }
