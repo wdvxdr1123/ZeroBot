@@ -16,54 +16,58 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-// DefaultWebSocketDriver 默认Driver，使用正向WS通信
-var DefaultWebSocketDriver = &wsDriver{}
-
 var nullResponse = zero.APIResponse{}
 var json = jsoniter.ConfigFastest
 
-type wsDriver struct {
+// WSClient ...
+type WSClient struct {
 	seq         uint64
 	conn        *websocket.Conn
 	mu          sync.Mutex
 	seqMap      seqSyncMap
-	url         string
-	accessToken string
+	Url         string
+	AccessToken string
+}
+
+// NewWebSocketClient 默认Driver，使用正向WS通信
+func NewWebSocketClient(host, port, accessToken string) *WSClient {
+	return &WSClient{
+		Url:         "ws://" + host + ":" + port + "/ws",
+		AccessToken: accessToken,
+	}
 }
 
 // Connect 连接ws服务端
-func (ws *wsDriver) Connect(url, accessToken string) {
+func (ws *WSClient) Connect() {
 	var err error
-	ws.url = url
-	ws.accessToken = accessToken
-	log.Infof("开始尝试连接到Websocket服务器: %v", url)
+	log.Infof("开始尝试连接到Websocket服务器: %v", ws.Url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
 		"User-Agent":    []string{"ZeroBot/0.9.2"},
 	}
-	if accessToken != "" {
-		header["Authorization"] = []string{"Bear " + accessToken}
+	if ws.AccessToken != "" {
+		header["Authorization"] = []string{"Bear " + ws.AccessToken}
 	}
 RETRY:
-	conn, res, err := websocket.DefaultDialer.Dial(url, header)
+	conn, res, err := websocket.DefaultDialer.Dial(ws.Url, header)
 	for err != nil {
-		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", url, err)
+		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", ws.Url, err)
 		time.Sleep(2 * time.Second) // 等待两秒后重新连接
 		goto RETRY
 	}
 	ws.conn = conn
 	res.Body.Close()
-	log.Infof("连接Websocket服务器: %v 成功", url)
+	log.Infof("连接Websocket服务器: %v 成功", ws.Url)
 }
 
 // Listen 开始监听事件
-func (ws *wsDriver) Listen(handler func([]byte)) {
+func (ws *WSClient) Listen(handler func([]byte)) {
 	for {
 		t, payload, err := ws.conn.ReadMessage()
 		if err != nil { // reconnect
 			log.Warn("Websocket服务器连接断开...")
 			time.Sleep(time.Millisecond * time.Duration(3))
-			ws.Connect(ws.url, ws.accessToken)
+			ws.Connect()
 		}
 
 		if t == websocket.TextMessage {
@@ -91,12 +95,12 @@ func (ws *wsDriver) Listen(handler func([]byte)) {
 	}
 }
 
-func (ws *wsDriver) nextSeq() uint64 {
+func (ws *WSClient) nextSeq() uint64 {
 	return atomic.AddUint64(&ws.seq, 1)
 }
 
 // Send 发送ws请求
-func (ws *wsDriver) Send(req zero.APIRequest) (zero.APIResponse, error) {
+func (ws *WSClient) Send(req zero.APIRequest) (zero.APIResponse, error) {
 	if ws.conn == nil { //
 		return nullResponse, errors.New("connection lost")
 	}

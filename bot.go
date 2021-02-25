@@ -12,24 +12,16 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	Host          string   `json:"host"`           //host地址
-	Port          string   `json:"port"`           //端口
-	AccessToken   string   `json:"access_token"`   //认证token
 	NickName      []string `json:"nickname"`       //机器人名称
 	CommandPrefix string   `json:"command_prefix"` //触发命令
 	SuperUsers    []string `json:"super_users"`    //超级用户
 	SelfID        string   `json:"self_id"`        // 机器人账号
-	Driver        Driver   `json:"-"`              // 通信驱动
+	Driver        []Driver `json:"-"`              // 通信驱动
 }
-
-// Option 配置
-//
-// Deprecated: use zero.Config instead.
-type Option = Config
 
 // Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
 type Driver interface {
-	Connect(url string, accessToken string)
+	Connect()
 	Listen(func([]byte))
 	Send(APIRequest) (APIResponse, error)
 }
@@ -40,61 +32,63 @@ var BotConfig Config
 // Run 主函数初始化
 func Run(op Config) {
 	BotConfig = op
-	op.Driver.Connect("ws://"+BotConfig.Host+":"+BotConfig.Port+"/ws", BotConfig.AccessToken)
-	go func() {
-		BotConfig.SelfID = GetLoginInfo().Get("user_id").String()
-	}()
-	op.Driver.Listen(processEvent)
+	for _, driver := range op.Driver {
+		driver.Connect()
+		go driver.Listen(processEvent(driver))
+	}
 }
 
-// processEvent 心跳处理
-func processEvent(response []byte) {
-	defer func() {
-		if pa := recover(); pa != nil {
-			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
-		}
-	}()
-	var event Event
-	_ = json.Unmarshal(response, &event)
-	event.RawEvent = gjson.Parse(helper.BytesToString(response))
-	switch event.PostType { // process DetailType
-	case "message", "message_sent":
-		event.DetailType = event.MessageType
-	case "notice":
-		event.DetailType = event.NoticeType
-	case "request":
-		event.DetailType = event.RequestType
-	}
-	if event.PostType == "message" {
-		preprocessMessageEvent(&event)
-	}
-	ctx := &Ctx{
-		Event: &event,
-		State: State{},
-	}
-loop:
-	for _, matcher := range matcherList {
-		if !matcher.Type(ctx) {
-			continue
-		}
-		for k := range ctx.State { // Clear State
-			delete(ctx.State, k)
-		}
-		matcherLock.RLock()
-		m := matcher.copy()
-		matcherLock.RUnlock()
-		for _, rule := range m.Rules {
-			if !rule(ctx) { // 有 Rule 的条件未满足
-				continue loop
+func processEvent(driver Driver) func([]byte) {
+	// processEvent 心跳处理
+	return func(response []byte) {
+		defer func() {
+			if pa := recover(); pa != nil {
+				log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
 			}
+		}()
+		var event Event
+		_ = json.Unmarshal(response, &event)
+		event.RawEvent = gjson.Parse(helper.BytesToString(response))
+		switch event.PostType { // process DetailType
+		case "message", "message_sent":
+			event.DetailType = event.MessageType
+		case "notice":
+			event.DetailType = event.NoticeType
+		case "request":
+			event.DetailType = event.RequestType
 		}
-		ctx.ma = matcher
-		m.Handler(ctx) // 处理事件
-		if matcher.Temp {
-			matcher.Delete()
+		if event.PostType == "message" {
+			preprocessMessageEvent(&event)
 		}
-		if matcher.Block {
-			break loop
+		ctx := &Ctx{
+			Event:  &event,
+			State:  State{},
+			driver: driver,
+		}
+	loop:
+		for _, matcher := range matcherList {
+			if !matcher.Type(ctx) {
+				continue
+			}
+			for k := range ctx.State { // Clear State
+				delete(ctx.State, k)
+			}
+			matcherLock.RLock()
+			m := matcher.copy()
+			matcherLock.RUnlock()
+			for _, rule := range m.Rules {
+				if !rule(ctx) { // 有 Rule 的条件未满足
+					continue loop
+				}
+			}
+			ctx.ma = matcher
+			m.Handler(ctx) // 处理事件
+			if matcher.Temp {
+				matcher.Delete()
+			}
+			if matcher.Block {
+				break loop
+			}
 		}
 	}
 }

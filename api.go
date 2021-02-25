@@ -16,7 +16,7 @@ func CallAction(action string, params Params) gjson.Result {
 		Action: action,
 		Params: params,
 	}
-	rsp, err := BotConfig.Driver.Send(req)
+	rsp, err := BotConfig.Driver[0].Send(req)
 	if err == nil {
 		if rsp.RetCode != 0 {
 			log.Errorf("调用 API: %v 时出现错误, RetCode: %v, Msg: %v, Wording: %v", action, rsp.RetCode, rsp.Msg, rsp.Wording)

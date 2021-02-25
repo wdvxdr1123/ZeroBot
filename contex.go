@@ -11,9 +11,10 @@ import (
 // Ctx represents the Context which hold the event.
 // 代表上下文
 type Ctx struct {
-	ma    *Matcher
-	Event *Event
-	State State
+	ma     *Matcher
+	Event  *Event
+	State  State
+	driver Driver
 }
 
 // GetMatcher ...
