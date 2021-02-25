@@ -2,29 +2,36 @@ package zero
 
 // New 生成空引擎
 func New() *Engine {
-	return &Engine{rules: []Rule{}}
+	return &Engine{
+		preHandler:  []Rule{},
+		postHandler: []Rule{},
+	}
 }
 
 var defaultEngine = New()
 
-// Engine is the
+// Engine is the pre_handler, post_handler manager
 type Engine struct {
-	rules []Rule
+	preHandler  []Rule
+	postHandler []Rule
 }
 
-// With 继承该 Engine 创建一个新 Engine
-func (e *Engine) With(rules ...Rule) *Engine {
-	engine := &Engine{
-		rules: make([]Rule, len(e.rules)),
-	}
-	copy(engine.rules, engine.rules)              // copy the raw rules
-	engine.rules = append(engine.rules, rules...) // append the rule
-	return engine
+// UsePreHandler 向该 Engine 添加新 PreHandler(Rule),
+// 会在 Rule 判断后， Matcher 触发前触发，如果 preHandler
+// 没有通过，则 Matcher 不会触发
+//
+// 可用于速率限制，分群组管理插件等
+func (e *Engine) UsePreHandler(rules ...Rule) {
+	e.preHandler = append(e.preHandler, rules...)
 }
 
-// Use 向该 Engine 添加新 Rule
-func (e *Engine) Use(rules ...Rule) {
-	e.rules = append(e.rules, rules...)
+// UsePostHandler 向该 Engine 添加新 PostHandler(Rule),
+// 会在 Matcher 触发后触发，如果 PostHandler 返回 false,
+// 则后续的 post handler 不会触发
+//
+// 不知道有啥用...(先留一个
+func (e *Engine) UsePostHandler(handler ...Rule) {
+	e.postHandler = append(e.postHandler, handler...)
 }
 
 // On 添加新的指定消息类型的匹配器(默认Engine)
@@ -33,8 +40,9 @@ func On(typ string, rules ...Rule) *Matcher { return defaultEngine.On(typ, rules
 // On 添加新的指定消息类型的匹配器
 func (e *Engine) On(typ string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type(typ),
-		Rules: append(e.rules, rules...),
+		Type:   Type(typ),
+		Rules:  rules,
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -69,8 +77,9 @@ func OnPrefix(prefix string, rules ...Rule) *Matcher { return defaultEngine.OnPr
 // OnPrefix 前缀触发器
 func (e *Engine) OnPrefix(prefix string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{PrefixRule(prefix)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{PrefixRule(prefix)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -81,8 +90,9 @@ func OnSuffix(suffix string, rules ...Rule) *Matcher { return defaultEngine.OnSu
 // OnSuffix 后缀触发器
 func (e *Engine) OnSuffix(suffix string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{SuffixRule(suffix)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{SuffixRule(suffix)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -95,8 +105,9 @@ func OnCommand(commands string, rules ...Rule) *Matcher {
 // OnCommand 命令触发器
 func (e *Engine) OnCommand(commands string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{CommandRule(commands)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{CommandRule(commands)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -109,8 +120,9 @@ func OnRegex(regexPattern string, rules ...Rule) *Matcher {
 // OnRegex 正则触发器
 func (e *Engine) OnRegex(regexPattern string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{RegexRule(regexPattern)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{RegexRule(regexPattern)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -123,8 +135,9 @@ func OnKeyword(keyword string, rules ...Rule) *Matcher {
 // OnKeyword 关键词触发器
 func (e *Engine) OnKeyword(keyword string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{KeywordRule(keyword)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{KeywordRule(keyword)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -137,8 +150,9 @@ func OnFullMatch(src string, rules ...Rule) *Matcher {
 // OnFullMatch 完全匹配触发器
 func (e *Engine) OnFullMatch(src string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{FullMatchRule(src)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{FullMatchRule(src)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -151,8 +165,9 @@ func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 // OnFullMatchGroup 完全匹配触发器组
 func (e *Engine) OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{FullMatchRule(src...)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{FullMatchRule(src...)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -165,8 +180,9 @@ func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 // OnKeywordGroup 关键词触发器组
 func (e *Engine) OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{KeywordRule(keywords...)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{KeywordRule(keywords...)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -178,11 +194,7 @@ func OnCommandGroup(commands []string, rules ...Rule) *Matcher {
 
 // OnCommandGroup 命令触发器组
 func (e *Engine) OnCommandGroup(commands []string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{CommandRule(commands...)}, e.rules...), rules...),
-	}
-	return StoreMatcher(matcher)
+	return e.On("message", append([]Rule{CommandRule(commands...)}, rules...)...)
 }
 
 // OnPrefixGroup 前缀触发器组
@@ -193,8 +205,9 @@ func OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
 // OnPrefixGroup 前缀触发器组
 func (e *Engine) OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{PrefixRule(prefix...)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{PrefixRule(prefix...)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -207,8 +220,9 @@ func OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 // OnSuffixGroup 后缀触发器组
 func (e *Engine) OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 	var matcher = &Matcher{
-		Type:  Type("message"),
-		Rules: append(append([]Rule{SuffixRule(suffix...)}, e.rules...), rules...),
+		Type:   Type("message"),
+		Rules:  append([]Rule{SuffixRule(suffix...)}, rules...),
+		engine: e,
 	}
 	return StoreMatcher(matcher)
 }

@@ -38,6 +38,7 @@ func (n *FutureEvent) Next() <-chan *Event {
 		Block:    n.Block,
 		Priority: n.Priority,
 		Rules:    n.Rule,
+		engine:   defaultEngine,
 		Handler: func(ctx *Ctx) {
 			ch <- ctx.Event
 			close(ch)
@@ -59,6 +60,7 @@ func (n *FutureEvent) Repeat() (recv <-chan *Event, cancel func()) {
 			Block:    n.Block,
 			Priority: n.Priority,
 			Rules:    n.Rule,
+			engine:   defaultEngine,
 			Handler: func(ctx *Ctx) {
 				in <- ctx.Event
 			},

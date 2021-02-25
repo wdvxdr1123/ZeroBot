@@ -87,12 +87,30 @@ loop:
 				continue loop
 			}
 		}
+
+		// pre handler
+		for _, handler := range m.engine.preHandler {
+			if !handler(ctx) { // 有 pre handler 未满足
+				continue loop
+			}
+		}
+
 		ctx.ma = matcher
-		m.Handler(ctx) // 处理事件
-		if matcher.Temp {
+		if m.Handler != nil {
+			m.Handler(ctx) // 处理事件
+		}
+		if matcher.Temp { // 临时 Matcher 删除
 			matcher.Delete()
 		}
-		if matcher.Block {
+
+		// post handler
+		for _, handler := range m.engine.postHandler {
+			if !handler(ctx) { // 有 post handler 未满足
+				break // 后续handler不执行
+			}
+		}
+
+		if matcher.Block { // 阻断后续
 			break loop
 		}
 	}
