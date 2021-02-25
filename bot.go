@@ -83,15 +83,17 @@ loop:
 		m := matcher.copy()
 		matcherLock.RUnlock()
 		for _, rule := range m.Rules {
-			if !rule(ctx) { // 有 Rule 的条件未满足
+			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
 				continue loop
 			}
 		}
 
 		// pre handler
-		for _, handler := range m.engine.preHandler {
-			if !handler(ctx) { // 有 pre handler 未满足
-				continue loop
+		if m.engine != nil {
+			for _, handler := range m.engine.preHandler {
+				if !handler(ctx) { // 有 pre handler 未满足
+					continue loop
+				}
 			}
 		}
 
@@ -103,10 +105,12 @@ loop:
 			matcher.Delete()
 		}
 
-		// post handler
-		for _, handler := range m.engine.postHandler {
-			if !handler(ctx) { // 有 post handler 未满足
-				break // 后续handler不执行
+		if m.engine != nil {
+			// post handler
+			for _, handler := range m.engine.postHandler {
+				if !handler(ctx) { // 有 post handler 未满足
+					break // 后续handler不执行
+				}
 			}
 		}
 
