@@ -14,7 +14,7 @@ type Ctx struct {
 	ma     *Matcher
 	Event  *Event
 	State  State
-	driver Driver
+	caller APICaller
 }
 
 // GetMatcher ...
@@ -85,9 +85,9 @@ func (ctx *Ctx) CheckSession() Rule {
 // Send 快捷发送消息
 func (ctx *Ctx) Send(message interface{}) int64 {
 	if ctx.Event.GroupID != 0 {
-		return SendGroupMessage(ctx.Event.GroupID, message)
+		return ctx.SendGroupMessage(ctx.Event.GroupID, message)
 	}
-	return SendPrivateMessage(ctx.Event.UserID, message)
+	return ctx.SendPrivateMessage(ctx.Event.UserID, message)
 }
 
 // FutureEvent ...

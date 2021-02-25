@@ -63,6 +63,7 @@ type Event struct {
 	MessageID     int64               `json:"message_id"`
 	GroupID       int64               `json:"group_id"`
 	UserID        int64               `json:"user_id"`
+	SelfID        int64               `json:"self_id"`
 	RawMessage    string              `json:"raw_message"` // raw_message is always string
 	Anonymous     interface{}         `json:"anonymous"`
 	AnonymousFlag string              `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
@@ -128,5 +129,5 @@ func (u *User) String() string {
 	return p + u.Name()
 }
 
-// H 是 map[string]interface 的简称
-type H = map[string]interface{}
+// H 是 Params 的简称
+type H = Params

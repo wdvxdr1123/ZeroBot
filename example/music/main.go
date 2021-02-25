@@ -40,6 +40,9 @@ var _ = zero.OnCommandGroup([]string{"music", "点歌"}).
 				ctx.Send("歌曲名不合法oxo")
 			}
 		}
-
-		ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
+		zero.RangeBot(func(id int64, ctx2 *zero.Ctx) bool { // test the range bot function
+			ctx2.SendGroupMessage(ctx.Event.GroupID, message.Music("163", queryNeteaseMusic(cmd.Args)))
+			return true
+		})
+		//ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
 	})

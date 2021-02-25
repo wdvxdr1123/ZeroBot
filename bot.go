@@ -19,11 +19,18 @@ type Config struct {
 	Driver        []Driver `json:"-"`              // 通信驱动
 }
 
+// APICallers 所有的APICaller列表， 通过self-ID映射
+var APICallers callerMap
+
+// APICaller is the interface of CallApi
+type APICaller interface {
+	CallApi(request APIRequest) (APIResponse, error)
+}
+
 // Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
 type Driver interface {
 	Connect()
-	Listen(func([]byte))
-	Send(APIRequest) (APIResponse, error)
+	Listen(func([]byte, APICaller))
 }
 
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
@@ -34,61 +41,59 @@ func Run(op Config) {
 	BotConfig = op
 	for _, driver := range op.Driver {
 		driver.Connect()
-		go driver.Listen(processEvent(driver))
+		go driver.Listen(processEvent)
 	}
 }
 
-func processEvent(driver Driver) func([]byte) {
-	// processEvent 心跳处理
-	return func(response []byte) {
-		defer func() {
-			if pa := recover(); pa != nil {
-				log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
-			}
-		}()
-		var event Event
-		_ = json.Unmarshal(response, &event)
-		event.RawEvent = gjson.Parse(helper.BytesToString(response))
-		switch event.PostType { // process DetailType
-		case "message", "message_sent":
-			event.DetailType = event.MessageType
-		case "notice":
-			event.DetailType = event.NoticeType
-		case "request":
-			event.DetailType = event.RequestType
+// processEvent 处理事件
+func processEvent(response []byte, caller APICaller) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
 		}
-		if event.PostType == "message" {
-			preprocessMessageEvent(&event)
+	}()
+	var event Event
+	_ = json.Unmarshal(response, &event)
+	event.RawEvent = gjson.Parse(helper.BytesToString(response))
+	switch event.PostType { // process DetailType
+	case "message", "message_sent":
+		event.DetailType = event.MessageType
+	case "notice":
+		event.DetailType = event.NoticeType
+	case "request":
+		event.DetailType = event.RequestType
+	}
+	if event.PostType == "message" {
+		preprocessMessageEvent(&event)
+	}
+	ctx := &Ctx{
+		Event:  &event,
+		State:  State{},
+		caller: caller,
+	}
+loop:
+	for _, matcher := range matcherList {
+		if !matcher.Type(ctx) {
+			continue
 		}
-		ctx := &Ctx{
-			Event:  &event,
-			State:  State{},
-			driver: driver,
+		for k := range ctx.State { // Clear State
+			delete(ctx.State, k)
 		}
-	loop:
-		for _, matcher := range matcherList {
-			if !matcher.Type(ctx) {
-				continue
+		matcherLock.RLock()
+		m := matcher.copy()
+		matcherLock.RUnlock()
+		for _, rule := range m.Rules {
+			if !rule(ctx) { // 有 Rule 的条件未满足
+				continue loop
 			}
-			for k := range ctx.State { // Clear State
-				delete(ctx.State, k)
-			}
-			matcherLock.RLock()
-			m := matcher.copy()
-			matcherLock.RUnlock()
-			for _, rule := range m.Rules {
-				if !rule(ctx) { // 有 Rule 的条件未满足
-					continue loop
-				}
-			}
-			ctx.ma = matcher
-			m.Handler(ctx) // 处理事件
-			if matcher.Temp {
-				matcher.Delete()
-			}
-			if matcher.Block {
-				break loop
-			}
+		}
+		ctx.ma = matcher
+		m.Handler(ctx) // 处理事件
+		if matcher.Temp {
+			matcher.Delete()
+		}
+		if matcher.Block {
+			break loop
 		}
 	}
 }
@@ -130,4 +135,22 @@ func preprocessMessageEvent(e *Event) {
 		return
 	}
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
+}
+
+// GetBot 获取指定的bot (Ctx)实例
+func GetBot(id int64) *Ctx {
+	caller, ok := APICallers.Load(id)
+	if !ok {
+		return nil
+	}
+	return &Ctx{caller: caller}
+}
+
+// RangeBot 遍历所有bot (Ctx)实例
+//
+// 单次操作返回 true 则继续遍历，否则退出
+func RangeBot(iter func(id int64, ctx *Ctx) bool) {
+	APICallers.Range(func(key int64, value APICaller) bool {
+		return iter(key, &Ctx{caller: value})
+	})
 }
