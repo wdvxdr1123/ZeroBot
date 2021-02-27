@@ -5,12 +5,14 @@ import (
 	"time"
 
 	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/example/manager"
 	"github.com/wdvxdr1123/ZeroBot/extension"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 var limit = rate.NewManager(time.Minute*1, 1)
+var m = manager.New("music", &manager.Options{DisableOnDefault: false})
 
 func init() {
 	var engine = zero.New()
@@ -45,6 +47,8 @@ func init() {
 			})
 			//ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
 		})
+
+	engine.UsePreHandler(m.Handler())
 
 	engine.UsePreHandler(func(ctx *zero.Ctx) bool { // 限速器
 		if !limit.Load(ctx.Event.UserID).Acquire() {
