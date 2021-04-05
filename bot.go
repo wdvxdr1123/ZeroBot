@@ -166,15 +166,22 @@ func preprocessMessageEvent(e *Event) {
 // preprocessNoticeEvent 更新事件
 func preprocessNoticeEvent(e *Event) {
 	switch e.NoticeType {
-	case "group_upload", "friend_add", "friend_recall":
+	case "group_upload", "friend_add", "friend_recall", "client_status", "offline_file":
 		//
-	case "group_admin", "group_decrease", "group_increase", "group_ban", "group_recall", "honor":
+	case "group_admin", "group_decrease", "group_increase", "group_ban", "group_recall", "group_card", "essence":
 		if e.UserID == e.SelfID {
 			e.IsToMe = true
 		}
-	case "poke", "lucky_king":
-		if e.TargetID == e.SelfID {
-			e.IsToMe = true
+	case "notify":
+		switch e.SubType {
+		case "honor":
+			if e.TargetID == e.SelfID {
+				e.IsToMe = true
+			}
+		case "poke", "lucky_king":
+			if e.TargetID == e.SelfID {
+				e.IsToMe = true
+			}
 		}
 	}
 }
