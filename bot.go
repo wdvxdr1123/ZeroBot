@@ -2,6 +2,7 @@ package zero
 
 import (
 	"runtime/debug"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -61,6 +62,7 @@ func processEvent(response []byte, caller APICaller) {
 		event.DetailType = event.MessageType
 	case "notice":
 		event.DetailType = event.NoticeType
+		preprocessNoticeEvent(&event)
 	case "request":
 		event.DetailType = event.RequestType
 	}
@@ -130,7 +132,8 @@ func preprocessMessageEvent(e *Event) {
 			e.IsToMe = false
 			for i, m := range e.Message {
 				if m.Type == "at" {
-					if m.Data["qq"] == BotConfig.SelfID {
+					qq, _ := strconv.ParseInt(m.Data["qq"], 10, 64)
+					if qq == e.SelfID {
 						e.IsToMe = true
 						e.Message = append(e.Message[:i], e.Message[i+1:]...)
 						return
@@ -158,6 +161,22 @@ func preprocessMessageEvent(e *Event) {
 		return
 	}
 	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
+}
+
+// preprocessNoticeEvent 更新事件
+func preprocessNoticeEvent(e *Event) {
+	switch e.NoticeType {
+	case "group_upload", "friend_add", "friend_recall":
+		//
+	case "group_admin", "group_decrease", "group_increase", "group_ban", "group_recall", "honor":
+		if e.UserID == e.SelfID {
+			e.IsToMe = true
+		}
+	case "poke", "lucky_king":
+		if e.TargetID == e.SelfID {
+			e.IsToMe = true
+		}
+	}
 }
 
 // GetBot 获取指定的bot (Ctx)实例

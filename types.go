@@ -64,6 +64,7 @@ type Event struct {
 	MessageID     int64               `json:"message_id"`
 	GroupID       int64               `json:"group_id"`
 	UserID        int64               `json:"user_id"`
+	TargetID      int64               `json:"target_id"`
 	SelfID        int64               `json:"self_id"`
 	RawMessage    string              `json:"raw_message"` // raw_message is always string
 	Anonymous     interface{}         `json:"anonymous"`
