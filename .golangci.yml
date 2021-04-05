@@ -3,66 +3,57 @@ linters-settings:
     ignore: fmt:.*,io/ioutil:^Read.*
     ignoretests: true
 
+  goimports:
+    local-prefixes: github.com/wdvxdr1123/ZeroBot
+
+  gocritic:
+    disabled-checks:
+      - exitAfterDefer
+
 linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
+  fast: false
   enable:
     - bodyclose
     - deadcode
+    - depguard
+    - dogsled
+    - dupl
     - errcheck
-    - gofmt
+    - exportloopref
+    - exhaustive
+    #- funlen
+    #- goconst
+    #- gocritic
+    #- gocyclo
+    - gofumpt
     - goimports
-    - gosec
+    - goprintffuncname
+    #- gosec
     - gosimple
     - govet
     - ineffassign
     - misspell
-    - prealloc
+    - nolintlint
+    - rowserrcheck
     - staticcheck
     - structcheck
+    #- stylecheck
     - typecheck
     - unconvert
+    - unparam
     - unused
     - varcheck
-  # these are implicitly disabled:
-  # - asciicheck
-  # - depguard
-  # - dogsled
-  # - dupl
-  # - exhaustive
-  # - exportloopref
-  # - funlen
-  # - gci
-  # - gochecknoglobals
-  # - gochecknoinits
-  # - gocognit
-  # - goconst
-  # - gocritic
-  # - gocyclo
-  # - godot
-  # - godox
-  # - goerr113
-  # - gofumpt
-  # - goheader
-  # - golint
-  # - gomnd
-  # - gomodguard
-  # - goprintffuncname
-  # - interfacer
-  # - lll
-  # - maligned
-  # - nakedret
-  # - nestif
-  # - nlreturn
-  # - noctx
-  # - nolintlint
-  # - rowserrcheck
-  # - scopelint
-  # - sqlclosecheck
-  # - stylecheck
-  # - testpackage
-  # - unparam
-  # - whitespace
-  # - wsl
+    - whitespace
+    - prealloc
+    - predeclared
+    - asciicheck
+    #- revive
+    - makezero
+    - interfacer
+
 
 run:
   # default concurrency is a available CPU number.
@@ -76,3 +67,8 @@ output:
   format: 'colored-line-number'
   print-issued-lines: true
   print-linter-name: true
+  uniq-by-line: true
+
+issues:
+  # Fix found issues (if it's supported by the linter)
+  fix: true

@@ -12,12 +12,15 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
+
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-var nullResponse = zero.APIResponse{}
-var json = jsoniter.ConfigFastest
+var (
+	nullResponse = zero.APIResponse{}
+	json         = jsoniter.ConfigFastest
+)
 
 // WSClient ...
 type WSClient struct {

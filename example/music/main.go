@@ -11,13 +11,15 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-var limit = rate.NewManager(time.Minute*1, 1)
-var m = manager.New("music", &manager.Options{DisableOnDefault: false})
+var (
+	limit = rate.NewManager(time.Minute*1, 1)
+	m     = manager.New("music", &manager.Options{DisableOnDefault: false})
+)
 
 func init() {
-	var engine = zero.New()
+	engine := zero.New()
 
-	var _ = engine.OnCommandGroup([]string{"music", "点歌"}).
+	_ = engine.OnCommandGroup([]string{"music", "点歌"}).
 		SetBlock(true).
 		SetPriority(8).
 		Handle(func(ctx *zero.Ctx) {
@@ -45,7 +47,7 @@ func init() {
 				ctx2.SendGroupMessage(ctx.Event.GroupID, message.Music("163", queryNeteaseMusic(cmd.Args)))
 				return true
 			})
-			//ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
+			// ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
 		})
 
 	engine.UsePreHandler(m.Handler())

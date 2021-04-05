@@ -104,7 +104,7 @@ func ForEach(iterator func(key string, manager *Manager) bool) {
 }
 
 func copyMap(m map[string]*Manager) map[string]*Manager {
-	var ret = make(map[string]*Manager, len(m))
+	ret := make(map[string]*Manager, len(m))
 	for k, v := range m {
 		ret[k] = v
 	}
@@ -119,7 +119,7 @@ func pack(m map[int64]bool) []byte {
 	for k, v := range m {
 		binary.LittleEndian.PutUint64(b, uint64(k))
 		if v {
-			b[7] = b[7] | 0x80
+			b[7] |= 0x80
 		}
 		buf.Write(b[:8])
 	}
@@ -145,11 +145,11 @@ func unpack(v []byte) map[int64]bool {
 }
 
 func init() {
-	var engine = zero.New()
+	engine := zero.New()
 
 	engine.OnCommandGroup([]string{"启用", "enable"}, zero.AdminPermission, zero.OnlyGroup).
 		Handle(func(ctx *zero.Ctx) {
-			var model = extension.CommandModel{}
+			model := extension.CommandModel{}
 			_ = ctx.Parse(&model)
 			service, ok := Lookup(model.Args)
 			if !ok {
@@ -161,7 +161,7 @@ func init() {
 
 	engine.OnCommandGroup([]string{"禁用", "disable"}, zero.AdminPermission, zero.OnlyGroup).
 		Handle(func(ctx *zero.Ctx) {
-			var model = extension.CommandModel{}
+			model := extension.CommandModel{}
 			_ = ctx.Parse(&model)
 			service, ok := Lookup(model.Args)
 			if !ok {
@@ -173,8 +173,8 @@ func init() {
 
 	engine.OnCommandGroup([]string{"服务列表", "service_list"}, zero.AdminPermission, zero.OnlyGroup).
 		Handle(func(ctx *zero.Ctx) {
-			var msg = `---服务列表---`
-			var i = 0
+			msg := `---服务列表---`
+			i := 0
 			ForEach(func(key string, manager *Manager) bool {
 				i++
 				msg += "\n" + strconv.Itoa(i) + `: ` + key

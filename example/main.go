@@ -3,6 +3,7 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
+
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"

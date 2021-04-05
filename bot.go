@@ -6,15 +6,16 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
+
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 // Config is config of zero bot
 type Config struct {
-	NickName      []string `json:"nickname"`       //机器人名称
-	CommandPrefix string   `json:"command_prefix"` //触发命令
-	SuperUsers    []string `json:"super_users"`    //超级用户
+	NickName      []string `json:"nickname"`       // 机器人名称
+	CommandPrefix string   `json:"command_prefix"` // 触发命令
+	SuperUsers    []string `json:"super_users"`    // 超级用户
 	SelfID        string   `json:"self_id"`        // 机器人账号
 	Driver        []Driver `json:"-"`              // 通信驱动
 }

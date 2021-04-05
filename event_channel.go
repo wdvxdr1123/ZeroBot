@@ -18,7 +18,7 @@ func NewFutureEvent(Type string, Priority int, Block bool, rule ...Rule) *Future
 	}
 }
 
-//FutureEvent 返回一个 FutureEvent 实例指针，用于获取满足 Rule 的 未来事件
+// FutureEvent 返回一个 FutureEvent 实例指针，用于获取满足 Rule 的 未来事件
 func (m *Matcher) FutureEvent(Type string, rule ...Rule) *FutureEvent {
 	return &FutureEvent{
 		Type:     Type,

@@ -39,7 +39,7 @@ func On(typ string, rules ...Rule) *Matcher { return defaultEngine.On(typ, rules
 
 // On 添加新的指定消息类型的匹配器
 func (e *Engine) On(typ string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type(typ),
 		Rules:  rules,
 		engine: e,
@@ -76,7 +76,7 @@ func OnPrefix(prefix string, rules ...Rule) *Matcher { return defaultEngine.OnPr
 
 // OnPrefix 前缀触发器
 func (e *Engine) OnPrefix(prefix string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{PrefixRule(prefix)}, rules...),
 		engine: e,
@@ -89,7 +89,7 @@ func OnSuffix(suffix string, rules ...Rule) *Matcher { return defaultEngine.OnSu
 
 // OnSuffix 后缀触发器
 func (e *Engine) OnSuffix(suffix string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{SuffixRule(suffix)}, rules...),
 		engine: e,
@@ -104,7 +104,7 @@ func OnCommand(commands string, rules ...Rule) *Matcher {
 
 // OnCommand 命令触发器
 func (e *Engine) OnCommand(commands string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{CommandRule(commands)}, rules...),
 		engine: e,
@@ -119,7 +119,7 @@ func OnRegex(regexPattern string, rules ...Rule) *Matcher {
 
 // OnRegex 正则触发器
 func (e *Engine) OnRegex(regexPattern string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{RegexRule(regexPattern)}, rules...),
 		engine: e,
@@ -134,7 +134,7 @@ func OnKeyword(keyword string, rules ...Rule) *Matcher {
 
 // OnKeyword 关键词触发器
 func (e *Engine) OnKeyword(keyword string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{KeywordRule(keyword)}, rules...),
 		engine: e,
@@ -149,7 +149,7 @@ func OnFullMatch(src string, rules ...Rule) *Matcher {
 
 // OnFullMatch 完全匹配触发器
 func (e *Engine) OnFullMatch(src string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{FullMatchRule(src)}, rules...),
 		engine: e,
@@ -164,7 +164,7 @@ func OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 
 // OnFullMatchGroup 完全匹配触发器组
 func (e *Engine) OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{FullMatchRule(src...)}, rules...),
 		engine: e,
@@ -179,7 +179,7 @@ func OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 
 // OnKeywordGroup 关键词触发器组
 func (e *Engine) OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{KeywordRule(keywords...)}, rules...),
 		engine: e,
@@ -204,7 +204,7 @@ func OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
 
 // OnPrefixGroup 前缀触发器组
 func (e *Engine) OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{PrefixRule(prefix...)}, rules...),
 		engine: e,
@@ -219,7 +219,7 @@ func OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 
 // OnSuffixGroup 后缀触发器组
 func (e *Engine) OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
-	var matcher = &Matcher{
+	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{SuffixRule(suffix...)}, rules...),
 		engine: e,

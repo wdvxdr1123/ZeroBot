@@ -119,9 +119,9 @@ func RegexRule(regexPattern string) Rule {
 
 // ReplyRule check if the message is replying some message
 func ReplyRule(messageID int64) Rule {
-	var mid = strconv.FormatInt(messageID, 10)
+	mid := strconv.FormatInt(messageID, 10)
 	return func(ctx *Ctx) bool {
-		if len(ctx.Event.Message) <= 0 {
+		if len(ctx.Event.Message) == 0 {
 			return false
 		}
 		if ctx.Event.Message[0].Type != "reply" {

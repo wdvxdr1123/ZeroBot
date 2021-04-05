@@ -1,24 +1,15 @@
 package message
 
 import (
-	"encoding/binary"
 	"reflect"
 	"unsafe"
 )
 
-const sizeInt = int(unsafe.Sizeof(0))
-
 var magicCQ = uint32(0)
 
 func init() {
-	x := 0x1234
-	p := unsafe.Pointer(&x)
-	p2 := (*[sizeInt]byte)(p)
-	if p2[0] == 0 {
-		magicCQ = binary.BigEndian.Uint32([]byte("[CQ:"))
-	} else {
-		magicCQ = binary.LittleEndian.Uint32([]byte("[CQ:"))
-	}
+	CQHeader := "[CQ:"
+	magicCQ = *(*uint32)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&CQHeader)).Data))
 }
 
 func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
@@ -32,7 +23,7 @@ func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
 // CQ字符串转为消息
 func ParseMessageFromString(s string) Message {
 	var seg MessageSegment
-	var m = Message{}
+	m := Message{}
 	var key string
 
 	ptr := unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&s)).Data)

@@ -23,9 +23,9 @@ type MessageSegment struct {
 //
 // CQ码字符转换
 func EscapeCQText(str string) string {
-	str = strings.Replace(str, "&", "&amp;", -1)
-	str = strings.Replace(str, "[", "&#91;", -1)
-	str = strings.Replace(str, "]", "&#93;", -1)
+	str = strings.ReplaceAll(str, "&", "&amp;")
+	str = strings.ReplaceAll(str, "[", "&#91;")
+	str = strings.ReplaceAll(str, "]", "&#93;")
 	return str
 }
 
@@ -33,9 +33,9 @@ func EscapeCQText(str string) string {
 //
 // CQ码反解析
 func UnescapeCQText(str string) string {
-	str = strings.Replace(str, "&#93;", "]", -1)
-	str = strings.Replace(str, "&#91;", "[", -1)
-	str = strings.Replace(str, "&amp;", "&", -1)
+	str = strings.ReplaceAll(str, "&#93;", "]")
+	str = strings.ReplaceAll(str, "&#91;", "[")
+	str = strings.ReplaceAll(str, "&amp;", "&")
 	return str
 }
 
@@ -45,10 +45,10 @@ func UnescapeCQText(str string) string {
 //
 // cq码字符转换
 func EscapeCQCodeText(str string) string {
-	str = strings.Replace(str, "&", "&amp;", -1)
-	str = strings.Replace(str, "[", "&#91;", -1)
-	str = strings.Replace(str, "]", "&#93;", -1)
-	str = strings.Replace(str, ",", "&#44;", -1)
+	str = strings.ReplaceAll(str, "&", "&amp;")
+	str = strings.ReplaceAll(str, "[", "&#91;")
+	str = strings.ReplaceAll(str, "]", "&#93;")
+	str = strings.ReplaceAll(str, ",", "&#44;")
 	return str
 }
 
@@ -57,10 +57,10 @@ func EscapeCQCodeText(str string) string {
 //
 // cq码反解析
 func UnescapeCQCodeText(str string) string {
-	str = strings.Replace(str, "&#44;", ",", -1)
-	str = strings.Replace(str, "&#93;", "]", -1)
-	str = strings.Replace(str, "&#91;", "[", -1)
-	str = strings.Replace(str, "&amp;", "&", -1)
+	str = strings.ReplaceAll(str, "&#44;", ",")
+	str = strings.ReplaceAll(str, "&#93;", "]")
+	str = strings.ReplaceAll(str, "&#91;", "[")
+	str = strings.ReplaceAll(str, "&amp;", "&")
 	return str
 }
 
