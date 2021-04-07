@@ -76,11 +76,11 @@ func (m MessageSegment) CQCode() string {
 
 // Text 纯文本
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
-func Text(text string) MessageSegment {
+func Text(text ...interface{}) MessageSegment {
 	return MessageSegment{
 		Type: "text",
 		Data: map[string]string{
-			"text": text,
+			"text": fmt.Sprint(text...),
 		},
 	}
 }
