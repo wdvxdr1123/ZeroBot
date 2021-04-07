@@ -1,6 +1,7 @@
 package message
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -142,15 +143,14 @@ func Music(mType string, id int64) MessageSegment {
 
 // CustomMusic 音乐自定义分享
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E4%BA%AB-
-func CustomMusic(subType, url, audio, title string) MessageSegment {
+func CustomMusic(url, audio, title string) MessageSegment {
 	return MessageSegment{
 		Type: "music",
 		Data: map[string]string{
-			"type":     "custom",
-			"sub_type": subType,
-			"url":      url,
-			"audio":    audio,
-			"title":    title,
+			"type":  "custom",
+			"url":   url,
+			"audio": audio,
+			"title": title,
 		},
 	}
 }
@@ -265,6 +265,12 @@ func TTS(text string) MessageSegment {
 			"text": text,
 		},
 	}
+}
+
+// Add 为 MessageSegment 的 Data 增加一个字段
+func (m MessageSegment) Add(key string, val interface{}) MessageSegment {
+	m.Data[key] = fmt.Sprint(val)
+	return m
 }
 
 // ReplyWithMessage returns a reply message
