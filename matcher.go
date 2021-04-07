@@ -63,6 +63,21 @@ func (m *Matcher) SetPriority(priority int) *Matcher {
 	return m
 }
 
+// FirstPriority 设置当前 Matcher 优先级 - 0
+func (m *Matcher) FirstPriority() *Matcher {
+	return m.SetPriority(0)
+}
+
+// SecondPriority 设置当前 Matcher 优先级 - 1
+func (m *Matcher) SecondPriority() *Matcher {
+	return m.SetPriority(1)
+}
+
+// ThirdPriority 设置当前 Matcher 优先级 - 2
+func (m *Matcher) ThirdPriority() *Matcher {
+	return m.SetPriority(2)
+}
+
 // StoreMatcher store a matcher to matcher list.
 func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()
