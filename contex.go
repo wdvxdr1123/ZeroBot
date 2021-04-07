@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 // Ctx represents the Context which hold the event.
@@ -84,6 +85,14 @@ func (ctx *Ctx) CheckSession() Rule {
 
 // Send 快捷发送消息
 func (ctx *Ctx) Send(message interface{}) int64 {
+	if ctx.Event.GroupID != 0 {
+		return ctx.SendGroupMessage(ctx.Event.GroupID, message)
+	}
+	return ctx.SendPrivateMessage(ctx.Event.UserID, message)
+}
+
+// SendChain 快捷发送消息-消息链
+func (ctx *Ctx) SendChain(message ...message.MessageSegment) int64 {
 	if ctx.Event.GroupID != 0 {
 		return ctx.SendGroupMessage(ctx.Event.GroupID, message)
 	}
