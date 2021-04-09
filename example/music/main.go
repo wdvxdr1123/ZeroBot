@@ -8,6 +8,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/example/manager"
 	"github.com/wdvxdr1123/ZeroBot/extension"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
+	"github.com/wdvxdr1123/ZeroBot/extension/single"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
@@ -18,6 +19,15 @@ var (
 
 func init() {
 	engine := zero.New()
+
+	single.New(
+		single.WithKeyFn(func(ctx *zero.Ctx) interface{} {
+			return ctx.Event.UserID
+		}),
+		single.WithPostFn(func(ctx *zero.Ctx) {
+			ctx.Send("您有操作正在执行，请稍后再试!")
+		}),
+	).Apply(engine)
 
 	_ = engine.OnCommandGroup([]string{"music", "点歌"}).
 		SetBlock(true).
@@ -49,7 +59,6 @@ func init() {
 			})
 			// ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
 		})
-
 	engine.UsePreHandler(m.Handler())
 
 	engine.UsePreHandler(func(ctx *zero.Ctx) bool { // 限速器

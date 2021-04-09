@@ -4,7 +4,7 @@ package zero
 func New() *Engine {
 	return &Engine{
 		preHandler:  []Rule{},
-		postHandler: []Rule{},
+		postHandler: []Handler{},
 	}
 }
 
@@ -13,7 +13,7 @@ var defaultEngine = New()
 // Engine is the pre_handler, post_handler manager
 type Engine struct {
 	preHandler  []Rule
-	postHandler []Rule
+	postHandler []Handler
 }
 
 // UsePreHandler 向该 Engine 添加新 PreHandler(Rule),
@@ -30,7 +30,7 @@ func (e *Engine) UsePreHandler(rules ...Rule) {
 // 则后续的 post handler 不会触发
 //
 // 不知道有啥用...(先留一个
-func (e *Engine) UsePostHandler(handler ...Rule) {
+func (e *Engine) UsePostHandler(handler ...Handler) {
 	e.postHandler = append(e.postHandler, handler...)
 }
 

@@ -111,9 +111,7 @@ loop:
 		if m.engine != nil {
 			// post handler
 			for _, handler := range m.engine.postHandler {
-				if !handler(ctx) { // 有 post handler 未满足
-					break // 后续handler不执行
-				}
+				handler(ctx)
 			}
 		}
 
