@@ -4,7 +4,7 @@
 ![Badge](https://img.shields.io/badge/OneBot-v11-black)
 ![Badge](https://img.shields.io/badge/gocqhttp-v0.9.40fix2-black)
 
-已过时的 [文档](https://docs.wdvxdr.top), 新文档正在咕咕中
+文档正在咕咕中, 具体使用可以参考example文件夹
 
 ## ⚡️ 快速使用
 
