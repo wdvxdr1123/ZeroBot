@@ -29,7 +29,7 @@ type Matcher struct {
 	// Handler 处理事件的函数
 	Handler Handler
 	// Engine 注册 Matcher 的 Engine，Engine可为一系列 Matcher 添加通用 Rule 和 其他钩子
-	engine *Engine
+	Engine *Engine
 }
 
 var (
@@ -113,7 +113,7 @@ func (m *Matcher) copy() *Matcher {
 		Priority: m.Priority,
 		Handler:  m.Handler,
 		Temp:     m.Temp,
-		engine:   m.engine,
+		Engine:   m.Engine,
 	}
 }
 

@@ -8,9 +8,11 @@ var (
 	// InvalidPattern 不合法的模式串
 	InvalidPattern = errors.New("invalid pattern")
 	// InvalidParamName 不合法的参数名
-	InvalidParamName = errors.New("invalid name")
-	// InvalidQuestion 无效的?操作
-	InvalidQuestion = errors.New("qustion only used before colon")
+	InvalidParamName = errors.New("invalid param name")
+	// UnexpectedQuestion 非法的?操作
+	UnexpectedQuestion = errors.New("qustion only used before colon")
+	// UnexpectedBrace 非法的 '{', '}'
+	UnexpectedBrace = errors.New("qustion only used before colon")
 )
 
 // segmentKind is the kind of route segment, see the consts below.
@@ -29,7 +31,9 @@ type segment struct {
 
 // Route is a simple command route
 type Route struct {
+	// sync.Once
 	fields []segment
+	// instructs []state
 }
 
 type scanner struct {
@@ -46,13 +50,13 @@ const (
 // save saves the segment and returns a required param or a const path.
 func (s *scanner) save() (*segment, error) {
 	if s.state == constPath {
-		if s.pos > s.prev {
+		if s.pos > s.prev && s.pos < len(s.pattern) {
 			return &segment{kind: constPart, pattern: s.pattern[s.prev:s.pos]}, nil
 		}
 		return nil, nil // None segment
 	}
 
-	pos, prev := s.pos-1, s.prev-1
+	pos, prev := s.pos, s.prev+1
 	if pos > prev {
 		return &segment{kind: requiredParam, pattern: s.pattern[prev:pos]}, nil
 	}
@@ -67,7 +71,12 @@ func Parse(pattern string) (*Route, error) {
 	for s.pos < len(pattern) {
 		switch pattern[s.pos] {
 		// param pattern start&end
-		case ':':
+		case '{', '}':
+			if (s.state == constPath && pattern[s.pos] == '}') || // invalid const pattern: `test}   `
+				(s.state == paramPath && pattern[s.pos] == '{') { // invalid
+				return nil, UnexpectedBrace
+			}
+
 			field, err := s.save() // save the pattern
 			if err != nil {
 				return nil, err
@@ -75,14 +84,18 @@ func Parse(pattern string) (*Route, error) {
 				route.fields = append(route.fields, *field)
 			}
 
+			s.prev = s.pos
+			if s.state == paramPath {
+				s.pos++
+			}
 			s.state = s.state ^ paramPath // reverse the state
 
 		// optional param pattern
 		case '?':
 			if s.state != paramPath || // check the state
 				s.pos+1 >= len(pattern) || // check the next char
-				pattern[s.pos+1] != ':' {
-				return nil, InvalidQuestion
+				pattern[s.pos+1] != '}' {
+				return nil, UnexpectedQuestion
 			}
 			field, err := s.save()
 			if err != nil || field == nil { // invalid param
@@ -92,6 +105,7 @@ func Parse(pattern string) (*Route, error) {
 			field.kind = optionalParam
 			route.fields = append(route.fields, *field)
 			s.pos++
+			// s.prev = s.pos
 			s.state = constPath
 
 		case '\t', '\r', '\n', ' ':
@@ -117,3 +131,32 @@ func Parse(pattern string) (*Route, error) {
 
 	return route, nil
 }
+
+/*
+type instOp int
+
+const (
+	instText instOp = iota
+	instRequiredParam
+	instOptionalParam
+)
+
+type state struct {
+	step    int
+	op      instOp
+	choices []int
+}
+
+// compile compiles the route fields to construct a dfa.
+func (r *Route) compile() {
+	for i, field := range r.fields {
+		switch field.kind {
+		case constPart:
+
+		case requiredParam:
+
+		case optionalParam:
+		}
+	}
+}
+*/

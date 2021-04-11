@@ -92,8 +92,8 @@ loop:
 		}
 
 		// pre handler
-		if m.engine != nil {
-			for _, handler := range m.engine.preHandler {
+		if m.Engine != nil {
+			for _, handler := range m.Engine.preHandler {
 				if !handler(ctx) { // 有 pre handler 未满足
 					continue loop
 				}
@@ -108,9 +108,9 @@ loop:
 			matcher.Delete()
 		}
 
-		if m.engine != nil {
+		if m.Engine != nil {
 			// post handler
-			for _, handler := range m.engine.postHandler {
+			for _, handler := range m.Engine.postHandler {
 				handler(ctx)
 			}
 		}

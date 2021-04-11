@@ -13,9 +13,21 @@ func TestParse(t *testing.T) {
 		err     error
 	}{
 		{
-			pattern: "aaaa :    ",
+			pattern: "test {    ",
 			route:   nil,
-			err:     InvalidPattern,
+			err:     InvalidParamName,
+		},
+		{
+			pattern: "123456",
+			route: &Route{
+				fields: []segment{
+					{
+						kind:    constPart,
+						pattern: "123456",
+					},
+				},
+			},
+			err: nil,
 		},
 	}
 
@@ -24,4 +36,10 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, test.route, route)
 		assert.Equal(t, test.err, err)
 	}
+}
+
+func TestRoute_Match(t *testing.T) {
+	var r, _ = Parse(`hello {world}`)
+	_, ok := r.Match("hello world")
+	assert.True(t, ok)
 }

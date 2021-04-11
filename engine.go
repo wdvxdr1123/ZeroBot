@@ -42,7 +42,7 @@ func (e *Engine) On(typ string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type(typ),
 		Rules:  rules,
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -79,7 +79,7 @@ func (e *Engine) OnPrefix(prefix string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{PrefixRule(prefix)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -92,7 +92,7 @@ func (e *Engine) OnSuffix(suffix string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{SuffixRule(suffix)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -107,7 +107,7 @@ func (e *Engine) OnCommand(commands string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{CommandRule(commands)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -122,7 +122,7 @@ func (e *Engine) OnRegex(regexPattern string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{RegexRule(regexPattern)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -137,7 +137,7 @@ func (e *Engine) OnKeyword(keyword string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{KeywordRule(keyword)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -152,7 +152,7 @@ func (e *Engine) OnFullMatch(src string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{FullMatchRule(src)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -167,7 +167,7 @@ func (e *Engine) OnFullMatchGroup(src []string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{FullMatchRule(src...)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -182,7 +182,7 @@ func (e *Engine) OnKeywordGroup(keywords []string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{KeywordRule(keywords...)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -207,7 +207,7 @@ func (e *Engine) OnPrefixGroup(prefix []string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{PrefixRule(prefix...)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
@@ -222,7 +222,7 @@ func (e *Engine) OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 	matcher := &Matcher{
 		Type:   Type("message"),
 		Rules:  append([]Rule{SuffixRule(suffix...)}, rules...),
-		engine: e,
+		Engine: e,
 	}
 	return StoreMatcher(matcher)
 }
