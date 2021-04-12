@@ -10,9 +10,9 @@ var (
 	// InvalidParamName 不合法的参数名
 	InvalidParamName = errors.New("invalid param name")
 	// UnexpectedQuestion 非法的?操作
-	UnexpectedQuestion = errors.New("qustion only used before colon")
+	UnexpectedQuestion = errors.New("question only used before colon")
 	// UnexpectedBrace 非法的 '{', '}'
-	UnexpectedBrace = errors.New("qustion only used before colon")
+	UnexpectedBrace = errors.New("question only used before colon")
 )
 
 // segmentKind is the kind of route segment, see the consts below.
@@ -31,9 +31,7 @@ type segment struct {
 
 // Route is a simple command route
 type Route struct {
-	// sync.Once
 	fields []segment
-	// instructs []state
 }
 
 type scanner struct {
@@ -50,7 +48,7 @@ const (
 // save saves the segment and returns a required param or a const path.
 func (s *scanner) save() (*segment, error) {
 	if s.state == constPath {
-		if s.pos > s.prev && s.pos < len(s.pattern) {
+		if s.pos > s.prev && s.pos <= len(s.pattern) {
 			return &segment{kind: constPart, pattern: s.pattern[s.prev:s.pos]}, nil
 		}
 		return nil, nil // None segment
@@ -84,10 +82,10 @@ func Parse(pattern string) (*Route, error) {
 				route.fields = append(route.fields, *field)
 			}
 
-			s.prev = s.pos
 			if s.state == paramPath {
 				s.pos++
 			}
+			s.prev = s.pos
 			s.state = s.state ^ paramPath // reverse the state
 
 		// optional param pattern
@@ -104,8 +102,8 @@ func Parse(pattern string) (*Route, error) {
 
 			field.kind = optionalParam
 			route.fields = append(route.fields, *field)
-			s.pos++
-			// s.prev = s.pos
+			s.pos += 2
+			s.prev = s.pos
 			s.state = constPath
 
 		case '\t', '\r', '\n', ' ':
@@ -113,7 +111,6 @@ func Parse(pattern string) (*Route, error) {
 				return nil, InvalidParamName
 			}
 
-		default:
 		}
 		s.pos++
 	}
@@ -131,32 +128,3 @@ func Parse(pattern string) (*Route, error) {
 
 	return route, nil
 }
-
-/*
-type instOp int
-
-const (
-	instText instOp = iota
-	instRequiredParam
-	instOptionalParam
-)
-
-type state struct {
-	step    int
-	op      instOp
-	choices []int
-}
-
-// compile compiles the route fields to construct a dfa.
-func (r *Route) compile() {
-	for i, field := range r.fields {
-		switch field.kind {
-		case constPart:
-
-		case requiredParam:
-
-		case optionalParam:
-		}
-	}
-}
-*/

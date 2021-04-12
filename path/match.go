@@ -12,11 +12,7 @@ type matcher struct {
 }
 
 func (r *Route) Match(s string) (map[string]string, bool) {
-	// r.Do(func() {
-	//	 r.compile() // compile the Route
-	// })
-
-	m := &matcher{r: r, s: s}
+	m := &matcher{r: r, s: s, result: make(map[string]string)}
 	if ok := m.match(s); ok {
 		return m.result, true
 	}
@@ -31,7 +27,11 @@ func (m *matcher) match(s string) bool {
 		if m.step >= len(m.r.fields) { // the check the left string is empty.
 			return s == ""
 		} else if i == len(s) {
-			return m.step == len(m.r.fields)-1
+			if ok := m.step == len(m.r.fields)-1; ok {
+				m.result[m.r.fields[m.step].pattern] = sb.String() // save
+				return true
+			}
+			return false
 		}
 
 		seg := m.r.fields[m.step]

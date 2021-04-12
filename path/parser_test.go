@@ -39,7 +39,11 @@ func TestParse(t *testing.T) {
 }
 
 func TestRoute_Match(t *testing.T) {
-	var r, _ = Parse(`hello {world}`)
-	_, ok := r.Match("hello world")
+	var r, _ = Parse(`hello {world?} test {symbol}`)
+	result, ok := r.Match("hello test test !!!")
 	assert.True(t, ok)
+	assert.Equal(t, map[string]string{
+		"world":  "test",
+		"symbol": "!!!",
+	}, result)
 }
