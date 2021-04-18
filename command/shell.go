@@ -1,10 +1,4 @@
-// Package shell provides a simple shell parser for zerobot.
-package shell
-
-import (
-	"errors"
-	"strings"
-)
+package command
 
 func isSpace(r rune) bool {
 	switch r {
@@ -24,10 +18,10 @@ const (
 
 // Parse 将指令转换为指令参数.
 // modified from https://github.com/mattn/go-shellwords
-func Parse(line string) ([]string, error) {
+func Parse(line string) []string {
 	var args []string
 	buf := ""
-	var escaped, doubleQuoted, singleQuoted, backQuote, dollarQuote bool
+	var escaped, doubleQuoted, singleQuoted, backQuote bool
 	backtick := ""
 
 	got := argNo
@@ -50,7 +44,7 @@ func Parse(line string) ([]string, error) {
 		}
 
 		if isSpace(r) {
-			if singleQuoted || doubleQuoted || backQuote || dollarQuote {
+			if singleQuoted || doubleQuoted || backQuote {
 				buf += string(r)
 				backtick += string(r)
 			} else if got != argNo {
@@ -63,34 +57,19 @@ func Parse(line string) ([]string, error) {
 
 		switch r {
 		case '`':
-			if !singleQuoted && !doubleQuoted && !dollarQuote {
+			if !singleQuoted && !doubleQuoted {
 				backtick = ""
 				backQuote = !backQuote
 			}
-		case ')':
-			if !singleQuoted && !doubleQuoted && !backQuote {
-				backtick = ""
-				dollarQuote = !dollarQuote
-			}
-		case '(':
-			if !singleQuoted && !doubleQuoted && !backQuote {
-				if !dollarQuote && strings.HasSuffix(buf, "$") {
-					dollarQuote = true
-					buf += "("
-					continue
-				} else {
-					return nil, errors.New("invalid command line string")
-				}
-			}
 		case '"':
-			if !singleQuoted && !dollarQuote {
+			if !singleQuoted {
 				if doubleQuoted {
 					got = argQuoted
 				}
 				doubleQuoted = !doubleQuoted
 			}
 		case '\'':
-			if !doubleQuoted && !dollarQuote {
+			if !doubleQuoted {
 				if singleQuoted {
 					got = argSingle
 				}
@@ -99,7 +78,7 @@ func Parse(line string) ([]string, error) {
 		default:
 			got = argSingle
 			buf += string(r)
-			if backQuote || dollarQuote {
+			if backQuote {
 				backtick += string(r)
 			}
 		}
@@ -109,9 +88,5 @@ func Parse(line string) ([]string, error) {
 		args = append(args, buf)
 	}
 
-	if escaped || singleQuoted || doubleQuoted || backQuote || dollarQuote {
-		return nil, errors.New("invalid command line string")
-	}
-
-	return args, nil
+	return args
 }

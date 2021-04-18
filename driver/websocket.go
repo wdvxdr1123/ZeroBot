@@ -34,9 +34,9 @@ type WSClient struct {
 }
 
 // NewWebSocketClient 默认Driver，使用正向WS通信
-func NewWebSocketClient(host, port, accessToken string) *WSClient {
+func NewWebSocketClient(url, accessToken string) *WSClient {
 	return &WSClient{
-		Url:         "ws://" + host + ":" + port + "/ws",
+		Url:         url,
 		AccessToken: accessToken,
 	}
 }

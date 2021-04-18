@@ -78,6 +78,12 @@ func (m *Matcher) ThirdPriority() *Matcher {
 	return m.SetPriority(2)
 }
 
+// BindEngine bind the matcher to a engine
+func (m *Matcher) BindEngine(e *Engine) *Matcher {
+	m.Engine = e
+	return m
+}
+
 // StoreMatcher store a matcher to matcher list.
 func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()

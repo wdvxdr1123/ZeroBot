@@ -4,6 +4,7 @@ package kv
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 var db *leveldb.DB
@@ -21,6 +22,7 @@ type Bucket interface {
 	Get(k []byte) ([]byte, error)
 	Put(k []byte, v []byte) error
 	Delete(k []byte) error
+	Iterator(func(k, v []byte) bool)
 }
 
 type bucket struct {
@@ -58,4 +60,14 @@ func Delete(k []byte) error { return defaultBucket.Delete(k) }
 // Delete deletes a key from the bucket.
 func (b *bucket) Delete(k []byte) error {
 	return db.Delete(pack(b.name, k), nil)
+}
+
+func (b *bucket) Iterator(iter func(k, v []byte) bool) {
+	iterator := db.NewIterator(util.BytesPrefix(append(b.name, 0x02)), nil)
+	defer iterator.Release()
+	for iterator.Next() {
+		if !iter(iterator.Key()[len(b.name)+1:], iterator.Value()) {
+			break
+		}
+	}
 }

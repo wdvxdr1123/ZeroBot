@@ -6,6 +6,7 @@ import (
 
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
+	_ "github.com/wdvxdr1123/ZeroBot/example/command"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
@@ -24,7 +25,7 @@ func main() {
 		CommandPrefix: "/",
 		SuperUsers:    []string{"123456"},
 		Driver: []zero.Driver{
-			driver.NewWebSocketClient("127.0.0.1", "6700", ""),
+			driver.NewWebSocketClient("ws://127.0.0.1:6700/", ""),
 		},
 	})
 	select {}

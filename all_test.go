@@ -46,14 +46,14 @@ type testModel struct {
 }
 
 func BenchmarkState_Parse(b *testing.B) {
-	var a = &testModel{}
+	a := &testModel{}
 	for i := 0; i < b.N; i++ {
 		_ = testCtx.Parse(a)
 	}
 }
 
 func TestState_Parse2(t *testing.T) {
-	var a = &testModel{}
+	a := &testModel{}
 	_ = testCtx.Parse(a)
 	assert.Equal(t, 520.1314, a.Love)
 }
