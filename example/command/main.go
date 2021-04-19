@@ -23,7 +23,12 @@ func init() {
 			)
 		},
 	}
-
 	root.AddCommand(child1)
+
+	// child2 := &command.Command{
+	//	 Name: "test1",
+	// 	 Run:  nil,
+	// }
+	// root.AddCommand(child2) // should panic: conflicted name
 	command.AddRootCommand(root).FirstPriority()
 }

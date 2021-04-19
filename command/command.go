@@ -39,10 +39,14 @@ func AddRootCommand(cmd *Command) *zero.Matcher {
 
 // AddCommand adds one or more commands to this parent command.
 func (c *Command) AddCommand(cmds ...*Command) {
-	// TODO(wdvxdr): check the child command name conflict.
-	for i, x := range cmds {
-		if cmds[i] == c {
+	for _, x := range cmds {
+		if x == c {
 			panic("Command can't be a child of itself")
+		}
+		for _, child := range c.commands {
+			if child.checkConflict(x) {
+				panic("Child command has conflicted name")
+			}
 		}
 		// cmds[i].parent = c
 		c.commands = append(c.commands, x)
@@ -76,6 +80,15 @@ func (c *Command) match(name string) bool {
 		ok = ok || alias == name
 	}
 	return ok
+}
+
+// checkConflict check two command whether they are conflicted.
+func (c *Command) checkConflict(other *Command) bool {
+	conflict := c.match(other.Name)
+	for _, alias := range other.Aliases {
+		conflict = conflict || c.match(alias)
+	}
+	return conflict
 }
 
 func isFlag(s string) bool { return s[0] == '-' }
