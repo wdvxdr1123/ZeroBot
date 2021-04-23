@@ -1,5 +1,7 @@
 package command
 
+import "strings"
+
 func isSpace(r rune) bool {
 	switch r {
 	case ' ', '\t', '\r', '\n':
@@ -20,7 +22,7 @@ const (
 // modified from https://github.com/mattn/go-shellwords
 func Parse(line string) []string {
 	var args []string
-	buf := ""
+	buf := strings.Builder{}
 	var escaped, doubleQuoted, singleQuoted, backQuote bool
 	backtick := ""
 
@@ -28,7 +30,7 @@ func Parse(line string) []string {
 
 	for _, r := range line {
 		if escaped {
-			buf += string(r)
+			buf.WriteRune(r)
 			escaped = false
 			got = argSingle
 			continue
@@ -36,7 +38,7 @@ func Parse(line string) []string {
 
 		if r == '\\' {
 			if singleQuoted {
-				buf += string(r)
+				buf.WriteRune(r)
 			} else {
 				escaped = true
 			}
@@ -45,11 +47,11 @@ func Parse(line string) []string {
 
 		if isSpace(r) {
 			if singleQuoted || doubleQuoted || backQuote {
-				buf += string(r)
+				buf.WriteRune(r)
 				backtick += string(r)
 			} else if got != argNo {
-				args = append(args, buf)
-				buf = ""
+				args = append(args, buf.String())
+				buf.Reset()
 				got = argNo
 			}
 			continue
@@ -77,7 +79,7 @@ func Parse(line string) []string {
 			}
 		default:
 			got = argSingle
-			buf += string(r)
+			buf.WriteRune(r)
 			if backQuote {
 				backtick += string(r)
 			}
@@ -85,7 +87,7 @@ func Parse(line string) []string {
 	}
 
 	if got != argNo {
-		args = append(args, buf)
+		args = append(args, buf.String())
 	}
 
 	return args
