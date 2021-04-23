@@ -9,14 +9,14 @@ import (
 type Cache struct {
 	sync.RWMutex
 	ttl   time.Duration
-	items map[string]*Item
+	items map[interface{}]*Item
 }
 
 // NewCache 创建指定生命周期的 Cache
 func NewCache(ttl time.Duration) *Cache {
 	cache := &Cache{
 		ttl:   ttl,
-		items: map[string]*Item{},
+		items: map[interface{}]*Item{},
 	}
 	go cache.gc() // async gc
 	return cache
@@ -37,7 +37,7 @@ func (c *Cache) gc() {
 }
 
 // Get 通过 key 获取指定的元素
-func (c *Cache) Get(key string) interface{} {
+func (c *Cache) Get(key interface{}) interface{} {
 	c.RLock()
 	item, ok := c.items[key]
 	c.RUnlock()
@@ -48,11 +48,12 @@ func (c *Cache) Get(key string) interface{} {
 	if item == nil {
 		return nil
 	}
+	item.exp = time.Now().Add(c.ttl) // reset the expired time
 	return item.value
 }
 
 // Set 设置指定 key 的值
-func (c *Cache) Set(key string, val interface{}) {
+func (c *Cache) Set(key interface{}, val interface{}) {
 	c.Lock()
 	defer c.Unlock()
 	item := &Item{
@@ -63,14 +64,14 @@ func (c *Cache) Set(key string, val interface{}) {
 }
 
 // Delete 删除指定key
-func (c *Cache) Delete(key string) {
+func (c *Cache) Delete(key interface{}) {
 	c.Lock()
 	defer c.Unlock()
 	delete(c.items, key)
 }
 
 // Touch 为指定key添加一定生命周期
-func (c *Cache) Touch(key string, ttl time.Duration) {
+func (c *Cache) Touch(key interface{}, ttl time.Duration) {
 	c.Lock()
 	defer c.Unlock()
 	if c.items[key] != nil {

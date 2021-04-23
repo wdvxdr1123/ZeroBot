@@ -5,11 +5,13 @@ package rate
 import (
 	"sync"
 	"time"
+
+	"github.com/wdvxdr1123/ZeroBot/extension/ttl"
 )
 
 // LimiterManager ...
 type LimiterManager struct {
-	limiters sync.Map
+	limiters *ttl.Cache
 	interval time.Duration
 	burst    int
 }
@@ -17,6 +19,7 @@ type LimiterManager struct {
 // NewManager ..
 func NewManager(interval time.Duration, burst int) *LimiterManager {
 	return &LimiterManager{
+		limiters: ttl.NewCache(interval * time.Duration(burst)),
 		interval: interval,
 		burst:    burst,
 	}
@@ -24,11 +27,11 @@ func NewManager(interval time.Duration, burst int) *LimiterManager {
 
 // Load ...
 func (l *LimiterManager) Load(key interface{}) *Limiter {
-	if val, ok := l.limiters.Load(key); ok {
+	if val := l.limiters.Get(key); val != nil {
 		return val.(*Limiter)
 	}
 	val := NewLimiter(l.interval, l.burst)
-	l.limiters.Store(key, val)
+	l.limiters.Set(key, val)
 	return val
 }
 
