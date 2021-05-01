@@ -22,20 +22,20 @@ func TestParseMessageFromString(t *testing.T) {
 			Message{Face(123), Face(1234), Text("  ")},
 		},
 		{
-			`ȐĉņþƦȻƝƃ[CQ:rcnb][CQ:ɌćƞßɌĆnƅŕĉ,ɌcńƁ=ȓČņÞ]`,
+			`ȐĉņþƦȻƝƃ[CQ:rcnb][CQ:ɌćƞßɌĆnƅŕĉ,a=b]`,
 			Message{
 				Text("ȐĉņþƦȻƝƃ"),
 				MessageSegment{Type: "rcnb", Data: map[string]string{}},
-				MessageSegment{Type: "ɌćƞßɌĆnƅŕĉ", Data: map[string]string{"ɌcńƁ": "ȓČņÞ"}},
+				MessageSegment{Type: "ɌćƞßɌĆnƅŕĉ", Data: map[string]string{"a": "b"}},
 			},
 		},
 		{
-			`[CQ:face,id=123]🍟🍟🍟[CQ:face,id=1234]  [`,
-			Message{Face(123), Text(`🍟🍟🍟`), Face(1234), Text("  [")},
+			`[CQ:face,id=123]🍟🍟🍟[CQ:face,id=1234]  `,
+			Message{Face(123), Text(`🍟🍟🍟`), Face(1234), Text("  ")},
 		},
 		{
-			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234]  [][][CQ:]`,
-			Message{Face(123), Face(1234), Text("  [][]"), MessageSegment{Type: "", Data: map[string]string{}}},
+			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234]  [CQ:]`,
+			Message{Face(123), Face(1234), Text("  "), MessageSegment{Type: "", Data: map[string]string{}}},
 		},
 		{
 			`[CQ:image,file=file:///C:\path\to\my\img-123\###.png]`, // https://github.com/Mrs4s/go-cqhttp/issues/169
@@ -55,5 +55,11 @@ const bench = `rcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQȓČņÞrcnbCQ[CQ
 func BenchmarkParseMessageFromString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		ParseMessageFromString(bench)
+	}
+}
+
+func BenchmarkParseMessageFromStringWithUnsafe(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		ParseMessageFromStringWithUnsafe(bench)
 	}
 }

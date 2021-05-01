@@ -16,12 +16,12 @@ func add(ptr unsafe.Pointer, offset uintptr) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(ptr) + offset)
 }
 
-// ParseMessageFromString parses msg as type string to a sort of MessageSegment.
+// ParseMessageFromStringWithUnsafe parses msg as type string to a sort of MessageSegment.
 // msg is the value of key "message" of the data unmarshalled from the
 // API response JSON.
 //
 // CQ字符串转为消息
-func ParseMessageFromString(s string) Message {
+func ParseMessageFromStringWithUnsafe(s string) Message {
 	var seg MessageSegment
 	m := Message{}
 	var key string
@@ -90,6 +90,74 @@ S4: // CQCode param value
 End:
 	if i > j {
 		m = append(m, Text(UnescapeCQText(s[j:i])))
+	}
+	return m
+}
+
+// ParseMessageFromString parses msg as type string to a sort of MessageSegment.
+// msg is the value of key "message" of the data unmarshalled from the
+// API response JSON.
+//
+// CQ字符串转为消息
+func ParseMessageFromString(raw string) (m Message) {
+	var seg MessageSegment
+	var k string
+	m = Message{}
+	for raw != "" {
+		var i = 0
+		for i < len(raw) && !(raw[i] == '[' && i+4 < len(raw) && raw[i:i+4] == "[CQ:") {
+			i++
+		}
+		if i > 0 { // plain text
+			m = append(m, Text(UnescapeCQText(raw[:i])))
+		}
+
+		if i+4 > len(raw) {
+			return
+		}
+
+		raw = raw[i+4:] // skip "[CQ:"
+		i = 0
+		for i < len(raw) && raw[i] != ',' && raw[i] != ']' {
+			i++
+		}
+
+		if i+1 > len(raw) {
+			return
+		}
+		seg.Type = raw[:i]
+		seg.Data = make(map[string]string)
+		raw = raw[i:]
+		i = 0
+
+		for {
+			if raw[0] == ']' {
+				m = append(m, seg)
+				raw = raw[1:]
+				i = 0
+				break
+			}
+			raw = raw[1:]
+
+			for i < len(raw) && raw[i] != '=' {
+				i++
+			}
+			if i+1 > len(raw) {
+				return
+			}
+			k = raw[:i]
+			raw = raw[i+1:] // skip "="
+			for i < len(raw) && raw[i] != ',' && raw[i] != ']' {
+				i++
+			}
+
+			if i+1 > len(raw) {
+				return
+			}
+			seg.Data[k] = UnescapeCQCodeText(raw[:i])
+			raw = raw[i:]
+			i = 0
+		}
 	}
 	return m
 }
