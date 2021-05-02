@@ -108,7 +108,19 @@ func ParseMessageFromString(raw string) (m Message) {
 		for i < len(raw) && !(raw[i] == '[' && i+4 < len(raw) && raw[i:i+4] == "[CQ:") {
 			i++
 		}
-		if i > 0 { // plain text
+
+		if i > 0 {
+			/*
+				switch {
+				case i == len(raw):
+					m = append(m, Text(UnescapeCQText(raw)))
+				case i+4 <= len(raw) && raw[i:i+4] == "[CQ:":
+					m = append(m, Text(UnescapeCQText(raw[:i])))
+				default:
+					i++
+					goto retry
+				}
+			*/
 			m = append(m, Text(UnescapeCQText(raw[:i])))
 		}
 
@@ -134,7 +146,6 @@ func ParseMessageFromString(raw string) (m Message) {
 			if raw[0] == ']' {
 				m = append(m, seg)
 				raw = raw[1:]
-				i = 0
 				break
 			}
 			raw = raw[1:]
