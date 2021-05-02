@@ -62,7 +62,7 @@ func (c *Command) AddCommand(cmd *Command) {
 	c.trie.add(cmd)
 }
 
-func isFlag(s string) bool { return len(s) > 0 && s[0] == '-' }
+func isFlag(s string) bool { return len(s) > 0 && s[0] == '-' } // nolint
 
 // Help get the help info of the command
 func Help(c *Command) string {
@@ -102,6 +102,6 @@ func handle(ctx *zero.Ctx) {
 			Args: args,
 		})
 	} else {
-
+		panic("todo!")
 	}
 }

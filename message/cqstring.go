@@ -104,7 +104,7 @@ func ParseMessageFromString(raw string) (m Message) {
 	var k string
 	m = Message{}
 	for raw != "" {
-		var i = 0
+		i := 0
 		for i < len(raw) && !(raw[i] == '[' && i+4 < len(raw) && raw[i:i+4] == "[CQ:") {
 			i++
 		}
