@@ -7,12 +7,12 @@ import (
 func init() { // 插件主体
 	zero.OnCommand("开启复读").SetBlock(true).SetPriority(10).
 		Handle(func(ctx *zero.Ctx) {
-			stop := zero.NewFutureEvent("message/group", 8, true,
+			stop := zero.NewFutureEvent("message", 8, true,
 				zero.CommandRule("关闭复读"), // 关闭复读指令
 				ctx.CheckSession()).      // 只有开启者可以关闭复读模式
 				Next()                    // 关闭需要一次
 
-			echo, cancel := ctx.FutureEvent("message/group",
+			echo, cancel := ctx.FutureEvent("message",
 				ctx.CheckSession()). // 只复读开启复读模式的人的消息
 				Repeat()             // 不断监听复读
 			ctx.Send("已开启复读模式!")
