@@ -1,6 +1,8 @@
 package message
 
 import (
+	"strings"
+
 	"github.com/tidwall/gjson"
 
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
@@ -45,28 +47,19 @@ func ParseMessageFromArray(msgs gjson.Result) Message {
 	return message
 }
 
-// CQString returns the CQEncoded string. All media in the message will be converted
-// to its CQCode.
-// CQString 解码cq字符串
+// CQString 转为CQ字符串
+// Deprecated: use method String instead
 func (m Message) CQString() string {
-	str := ""
-	for _, media := range m {
-		if media.Type != "text" {
-			str += media.CQCode()
-		} else {
-			str += EscapeCQText(media.Data["text"])
-		}
-	}
-	return str
+	return m.String()
 }
 
 // ExtractPlainText 提取消息中的纯文本
 func (m Message) ExtractPlainText() string {
-	msg := ""
+	sb := strings.Builder{}
 	for _, val := range m {
 		if val.Type == "text" {
-			msg += val.Data["text"]
+			sb.WriteString(val.Data["text"])
 		}
 	}
-	return msg
+	return sb.String()
 }

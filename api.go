@@ -1,6 +1,8 @@
 package zero
 
 import (
+	"fmt"
+
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -16,10 +18,8 @@ func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:
 		return m
-	case message.Message:
-		return m.CQString()
-	case message.MessageSegment:
-		return m.CQCode()
+	case fmt.Stringer:
+		return m.String()
 	default:
 		s, _ := json.MarshalToString(msg)
 		return s

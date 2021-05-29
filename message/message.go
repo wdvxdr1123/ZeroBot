@@ -66,12 +66,38 @@ func UnescapeCQCodeText(str string) string {
 }
 
 // CQCode 将数组消息转换为CQ码
+// Deprecated: use String instead.
 func (m MessageSegment) CQCode() string {
-	cqcode := "[CQ:" + m.Type  // 消息类型
+	return m.String()
+}
+
+// String impls the interface fmt.Stringer
+func (m MessageSegment) String() string {
+	sb := strings.Builder{}
+	sb.WriteString("[CQ:")
+	sb.WriteString(m.Type)
 	for k, v := range m.Data { // 消息参数
-		cqcode = cqcode + "," + k + "=" + EscapeCQCodeText(v)
+		// sb.WriteString("," + k + "=" + escape(v))
+		sb.WriteRune(',')
+		sb.WriteString(k)
+		sb.WriteRune('=')
+		sb.WriteString(EscapeCQCodeText(v))
 	}
-	return cqcode + "]"
+	sb.WriteRune(']')
+	return sb.String()
+}
+
+// String impls the interface fmt.Stringer
+func (m Message) String() string {
+	sb := strings.Builder{}
+	for _, media := range m {
+		if media.Type != "text" {
+			sb.WriteString(media.String())
+		} else {
+			sb.WriteString(EscapeCQText(media.Data["text"]))
+		}
+	}
+	return sb.String()
 }
 
 // Text 纯文本
