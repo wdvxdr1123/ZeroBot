@@ -108,7 +108,7 @@ func CommandRule(commands ...string) Rule {
 func RegexRule(regexPattern string) Rule {
 	regex := regexp.MustCompile(regexPattern)
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.RawMessage
+		msg := ctx.Event.Message.String()
 		if regex.MatchString(msg) {
 			ctx.State["regex_matched"] = regex.FindStringSubmatch(msg)
 			return true

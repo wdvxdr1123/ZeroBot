@@ -78,12 +78,12 @@ func (m MessageSegment) String() string {
 	sb.WriteString(m.Type)
 	for k, v := range m.Data { // 消息参数
 		// sb.WriteString("," + k + "=" + escape(v))
-		sb.WriteRune(',')
+		sb.WriteByte(',')
 		sb.WriteString(k)
-		sb.WriteRune('=')
+		sb.WriteByte('=')
 		sb.WriteString(EscapeCQCodeText(v))
 	}
-	sb.WriteRune(']')
+	sb.WriteByte(']')
 	return sb.String()
 }
 
@@ -295,7 +295,26 @@ func TTS(text string) MessageSegment {
 
 // Add 为 MessageSegment 的 Data 增加一个字段
 func (m MessageSegment) Add(key string, val interface{}) MessageSegment {
-	m.Data[key] = fmt.Sprint(val)
+	switch val := val.(type) {
+	case string:
+		m.Data[key] = val
+	case bool:
+		m.Data[key] = strconv.FormatBool(val)
+	case int:
+		m.Data[key] = strconv.FormatInt(int64(val), 10)
+	case fmt.Stringer:
+		m.Data[key] = val.String()
+	default:
+		m.Data[key] = fmt.Sprint(val)
+	}
+	return m
+}
+
+// Chain 将两个 Data 合并
+func (m MessageSegment) Chain(data map[string]string) MessageSegment {
+	for k, v := range data {
+		m.Data[k] = v
+	}
 	return m
 }
 
