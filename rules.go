@@ -28,7 +28,7 @@ func Type(type_ string) Rule {
 // 检查消息前缀
 func PrefixRule(prefixes ...string) Rule {
 	return func(ctx *Ctx) bool {
-		if ctx.Event.Message == nil || ctx.Event.Message[0].Type != "text" { // 确保无空指针
+		if len(ctx.Event.Message) == 0 || ctx.Event.Message[0].Type != "text" { // 确保无空指针
 			return false
 		}
 		first := ctx.Event.Message[0]
@@ -80,7 +80,7 @@ func SuffixRule(suffixes ...string) Rule {
 // CommandRule check if the message is a command and trim the command name
 func CommandRule(commands ...string) Rule {
 	return func(ctx *Ctx) bool {
-		if ctx.Event.Message == nil || ctx.Event.Message[0].Type != "text" {
+		if len(ctx.Event.Message) == 0 || ctx.Event.Message[0].Type != "text" {
 			return false
 		}
 		first := ctx.Event.Message[0]
@@ -134,7 +134,7 @@ func ReplyRule(messageID int64) Rule {
 // KeywordRule check if the message has a keyword or keywords
 func KeywordRule(src ...string) Rule {
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.Message.CQString()
+		msg := ctx.Event.Message.ExtractPlainText()
 		for _, str := range src {
 			if strings.Contains(msg, str) {
 				ctx.State["keyword"] = str
@@ -148,7 +148,7 @@ func KeywordRule(src ...string) Rule {
 // FullMatchRule check if src has the same copy of the message
 func FullMatchRule(src ...string) Rule {
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.Message.CQString()
+		msg := ctx.Event.Message.String()
 		for _, str := range src {
 			if str == msg {
 				ctx.State["matched"] = msg
