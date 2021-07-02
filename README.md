@@ -3,6 +3,7 @@
 ![golangci-lint](https://github.com/wdvxdr1123/ZeroBot/workflows/golang-ci/badge.svg)
 ![Badge](https://img.shields.io/badge/OneBot-v11-black)
 ![Badge](https://img.shields.io/badge/gocqhttp-v0.9.40fix2-black)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwdvxdr1123%2FZeroBot.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwdvxdr1123%2FZeroBot?ref=badge_shield)
 
 文档正在咕咕中, 具体使用可以参考example文件夹
 
@@ -45,3 +46,6 @@ func main() {
 [nonebot/nonebot2](https://github.com/nonebot/nonebot2)
 
 [catsworld/qq-bot-api](https://github.com/catsworld/qq-bot-api)
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwdvxdr1123%2FZeroBot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwdvxdr1123%2FZeroBot?ref=badge_large)
