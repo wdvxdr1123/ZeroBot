@@ -317,7 +317,7 @@ func (ctx *Ctx) SetGroupPortrait(groupID int64, file string) {
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E5%9B%BE%E7%89%87ocr
 func (ctx *Ctx) OCRImage(file string) gjson.Result {
 	return ctx.CallAction("ocr_image", Params{
-		"file": file,
+		"image": file,
 	}).Data
 }
 
