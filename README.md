@@ -28,7 +28,7 @@ func main() {
 		CommandPrefix: "/",
 		SuperUsers:    []string{"123456"},
 		Driver: []zero.Driver{
-			driver.NewWebSocketClient("127.0.0.1", "6700", ""),
+			driver.NewWebSocketClient("ws://127.0.0.1:6700", "access_token"),
 		},
 	})
 	select {}
