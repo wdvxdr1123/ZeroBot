@@ -34,7 +34,7 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 	}
 	rsp, err := ctx.caller.CallApi(req)
 	if err != nil {
-		log.Errorf("调用 API: %v 时出现错误:", err.Error())
+		log.Errorf("调用 API: %v 时出现错误: %v", action, err.Error())
 	}
 	if err == nil && rsp.RetCode != 0 {
 		log.Errorf("调用 API: %v 时出现错误, RetCode: %v, Msg: %v, Wording: %v", action, rsp.RetCode, rsp.Msg, rsp.Wording)
