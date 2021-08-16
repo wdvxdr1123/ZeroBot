@@ -112,3 +112,11 @@ func (ctx *Ctx) Get(prompt string) string {
 	}
 	return (<-ctx.FutureEvent("message", ctx.CheckSession()).Next()).RawMessage
 }
+
+// ExtractPlainText 提取消息中的纯文本
+func (ctx *Ctx) ExtractPlainText() string {
+	if ctx == nil || ctx.Event == nil || ctx.Event.Message == nil {
+		return ""
+	}
+	return ctx.Event.Message.ExtractPlainText()
+}
