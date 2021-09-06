@@ -167,7 +167,7 @@ func (ctx *Ctx) SetGroupCard(groupID, userID int64, card string) {
 // SetGroupName 设置群名
 // https://github.com/howmanybots/onebot/blob/master/v11/specs/api/public.md#set_group_name-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E5%90%8D
 func (ctx *Ctx) SetGroupName(groupID int64, groupName string) {
-	ctx.CallAction("set_group_card", Params{
+	ctx.CallAction("set_group_name", Params{
 		"group_id":   groupID,
 		"group_name": groupName,
 	})
