@@ -14,6 +14,12 @@ var defaultEngine = New()
 type Engine struct {
 	preHandler  []Rule
 	postHandler []Handler
+	block       bool
+}
+
+func (e *Engine) SetBlock(block bool) *Engine {
+	e.block = block
+	return e
 }
 
 // UsePreHandler 向该 Engine 添加新 PreHandler(Rule),

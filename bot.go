@@ -85,6 +85,7 @@ loop:
 		matcherLock.RLock()
 		m := matcher.copy()
 		matcherLock.RUnlock()
+		ctx.ma = m
 		for _, rule := range m.Rules {
 			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
 				continue loop
@@ -100,7 +101,6 @@ loop:
 			}
 		}
 
-		ctx.ma = matcher
 		if m.Handler != nil {
 			m.Handler(ctx) // 处理事件
 		}
@@ -115,7 +115,7 @@ loop:
 			}
 		}
 
-		if matcher.Block { // 阻断后续
+		if m.Block { // 阻断后续
 			break loop
 		}
 	}

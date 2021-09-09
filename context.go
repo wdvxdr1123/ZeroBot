@@ -120,3 +120,8 @@ func (ctx *Ctx) ExtractPlainText() string {
 	}
 	return ctx.Event.Message.ExtractPlainText()
 }
+
+// Block 阻止后续触发
+func (ctx *Ctx) Block() {
+	ctx.ma.SetBlock(true)
+}

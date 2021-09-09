@@ -88,6 +88,10 @@ func (m *Matcher) BindEngine(e *Engine) *Matcher {
 func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
+	// todo(wdvxdr): move to engine.
+	if m.Engine != nil {
+		m.Block = m.Block || m.Engine.block
+	}
 	matcherList = append(matcherList, m)
 	sortMatcher()
 	return m
