@@ -17,6 +17,10 @@ type Ctx struct {
 	Event  *Event
 	State  State
 	caller APICaller
+
+	// lazy message
+	once    sync.Once
+	message string
 }
 
 // GetMatcher ...
@@ -124,4 +128,14 @@ func (ctx *Ctx) ExtractPlainText() string {
 // Block 阻止后续触发
 func (ctx *Ctx) Block() {
 	ctx.ma.SetBlock(true)
+}
+
+// MessageString 字符串消息便于Regex
+func (ctx *Ctx) MessageString() string {
+	ctx.once.Do(func() {
+		if ctx.Event != nil && ctx.Event.Message != nil {
+			ctx.message = ctx.Event.Message.String()
+		}
+	})
+	return ctx.message
 }

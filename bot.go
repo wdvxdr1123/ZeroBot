@@ -134,6 +134,7 @@ func preprocessMessageEvent(e *Event) {
 					if qq == e.SelfID {
 						e.IsToMe = true
 						e.Message = append(e.Message[:i], e.Message[i+1:]...)
+						println(e.Message.String())
 						return
 					}
 				}
@@ -141,12 +142,13 @@ func preprocessMessageEvent(e *Event) {
 			if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
 				return
 			}
-			e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim!
-			text := e.Message[0].Data["text"]
+			first := e.Message[0]
+			first.Data["text"] = strings.TrimLeft(first.Data["text"], " ") // Trim!
+			text := first.Data["text"]
 			for _, nickname := range BotConfig.NickName {
 				if strings.HasPrefix(text, nickname) {
 					e.IsToMe = true
-					e.Message[0].Data["text"] = text[len(nickname):]
+					first.Data["text"] = text[len(nickname):]
 					return
 				}
 			}

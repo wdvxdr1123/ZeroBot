@@ -108,7 +108,7 @@ func CommandRule(commands ...string) Rule {
 func RegexRule(regexPattern string) Rule {
 	regex := regexp.MustCompile(regexPattern)
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.Message.String()
+		msg := ctx.MessageString()
 		if regex.MatchString(msg) {
 			ctx.State["regex_matched"] = regex.FindStringSubmatch(msg)
 			return true
@@ -134,7 +134,7 @@ func ReplyRule(messageID int64) Rule {
 // KeywordRule check if the message has a keyword or keywords
 func KeywordRule(src ...string) Rule {
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.Message.ExtractPlainText()
+		msg := ctx.MessageString()
 		for _, str := range src {
 			if strings.Contains(msg, str) {
 				ctx.State["keyword"] = str
@@ -148,7 +148,7 @@ func KeywordRule(src ...string) Rule {
 // FullMatchRule check if src has the same copy of the message
 func FullMatchRule(src ...string) Rule {
 	return func(ctx *Ctx) bool {
-		msg := ctx.Event.Message.String()
+		msg := ctx.MessageString()
 		for _, str := range src {
 			if str == msg {
 				ctx.State["matched"] = msg
