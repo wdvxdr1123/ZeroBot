@@ -134,7 +134,6 @@ func preprocessMessageEvent(e *Event) {
 					if qq == e.SelfID {
 						e.IsToMe = true
 						e.Message = append(e.Message[:i], e.Message[i+1:]...)
-						println(e.Message.String())
 						return
 					}
 				}
