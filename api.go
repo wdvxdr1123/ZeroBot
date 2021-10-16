@@ -1,17 +1,15 @@
 package zero
 
 import (
+	"encoding/json"
 	"fmt"
 
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
-
-var json = jsoniter.ConfigFastest
 
 // formatMessage 格式化消息数组
 func formatMessage(msg interface{}) string {
@@ -21,8 +19,8 @@ func formatMessage(msg interface{}) string {
 	case fmt.Stringer:
 		return m.String()
 	default:
-		s, _ := json.MarshalToString(msg)
-		return s
+		s, _ := json.Marshal(msg)
+		return helper.BytesToString(s)
 	}
 }
 

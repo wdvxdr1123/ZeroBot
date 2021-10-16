@@ -1,9 +1,9 @@
 package zero
 
 import (
+	"encoding/json"
 	"strconv"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/tidwall/gjson"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -56,31 +56,31 @@ type User struct {
 
 // Event is the event emitted form cqhttp
 type Event struct {
-	Time          int64               `json:"time"`
-	PostType      string              `json:"post_type"`
-	DetailType    string              `json:"-"`
-	MessageType   string              `json:"message_type"`
-	SubType       string              `json:"sub_type"`
-	MessageID     int64               `json:"message_id"`
-	GroupID       int64               `json:"group_id"`
-	UserID        int64               `json:"user_id"`
-	TargetID      int64               `json:"target_id"`
-	SelfID        int64               `json:"self_id"`
-	RawMessage    string              `json:"raw_message"` // raw_message is always string
-	Anonymous     interface{}         `json:"anonymous"`
-	AnonymousFlag string              `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
-	Event         string              `json:"event"`
-	NoticeType    string              `json:"notice_type"` // This field is deprecated and will get removed, see #11
-	OperatorID    int64               `json:"operator_id"` // This field is used for Notice Event
-	File          *File               `json:"file"`
-	RequestType   string              `json:"request_type"`
-	Flag          string              `json:"flag"`
-	Comment       string              `json:"comment"` // This field is used for Request Event
-	Message       message.Message     `json:"-"`       // Message parsed
-	Sender        *User               `json:"sender"`
-	NativeMessage jsoniter.RawMessage `json:"message"`
-	IsToMe        bool                `json:"-"`
-	RawEvent      gjson.Result        `json:"-"` // raw event
+	Time          int64           `json:"time"`
+	PostType      string          `json:"post_type"`
+	DetailType    string          `json:"-"`
+	MessageType   string          `json:"message_type"`
+	SubType       string          `json:"sub_type"`
+	MessageID     int64           `json:"message_id"`
+	GroupID       int64           `json:"group_id"`
+	UserID        int64           `json:"user_id"`
+	TargetID      int64           `json:"target_id"`
+	SelfID        int64           `json:"self_id"`
+	RawMessage    string          `json:"raw_message"` // raw_message is always string
+	Anonymous     interface{}     `json:"anonymous"`
+	AnonymousFlag string          `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
+	Event         string          `json:"event"`
+	NoticeType    string          `json:"notice_type"` // This field is deprecated and will get removed, see #11
+	OperatorID    int64           `json:"operator_id"` // This field is used for Notice Event
+	File          *File           `json:"file"`
+	RequestType   string          `json:"request_type"`
+	Flag          string          `json:"flag"`
+	Comment       string          `json:"comment"` // This field is used for Request Event
+	Message       message.Message `json:"-"`       // Message parsed
+	Sender        *User           `json:"sender"`
+	NativeMessage json.RawMessage `json:"message"`
+	IsToMe        bool            `json:"-"`
+	RawEvent      gjson.Result    `json:"-"` // raw event
 }
 
 // Message 消息

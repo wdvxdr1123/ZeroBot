@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"encoding/json"
 	"runtime/debug"
 	"strconv"
 	"strings"

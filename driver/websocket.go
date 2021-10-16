@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
@@ -19,7 +19,6 @@ import (
 
 var (
 	nullResponse = zero.APIResponse{}
-	json         = jsoniter.ConfigFastest
 )
 
 // WSClient ...
