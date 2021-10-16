@@ -1,11 +1,12 @@
 package message
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 // Message impl the array form of message
@@ -221,7 +222,8 @@ func CustomNode(nickname string, userID int64, content interface{}) MessageSegme
 	if s, ok := content.(string); ok {
 		str = s
 	} else {
-		str, _ = jsoniter.MarshalToString(content)
+		b, _ := json.Marshal(content)
+		str = helper.BytesToString(b)
 	}
 	return MessageSegment{
 		Type: "node",
