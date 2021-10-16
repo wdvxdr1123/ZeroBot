@@ -54,7 +54,7 @@ func BenchmarkState_Parse(b *testing.B) {
 
 func TestState_Parse2(t *testing.T) {
 	a := &testModel{}
-	_ = testCtx.Parse(a)
+	assert.NoError(t, testCtx.Parse(a))
 	assert.Equal(t, 520.1314, a.Love)
 }
 

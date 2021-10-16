@@ -2,10 +2,8 @@ package zero
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
-	"unsafe"
-
-	"github.com/modern-go/reflect2"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
@@ -29,10 +27,11 @@ func (ctx *Ctx) GetMatcher() *Matcher {
 }
 
 // decoder 反射获取的数据
-type decoder []struct {
-	offset uintptr
-	t      reflect2.Type
-	key    string
+type decoder []dec
+
+type dec struct {
+	index int
+	key   string
 }
 
 // decoder 缓存
@@ -41,7 +40,8 @@ var decoderCache = sync.Map{}
 // Parse 将 Ctx.State 映射到结构体
 func (ctx *Ctx) Parse(model interface{}) (err error) {
 	var (
-		ty2      = reflect2.TypeOf(model)
+		rv       = reflect.ValueOf(model).Elem()
+		t        = rv.Type()
 		modelDec decoder
 	)
 	defer func() {
@@ -49,33 +49,24 @@ func (ctx *Ctx) Parse(model interface{}) (err error) {
 			err = fmt.Errorf("parse state error: %v", r)
 		}
 	}()
-	dec, ok := decoderCache.Load(ty2)
+	d, ok := decoderCache.Load(t)
 	if ok {
-		modelDec = dec.(decoder)
+		modelDec = d.(decoder)
 	} else {
-		t := ty2.(reflect2.PtrType).Elem().(reflect2.StructType)
 		modelDec = decoder{}
 		for i := 0; i < t.NumField(); i++ {
 			t1 := t.Field(i)
-			if key, ok := t1.Tag().Lookup("zero"); ok {
-				modelDec = append(modelDec, struct {
-					offset uintptr
-					t      reflect2.Type
-					key    string
-				}{
-					t:      t1.Type(),
-					offset: t1.Offset(),
-					key:    key,
+			if key, ok := t1.Tag.Lookup("zero"); ok {
+				modelDec = append(modelDec, dec{
+					index: i,
+					key:   key,
 				})
 			}
 		}
-		decoderCache.Store(ty2, modelDec)
+		decoderCache.Store(t, modelDec)
 	}
-	for i := range modelDec { // decoder类型非小内存，无法被编译器优化为快速拷贝
-		modelDec[i].t.UnsafeSet(
-			unsafe.Pointer(uintptr(reflect2.PtrOf(model))+modelDec[i].offset),
-			reflect2.PtrOf(ctx.State[modelDec[i].key]),
-		)
+	for _, d := range modelDec { // decoder类型非小内存，无法被编译器优化为快速拷贝
+		rv.Field(d.index).Set(reflect.ValueOf(ctx.State[d.key]))
 	}
 	return nil
 }
