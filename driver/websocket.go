@@ -114,7 +114,7 @@ func (ws *WSClient) nextSeq() uint64 {
 
 // CallApi 发送ws请求
 func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
-	ch := make(chan zero.APIResponse)
+	ch := make(chan zero.APIResponse, 1)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)
 	data, err := json.Marshal(req)
