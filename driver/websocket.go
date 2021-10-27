@@ -142,7 +142,7 @@ func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
 	}
 }
 
-// GetSelfID 获得 bot qq 号
-func (ws *WSClient) GetSelfID() int64 {
+// SelfID 获得 bot qq 号
+func (ws *WSClient) SelfID() int64 {
 	return ws.selfID
 }
