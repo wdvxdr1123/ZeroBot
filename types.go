@@ -15,7 +15,7 @@ import (
 type Params map[string]interface{}
 
 // APIResponse is the response of calling API
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
+// https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md
 type APIResponse struct {
 	Status  string       `json:"status"`
 	Data    gjson.Result `json:"data"`
@@ -26,7 +26,7 @@ type APIResponse struct {
 }
 
 // APIRequest is the request sending to the cqhttp
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/ws.md
+// https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md
 type APIRequest struct {
 	Action string `json:"action"`
 	Params Params `json:"params"`
@@ -36,14 +36,14 @@ type APIRequest struct {
 // User is a user on QQ.
 type User struct {
 	// Private sender
-	// https://github.com/howmanybots/onebot/blob/master/v11/specs/event/message.md#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
+	// https://github.com/botuniverse/onebot-11/blob/master/event/message.md#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
 	ID       int64  `json:"user_id"`
 	NickName string `json:"nickname"`
 	Sex      string `json:"sex"` // "male"、"female"、"unknown"
 	Age      int    `json:"age"`
 	Area     string `json:"area"`
 	// Group member
-	// https://github.com/howmanybots/onebot/blob/master/v11/specs/event/message.md#%E7%BE%A4%E6%B6%88%E6%81%AF
+	// https://github.com/botuniverse/onebot-11/blob/master/event/message.md#%E7%BE%A4%E6%B6%88%E6%81%AF
 	Card  string `json:"card"`
 	Title string `json:"title"`
 	Level string `json:"level"`

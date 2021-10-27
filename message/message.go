@@ -10,12 +10,12 @@ import (
 )
 
 // Message impl the array form of message
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
+// https://github.com/botuniverse/onebot-11/tree/master/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type Message []MessageSegment
 
 // MessageSegment impl the single message
 // MessageSegment 消息数组
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
+// https://github.com/botuniverse/onebot-11/tree/master/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
 type MessageSegment struct {
 	Type string            `json:"type"`
 	Data map[string]string `json:"data"`
@@ -43,7 +43,7 @@ func UnescapeCQText(str string) string {
 
 // EscapeCQCodeText escapes special characters in a cqcode value.
 //
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
+// https://github.com/botuniverse/onebot-11/tree/master/message/string.md#%E8%BD%AC%E4%B9%89
 //
 // cq码字符转换
 func EscapeCQCodeText(str string) string {
@@ -55,7 +55,7 @@ func EscapeCQCodeText(str string) string {
 }
 
 // UnescapeCQCodeText unescapes special characters in a cqcode value.
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/string.md#%E8%BD%AC%E4%B9%89
+// https://github.com/botuniverse/onebot-11/tree/master/message/string.md#%E8%BD%AC%E4%B9%89
 //
 // cq码反解析
 func UnescapeCQCodeText(str string) string {
@@ -102,7 +102,7 @@ func (m Message) String() string {
 }
 
 // Text 纯文本
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
 func Text(text ...interface{}) MessageSegment {
 	return MessageSegment{
 		Type: "text",
@@ -113,7 +113,7 @@ func Text(text ...interface{}) MessageSegment {
 }
 
 // Face QQ表情
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#qq-%E8%A1%A8%E6%83%85
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#qq-%E8%A1%A8%E6%83%85
 func Face(id int) MessageSegment {
 	return MessageSegment{
 		Type: "face",
@@ -124,7 +124,7 @@ func Face(id int) MessageSegment {
 }
 
 // Image 普通图片
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%9B%BE%E7%89%87
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
 func Image(file string) MessageSegment {
 	return MessageSegment{
 		Type: "image",
@@ -135,7 +135,7 @@ func Image(file string) MessageSegment {
 }
 
 // Record 语音
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E8%AF%AD%E9%9F%B3
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E8%AF%AD%E9%9F%B3
 func Record(file string) MessageSegment {
 	return MessageSegment{
 		Type: "record",
@@ -146,8 +146,11 @@ func Record(file string) MessageSegment {
 }
 
 // At @某人
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E6%9F%90%E4%BA%BA
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
 func At(qq int64) MessageSegment {
+	if qq == 0 {
+		return AtAll()
+	}
 	return MessageSegment{
 		Type: "at",
 		Data: map[string]string{
@@ -156,8 +159,19 @@ func At(qq int64) MessageSegment {
 	}
 }
 
+// AtAll @全体成员
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
+func AtAll() MessageSegment {
+	return MessageSegment{
+		Type: "at",
+		Data: map[string]string{
+			"qq": "all",
+		},
+	}
+}
+
 // Music 音乐分享
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E5%88%86%E4%BA%AB-
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E9%9F%B3%E4%B9%90%E5%88%86%E4%BA%AB-
 func Music(mType string, id int64) MessageSegment {
 	return MessageSegment{
 		Type: "music",
@@ -169,7 +183,7 @@ func Music(mType string, id int64) MessageSegment {
 }
 
 // CustomMusic 音乐自定义分享
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E9%9F%B3%E4%B9%90%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E4%BA%AB-
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E9%9F%B3%E4%B9%90%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E4%BA%AB-
 func CustomMusic(url, audio, title string) MessageSegment {
 	return MessageSegment{
 		Type: "music",
@@ -183,7 +197,7 @@ func CustomMusic(url, audio, title string) MessageSegment {
 }
 
 // Reply 回复
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%9B%9E%E5%A4%8D
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
 func Reply(id int64) MessageSegment {
 	return MessageSegment{
 		Type: "reply",
@@ -194,7 +208,7 @@ func Reply(id int64) MessageSegment {
 }
 
 // Forward 合并转发
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91-
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91-
 func Forward(id string) MessageSegment {
 	return MessageSegment{
 		Type: "forward",
@@ -205,7 +219,7 @@ func Forward(id string) MessageSegment {
 }
 
 // Node 合并转发节点
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%8A%82%E7%82%B9-
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%8A%82%E7%82%B9-
 func Node(id int64) MessageSegment {
 	return MessageSegment{
 		Type: "node",
@@ -216,7 +230,7 @@ func Node(id int64) MessageSegment {
 }
 
 // CustomNode 自定义合并转发节点
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
 func CustomNode(nickname string, userID int64, content interface{}) MessageSegment {
 	var str string
 	if s, ok := content.(string); ok {
@@ -236,7 +250,7 @@ func CustomNode(nickname string, userID int64, content interface{}) MessageSegme
 }
 
 // XML 消息
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#xml-%E6%B6%88%E6%81%AF
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#xml-%E6%B6%88%E6%81%AF
 func XML(data string) MessageSegment {
 	return MessageSegment{
 		Type: "xml",
@@ -247,7 +261,7 @@ func XML(data string) MessageSegment {
 }
 
 // JSON 消息
-// https://github.com/howmanybots/onebot/blob/master/v11/specs/message/segment.md#xml-%E6%B6%88%E6%81%AF
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#xml-%E6%B6%88%E6%81%AF
 func JSON(data string) MessageSegment {
 	return MessageSegment{
 		Type: "json",
