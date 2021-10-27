@@ -48,6 +48,27 @@ func Run(op Config) {
 	}
 }
 
+// RunAndBlock 主函数初始化并阻塞
+func RunAndBlock(op Config) {
+	BotConfig = op
+	drvlen := len(op.Driver)
+	switch {
+	case drvlen == 0:
+		return
+	case drvlen == 1:
+		op.Driver[0].Connect()
+		op.Driver[0].Listen(processEvent)
+	default:
+		i := 0
+		for ; i < drvlen-1; i++ {
+			op.Driver[i].Connect()
+			go op.Driver[i].Listen(processEvent)
+		}
+		op.Driver[i].Connect()
+		op.Driver[i].Listen(processEvent)
+	}
+}
+
 // processEvent 处理事件
 func processEvent(response []byte, caller APICaller) {
 	defer func() {
