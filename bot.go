@@ -18,7 +18,6 @@ type Config struct {
 	NickName      []string `json:"nickname"`       // 机器人名称
 	CommandPrefix string   `json:"command_prefix"` // 触发命令
 	SuperUsers    []string `json:"super_users"`    // 超级用户
-	SelfID        string   `json:"self_id"`        // 机器人账号
 	Driver        []Driver `json:"-"`              // 通信驱动
 }
 
@@ -34,6 +33,7 @@ type APICaller interface {
 type Driver interface {
 	Connect()
 	Listen(func([]byte, APICaller))
+	SelfID() int64
 }
 
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
@@ -45,6 +45,26 @@ func Run(op Config) {
 	for _, driver := range op.Driver {
 		driver.Connect()
 		go driver.Listen(processEvent)
+	}
+}
+
+// RunAndBlock 主函数初始化并阻塞
+func RunAndBlock(op Config) {
+	BotConfig = op
+	switch len(op.Driver) {
+	case 0:
+		return
+	case 1:
+		op.Driver[0].Connect()
+		op.Driver[0].Listen(processEvent)
+	default:
+		i := 0
+		for ; i < len(op.Driver)-1; i++ {
+			op.Driver[i].Connect()
+			go op.Driver[i].Listen(processEvent)
+		}
+		op.Driver[i].Connect()
+		op.Driver[i].Listen(processEvent)
 	}
 }
 
