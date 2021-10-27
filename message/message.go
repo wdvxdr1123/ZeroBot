@@ -148,10 +148,24 @@ func Record(file string) MessageSegment {
 // At @某人
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
 func At(qq int64) MessageSegment {
+	if qq == 0 {
+		return AtAll()
+	}
 	return MessageSegment{
 		Type: "at",
 		Data: map[string]string{
 			"qq": strconv.FormatInt(qq, 10),
+		},
+	}
+}
+
+// AtAll @全体成员
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
+func AtAll() MessageSegment {
+	return MessageSegment{
+		Type: "at",
+		Data: map[string]string{
+			"qq": "all",
 		},
 	}
 }
