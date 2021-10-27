@@ -141,3 +141,8 @@ func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
 		return nullResponse, errors.New("timed out")
 	}
 }
+
+// GetSelfID 获得 bot qq 号
+func (ws *WSClient) GetSelfID() int64 {
+	return ws.selfID
+}

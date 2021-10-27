@@ -18,7 +18,6 @@ type Config struct {
 	NickName      []string `json:"nickname"`       // 机器人名称
 	CommandPrefix string   `json:"command_prefix"` // 触发命令
 	SuperUsers    []string `json:"super_users"`    // 超级用户
-	SelfID        string   `json:"self_id"`        // 机器人账号
 	Driver        []Driver `json:"-"`              // 通信驱动
 }
 
@@ -34,6 +33,7 @@ type APICaller interface {
 type Driver interface {
 	Connect()
 	Listen(func([]byte, APICaller))
+	GetSelfID() int64
 }
 
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
