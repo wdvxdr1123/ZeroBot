@@ -177,10 +177,9 @@ func preprocessMessageEvent(e *Event) {
 		e.IsToMe = true // 私聊也判断为at
 		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
 	}
-	if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
-		return
+	if len(e.Message) > 0 && e.Message[0].Type == "text" { // Trim Again!
+		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ")
 	}
-	e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ") // Trim Again!
 }
 
 // preprocessNoticeEvent 更新事件

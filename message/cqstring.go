@@ -16,17 +16,6 @@ func ParseMessageFromString(raw string) (m Message) {
 		}
 
 		if i > 0 {
-			/*
-				switch {
-				case i == len(raw):
-					m = append(m, Text(UnescapeCQText(raw)))
-				case i+4 <= len(raw) && raw[i:i+4] == "[CQ:":
-					m = append(m, Text(UnescapeCQText(raw[:i])))
-				default:
-					i++
-					goto retry
-				}
-			*/
 			m = append(m, Text(UnescapeCQText(raw[:i])))
 		}
 
@@ -64,6 +53,7 @@ func ParseMessageFromString(raw string) (m Message) {
 			}
 			k = raw[:i]
 			raw = raw[i+1:] // skip "="
+			i = 0
 			for i < len(raw) && raw[i] != ',' && raw[i] != ']' {
 				i++
 			}
