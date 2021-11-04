@@ -1,6 +1,7 @@
-package shell
+package zero
 
 import (
+	"reflect"
 	"strconv"
 	"testing"
 
@@ -19,8 +20,26 @@ func Test_parse(t *testing.T) {
 	}
 	for i, v := range shellTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			out := Parse(v.shell)
+			out := ParseShell(v.shell)
 			assert.Equal(t, v.expected, out)
 		})
 	}
+}
+
+func Test_registerFlag(t *testing.T) {
+	type args struct {
+		RF    bool   `flag:"rf"`
+		File  string `flag:"file"`
+		Count int    `flag:"count"`
+	}
+	got := args{}
+	expected := args{
+		RF:    true,
+		File:  "123",
+		Count: 10,
+	}
+	fs := registerFlag(reflect.TypeOf(args{}), reflect.ValueOf(&got))
+	err := fs.Parse([]string{"-rf", "-file=123", "-count", "10"})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, got)
 }

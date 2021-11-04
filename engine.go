@@ -251,3 +251,13 @@ func (e *Engine) OnSuffixGroup(suffix []string, rules ...Rule) *Matcher {
 	e.matchers = append(e.matchers, matcher)
 	return StoreMatcher(matcher)
 }
+
+// OnShell shell命令触发器
+func OnShell(command string, model interface{}, rules ...Rule) *Matcher {
+	return defaultEngine.OnShell(command, model, rules...)
+}
+
+// OnShell shell命令触发器
+func (e *Engine) OnShell(command string, model interface{}, rules ...Rule) *Matcher {
+	return e.On("message", append([]Rule{ShellRule(command, model)}, rules...)...)
+}
