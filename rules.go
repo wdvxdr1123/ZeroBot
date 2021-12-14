@@ -90,14 +90,16 @@ func CommandRule(commands ...string) Rule {
 		}
 		cmdMessage := firstMessage[len(BotConfig.CommandPrefix):]
 		for _, command := range commands {
-			if strings.HasPrefix(cmdMessage, command) {
-				ctx.State["command"] = command
-				arg := strings.TrimLeft(cmdMessage[len(command):], " ")
-				if len(ctx.Event.Message) > 1 {
-					arg += ctx.Event.Message[1:].ExtractPlainText()
-				}
-				ctx.State["args"] = arg
-				return true
+			if msgs := strings.FieldsFunc(cmdMessage, func (r rune) bool {
+					return r==' ' || r==',' || r=='-' || r=='|' || r=='_' || r=='/' || r=='+' || r==';' || r=='.'
+				}); msgs[0] == command {
+					ctx.State["command"] = command
+					arg := strings.TrimLeft(cmdMessage[len(command)+1:], " ")
+					if len(ctx.Event.Message) > 1 {
+						arg += ctx.Event.Message[1:].ExtractPlainText()
+					}
+					ctx.State["args"] = arg
+					return true
 			}
 		}
 		return false
