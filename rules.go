@@ -94,7 +94,10 @@ func CommandRule(commands ...string) Rule {
 					return r==' ' || r==',' || r=='-' || r=='|' || r=='_' || r=='/' || r=='+' || r==';' || r=='.'
 				}); msgs[0] == command {
 					ctx.State["command"] = command
-					arg := strings.TrimLeft(cmdMessage[len(command)+1:], " ")
+					arg := ""
+					if len(cmdMessage) > len(command) {
+						arg = strings.TrimLeft(cmdMessage[len(command)+1:], " ")
+					}
 					if len(ctx.Event.Message) > 1 {
 						arg += ctx.Event.Message[1:].ExtractPlainText()
 					}
