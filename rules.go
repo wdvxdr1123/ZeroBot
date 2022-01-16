@@ -181,9 +181,19 @@ func OnlyPrivate(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "private"
 }
 
+// OnlyPublic requires that the ctx.Event is public/group or public/guild message
+func OnlyPublic(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && (ctx.Event.DetailType == "group" || ctx.Event.DetailType == "guild")
+}
+
 // OnlyGroup requires that the ctx.Event is public/group message
 func OnlyGroup(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "group"
+}
+
+// OnlyGuild requires that the ctx.Event is public/guild message
+func OnlyGuild(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "guild"
 }
 
 // SuperUserPermission only triggered by the bot's owner

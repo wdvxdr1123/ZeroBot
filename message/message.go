@@ -1,6 +1,8 @@
 package message
 
 import (
+	"crypto/md5"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -196,13 +198,37 @@ func CustomMusic(url, audio, title string) MessageSegment {
 	}
 }
 
+// MessageID 对于 qq 消息, i 与 s 相同
+// 对于 guild 消息, i 为 s 的 md5 的前 8 位
+type MessageID struct {
+	i int64
+	s string
+}
+
+func NewMessageID(raw string) (m *MessageID) {
+	i, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		digest := md5.Sum(helper.StringToBytes(raw))
+		i = int64(binary.LittleEndian.Uint64(digest[:8]))
+	}
+	return &MessageID{i: i, s: raw}
+}
+
+func (m *MessageID) String() string {
+	return m.s
+}
+
+func (m *MessageID) ID() int64 {
+	return m.i
+}
+
 // Reply 回复
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id int64) MessageSegment {
+func Reply(id *MessageID) MessageSegment {
 	return MessageSegment{
 		Type: "reply",
 		Data: map[string]string{
-			"id": strconv.FormatInt(id, 10),
+			"id": id.String(),
 		},
 	}
 }
@@ -335,6 +361,6 @@ func (m MessageSegment) Chain(data map[string]string) MessageSegment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID int64, m ...MessageSegment) Message {
+func ReplyWithMessage(messageID *MessageID, m ...MessageSegment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }

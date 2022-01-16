@@ -24,3 +24,6 @@ TODO
 
 # todo
 /extension/template
+
+# macos
+.DS_Store
