@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 // Type check the ctx.Event's type
@@ -118,8 +120,7 @@ func RegexRule(regexPattern string) Rule {
 }
 
 // ReplyRule check if the message is replying some message
-func ReplyRule(messageID int64) Rule {
-	mid := strconv.FormatInt(messageID, 10)
+func ReplyRule(messageID *message.MessageID) Rule {
 	return func(ctx *Ctx) bool {
 		if len(ctx.Event.Message) == 0 {
 			return false
@@ -127,7 +128,7 @@ func ReplyRule(messageID int64) Rule {
 		if ctx.Event.Message[0].Type != "reply" {
 			return false
 		}
-		return ctx.Event.Message[0].Data["id"] == mid
+		return ctx.Event.Message[0].Data["id"] == messageID.String()
 	}
 }
 

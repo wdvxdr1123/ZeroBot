@@ -61,7 +61,7 @@ type Event struct {
 	DetailType    string          `json:"-"`
 	MessageType   string          `json:"message_type"`
 	SubType       string          `json:"sub_type"`
-	MessageID     int64           `json:"message_id"`
+	MessageID     interface{}     `json:"message_id"` // int64 in qq or string in guild
 	GroupID       int64           `json:"group_id"`
 	UserID        int64           `json:"user_id"`
 	TargetID      int64           `json:"target_id"`
@@ -86,7 +86,7 @@ type Event struct {
 // Message 消息
 type Message struct {
 	Elements    message.Message
-	MessageId   int64
+	MessageId   *message.MessageID
 	Sender      *User
 	MessageType string
 }
