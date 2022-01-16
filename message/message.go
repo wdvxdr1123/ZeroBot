@@ -224,11 +224,20 @@ func (m *MessageID) ID() int64 {
 
 // Reply 回复
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id *MessageID) MessageSegment {
+func Reply(id interface{}) MessageSegment {
+	s := ""
+	switch i := id.(type) {
+	case int64:
+		s = strconv.FormatInt(i, 10)
+	case string:
+		s = i
+	case fmt.Stringer:
+		s = i.String()
+	}
 	return MessageSegment{
 		Type: "reply",
 		Data: map[string]string{
-			"id": id.String(),
+			"id": s,
 		},
 	}
 }
@@ -361,6 +370,6 @@ func (m MessageSegment) Chain(data map[string]string) MessageSegment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID *MessageID, m ...MessageSegment) Message {
+func ReplyWithMessage(messageID interface{}, m ...MessageSegment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }
