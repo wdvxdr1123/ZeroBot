@@ -95,10 +95,7 @@ func (ctx *Ctx) Send(message interface{}) int64 {
 
 // SendChain 快捷发送消息-消息链
 func (ctx *Ctx) SendChain(message ...message.MessageSegment) int64 {
-	if ctx.Event.GroupID != 0 {
-		return ctx.SendGroupMessage(ctx.Event.GroupID, message)
-	}
-	return ctx.SendPrivateMessage(ctx.Event.UserID, message)
+	return ctx.Send(message)
 }
 
 // FutureEvent ...
