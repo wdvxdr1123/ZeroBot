@@ -75,9 +75,17 @@ func processEvent(response []byte, caller APICaller) {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
 		}
 	}()
+
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = gjson.Parse(helper.BytesToString(response))
+	messageID, err := strconv.ParseInt(helper.BytesToString(event.RawMessageID), 10, 64)
+	if err == nil {
+		event.MessageID = messageID
+	} else {
+		event.MessageID = strings.Trim(helper.BytesToString(event.RawMessageID), "\"")
+	}
+
 	switch event.PostType { // process DetailType
 	case "message", "message_sent":
 		event.DetailType = event.MessageType

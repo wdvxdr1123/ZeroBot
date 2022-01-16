@@ -229,8 +229,12 @@ func Reply(id interface{}) MessageSegment {
 	switch i := id.(type) {
 	case int64:
 		s = strconv.FormatInt(i, 10)
+	case int:
+		s = strconv.Itoa(i)
 	case string:
 		s = i
+	case float64:
+		s = strconv.Itoa(int(i)) // json 序列化 interface{} 默认为 float64
 	case fmt.Stringer:
 		s = i.String()
 	}
