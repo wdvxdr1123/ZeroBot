@@ -81,10 +81,16 @@ func (ctx *Ctx) CheckSession() Rule {
 
 // Send 快捷发送消息
 func (ctx *Ctx) Send(message interface{}) int64 {
-	if ctx.Event.GroupID != 0 {
-		return ctx.SendGroupMessage(ctx.Event.GroupID, message)
+	event := ctx.Event
+	if event.DetailType == "guild" {
+		raw := event.RawEvent
+		ctx.SendGuildChannelMessage(raw.Get("guild_id").Int(), raw.Get("channel_id").Int(), message)
+		return -1 // unsupported
 	}
-	return ctx.SendPrivateMessage(ctx.Event.UserID, message)
+	if event.GroupID != 0 {
+		return ctx.SendGroupMessage(event.GroupID, message)
+	}
+	return ctx.SendPrivateMessage(event.UserID, message)
 }
 
 // SendChain 快捷发送消息-消息链

@@ -145,35 +145,43 @@ loop:
 // preprocessMessageEvent 返回信息事件
 func preprocessMessageEvent(e *Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
-	if e.DetailType == "group" {
-		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
-		func() { // 处理是否at机器人
-			e.IsToMe = false
-			for i, m := range e.Message {
-				if m.Type == "at" {
-					qq, _ := strconv.ParseInt(m.Data["qq"], 10, 64)
-					if qq == e.SelfID {
-						e.IsToMe = true
-						e.Message = append(e.Message[:i], e.Message[i+1:]...)
-						return
-					}
-				}
-			}
-			if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
-				return
-			}
-			first := e.Message[0]
-			first.Data["text"] = strings.TrimLeft(first.Data["text"], " ") // Trim!
-			text := first.Data["text"]
-			for _, nickname := range BotConfig.NickName {
-				if strings.HasPrefix(text, nickname) {
+
+	processAt := func() { // 处理是否at机器人
+		e.IsToMe = false
+		for i, m := range e.Message {
+			if m.Type == "at" {
+				qq, _ := strconv.ParseInt(m.Data["qq"], 10, 64)
+				if qq == e.SelfID {
 					e.IsToMe = true
-					first.Data["text"] = text[len(nickname):]
+					e.Message = append(e.Message[:i], e.Message[i+1:]...)
 					return
 				}
 			}
-		}()
-	} else {
+		}
+		if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
+			return
+		}
+		first := e.Message[0]
+		first.Data["text"] = strings.TrimLeft(first.Data["text"], " ") // Trim!
+		text := first.Data["text"]
+		for _, nickname := range BotConfig.NickName {
+			if strings.HasPrefix(text, nickname) {
+				e.IsToMe = true
+				first.Data["text"] = text[len(nickname):]
+				return
+			}
+		}
+	}
+
+	switch {
+	case e.DetailType == "group":
+		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
+		processAt()
+	case e.DetailType == "guild" && e.SubType == "channel":
+		log.Infof("收到频道(%v-%v)消息 %v : %v", e.RawEvent.Get("guild_id"), e.RawEvent.Get("channel_id"),
+			e.Sender.String(), e.Message)
+		processAt()
+	default:
 		e.IsToMe = true // 私聊也判断为at
 		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
 	}

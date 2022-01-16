@@ -341,3 +341,16 @@ func (ctx *Ctx) GetWordSlices(content string) gjson.Result {
 		"content": content,
 	}).Data
 }
+
+func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID int64, message interface{}) string {
+	rsp := ctx.CallAction("send_guild_channel_msg", Params{
+		"guild_id":   guildID,
+		"channel_id": channelID,
+		"message":    message,
+	}).Data.Get("message_id")
+	if rsp.Exists() {
+		log.Infof("发送频道消息(%v-%v): %v (id=%v)", guildID, channelID, formatMessage(message), rsp.Int())
+		return rsp.String()
+	}
+	return "0" // 无法获取返回值
+}
