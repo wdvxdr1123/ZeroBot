@@ -1,11 +1,13 @@
 package zero
 
 import (
+	"crypto/md5"
+	"encoding/binary"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 // Type check the ctx.Event's type
@@ -120,7 +122,7 @@ func RegexRule(regexPattern string) Rule {
 }
 
 // ReplyRule check if the message is replying some message
-func ReplyRule(messageID *message.MessageID) Rule {
+func ReplyRule(messageID int64) Rule {
 	return func(ctx *Ctx) bool {
 		if len(ctx.Event.Message) == 0 {
 			return false
@@ -128,7 +130,11 @@ func ReplyRule(messageID *message.MessageID) Rule {
 		if ctx.Event.Message[0].Type != "reply" {
 			return false
 		}
-		return ctx.Event.Message[0].Data["id"] == messageID.String()
+		if id, err := strconv.ParseInt(ctx.Event.Message[0].Data["id"], 10, 64); err == nil {
+			return id == messageID
+		}
+		digest := md5.Sum(helper.StringToBytes(ctx.Event.Message[0].Data["id"]))
+		return int64(binary.LittleEndian.Uint64(digest[:8])) == messageID
 	}
 }
 
