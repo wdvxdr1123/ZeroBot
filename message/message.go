@@ -1,10 +1,10 @@
 package message
 
 import (
-	"crypto/md5"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"hash/crc64"
 	"strconv"
 	"strings"
 
@@ -199,7 +199,7 @@ func CustomMusic(url, audio, title string) MessageSegment {
 }
 
 // MessageID 对于 qq 消息, i 与 s 相同
-// 对于 guild 消息, i 为 s 的 md5 的前 8 位
+// 对于 guild 消息, i 为 s 的 ISO crc64
 type MessageID struct {
 	i int64
 	s string
@@ -208,8 +208,8 @@ type MessageID struct {
 func NewMessageID(raw string) (m *MessageID) {
 	i, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil {
-		digest := md5.Sum(helper.StringToBytes(raw))
-		i = int64(binary.LittleEndian.Uint64(digest[:8]))
+		digest := crc64.New(crc64.MakeTable(crc64.ISO)).Sum(helper.StringToBytes(raw))
+		i = int64(binary.LittleEndian.Uint64(digest))
 	}
 	return &MessageID{i: i, s: raw}
 }
