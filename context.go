@@ -84,8 +84,7 @@ func (ctx *Ctx) CheckSession() Rule {
 func (ctx *Ctx) Send(msg interface{}) *message.MessageID {
 	event := ctx.Event
 	if event.DetailType == "guild" {
-		raw := event.RawEvent
-		return message.NewMessageID(ctx.SendGuildChannelMessage(raw.Get("guild_id").Int(), raw.Get("channel_id").Int(), msg))
+		return message.NewMessageID(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
 	}
 	if event.GroupID != 0 {
 		return message.NewMessageID(strconv.FormatInt(ctx.SendGroupMessage(event.GroupID, msg), 10))
