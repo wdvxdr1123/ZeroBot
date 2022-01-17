@@ -1,8 +1,7 @@
 package zero
 
 import (
-	"crypto/md5"
-	"encoding/binary"
+	"hash/crc64"
 	"regexp"
 	"strconv"
 	"strings"
@@ -133,8 +132,9 @@ func ReplyRule(messageID int64) Rule {
 		if id, err := strconv.ParseInt(ctx.Event.Message[0].Data["id"], 10, 64); err == nil {
 			return id == messageID
 		}
-		digest := md5.Sum(helper.StringToBytes(ctx.Event.Message[0].Data["id"]))
-		return int64(binary.LittleEndian.Uint64(digest[:8])) == messageID
+		c := crc64.New(crc64.MakeTable(crc64.ISO))
+		c.Write(helper.StringToBytes(ctx.Event.Message[0].Data["id"]))
+		return int64(c.Sum64()) == messageID
 	}
 }
 

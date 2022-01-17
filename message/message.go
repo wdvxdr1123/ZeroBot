@@ -1,7 +1,6 @@
 package message
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"hash/crc64"
@@ -208,8 +207,9 @@ type MessageID struct {
 func NewMessageID(raw string) (m *MessageID) {
 	i, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil {
-		digest := crc64.New(crc64.MakeTable(crc64.ISO)).Sum(helper.StringToBytes(raw))
-		i = int64(binary.LittleEndian.Uint64(digest))
+		c := crc64.New(crc64.MakeTable(crc64.ISO))
+		c.Write(helper.StringToBytes(raw))
+		i = int64(c.Sum64())
 	}
 	return &MessageID{i: i, s: raw}
 }
