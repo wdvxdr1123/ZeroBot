@@ -81,7 +81,7 @@ func (ctx *Ctx) CheckSession() Rule {
 }
 
 // Send 快捷发送消息
-func (ctx *Ctx) Send(msg interface{}) *message.MessageID {
+func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
 	if event.DetailType == "guild" {
 		return message.NewMessageID(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
@@ -93,7 +93,7 @@ func (ctx *Ctx) Send(msg interface{}) *message.MessageID {
 }
 
 // SendChain 快捷发送消息-消息链
-func (ctx *Ctx) SendChain(message ...message.MessageSegment) *message.MessageID {
+func (ctx *Ctx) SendChain(message ...message.MessageSegment) message.MessageID {
 	return ctx.Send(message)
 }
 

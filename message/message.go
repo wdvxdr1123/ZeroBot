@@ -204,21 +204,23 @@ type MessageID struct {
 	s string
 }
 
-func NewMessageID(raw string) (m *MessageID) {
-	i, err := strconv.ParseInt(raw, 10, 64)
+func NewMessageID(raw string) (m MessageID) {
+	var err error
+	m.i, err = strconv.ParseInt(raw, 10, 64)
 	if err != nil {
 		c := crc64.New(crc64.MakeTable(crc64.ISO))
 		c.Write(helper.StringToBytes(raw))
-		i = int64(c.Sum64())
+		m.i = int64(c.Sum64())
 	}
-	return &MessageID{i: i, s: raw}
+	m.s = raw
+	return
 }
 
-func (m *MessageID) String() string {
+func (m MessageID) String() string {
 	return m.s
 }
 
-func (m *MessageID) ID() int64 {
+func (m MessageID) ID() int64 {
 	return m.i
 }
 

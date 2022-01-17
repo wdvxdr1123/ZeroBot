@@ -83,7 +83,7 @@ func processEvent(response []byte, caller APICaller) {
 	if err == nil {
 		event.MessageID = messageID
 	} else {
-		event.MessageID = strings.Trim(helper.BytesToString(event.RawMessageID), "\"")
+		event.MessageID, _ = strconv.Unquote(helper.BytesToString(event.RawMessageID))
 	}
 
 	switch event.PostType { // process DetailType
