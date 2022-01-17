@@ -1,9 +1,12 @@
 package zero
 
 import (
+	"hash/crc64"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 // Type check the ctx.Event's type
@@ -119,7 +122,6 @@ func RegexRule(regexPattern string) Rule {
 
 // ReplyRule check if the message is replying some message
 func ReplyRule(messageID int64) Rule {
-	mid := strconv.FormatInt(messageID, 10)
 	return func(ctx *Ctx) bool {
 		if len(ctx.Event.Message) == 0 {
 			return false
@@ -127,7 +129,12 @@ func ReplyRule(messageID int64) Rule {
 		if ctx.Event.Message[0].Type != "reply" {
 			return false
 		}
-		return ctx.Event.Message[0].Data["id"] == mid
+		if id, err := strconv.ParseInt(ctx.Event.Message[0].Data["id"], 10, 64); err == nil {
+			return id == messageID
+		}
+		c := crc64.New(crc64.MakeTable(crc64.ISO))
+		c.Write(helper.StringToBytes(ctx.Event.Message[0].Data["id"]))
+		return int64(c.Sum64()) == messageID
 	}
 }
 
@@ -181,9 +188,19 @@ func OnlyPrivate(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "private"
 }
 
+// OnlyPublic requires that the ctx.Event is public/group or public/guild message
+func OnlyPublic(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && (ctx.Event.DetailType == "group" || ctx.Event.DetailType == "guild")
+}
+
 // OnlyGroup requires that the ctx.Event is public/group message
 func OnlyGroup(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "group"
+}
+
+// OnlyGuild requires that the ctx.Event is public/guild message
+func OnlyGuild(ctx *Ctx) bool {
+	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "guild"
 }
 
 // SuperUserPermission only triggered by the bot's owner

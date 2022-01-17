@@ -61,11 +61,16 @@ type Event struct {
 	DetailType    string          `json:"-"`
 	MessageType   string          `json:"message_type"`
 	SubType       string          `json:"sub_type"`
-	MessageID     int64           `json:"message_id"`
+	MessageID     interface{}     // int64 in qq or string in guild
+	RawMessageID  json.RawMessage `json:"message_id"` // int64 in qq or string in guild
 	GroupID       int64           `json:"group_id"`
+	ChannelID     int64           `json:"channel_id"`
+	GuildID       int64           `json:"guild_id"`
 	UserID        int64           `json:"user_id"`
+	TinyID        int64           `json:"tiny_id"`
 	TargetID      int64           `json:"target_id"`
 	SelfID        int64           `json:"self_id"`
+	SelfTinyID    int64           `json:"self_tiny_id"`
 	RawMessage    string          `json:"raw_message"` // raw_message is always string
 	Anonymous     interface{}     `json:"anonymous"`
 	AnonymousFlag string          `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11
@@ -86,7 +91,7 @@ type Event struct {
 // Message 消息
 type Message struct {
 	Elements    message.Message
-	MessageId   int64
+	MessageId   message.MessageID
 	Sender      *User
 	MessageType string
 }

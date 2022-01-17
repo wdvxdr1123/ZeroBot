@@ -3,6 +3,7 @@ package message
 import (
 	"encoding/json"
 	"fmt"
+	"hash/crc64"
 	"strconv"
 	"strings"
 
@@ -196,13 +197,53 @@ func CustomMusic(url, audio, title string) MessageSegment {
 	}
 }
 
+// MessageID 对于 qq 消息, i 与 s 相同
+// 对于 guild 消息, i 为 s 的 ISO crc64
+type MessageID struct {
+	i int64
+	s string
+}
+
+func NewMessageID(raw string) (m MessageID) {
+	var err error
+	m.i, err = strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		c := crc64.New(crc64.MakeTable(crc64.ISO))
+		c.Write(helper.StringToBytes(raw))
+		m.i = int64(c.Sum64())
+	}
+	m.s = raw
+	return
+}
+
+func (m MessageID) String() string {
+	return m.s
+}
+
+func (m MessageID) ID() int64 {
+	return m.i
+}
+
 // Reply 回复
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id int64) MessageSegment {
+func Reply(id interface{}) MessageSegment {
+	s := ""
+	switch i := id.(type) {
+	case int64:
+		s = strconv.FormatInt(i, 10)
+	case int:
+		s = strconv.Itoa(i)
+	case string:
+		s = i
+	case float64:
+		s = strconv.Itoa(int(i)) // json 序列化 interface{} 默认为 float64
+	case fmt.Stringer:
+		s = i.String()
+	}
 	return MessageSegment{
 		Type: "reply",
 		Data: map[string]string{
-			"id": strconv.FormatInt(id, 10),
+			"id": s,
 		},
 	}
 }
@@ -335,6 +376,6 @@ func (m MessageSegment) Chain(data map[string]string) MessageSegment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID int64, m ...MessageSegment) Message {
+func ReplyWithMessage(messageID interface{}, m ...MessageSegment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }

@@ -3,6 +3,7 @@ package zero
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"sync"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -80,21 +81,19 @@ func (ctx *Ctx) CheckSession() Rule {
 }
 
 // Send 快捷发送消息
-func (ctx *Ctx) Send(message interface{}) int64 {
+func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
 	if event.DetailType == "guild" {
-		raw := event.RawEvent
-		ctx.SendGuildChannelMessage(raw.Get("guild_id").Int(), raw.Get("channel_id").Int(), message)
-		return -1 // unsupported
+		return message.NewMessageID(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
 	}
 	if event.GroupID != 0 {
-		return ctx.SendGroupMessage(event.GroupID, message)
+		return message.NewMessageID(strconv.FormatInt(ctx.SendGroupMessage(event.GroupID, msg), 10))
 	}
-	return ctx.SendPrivateMessage(event.UserID, message)
+	return message.NewMessageID(strconv.FormatInt(ctx.SendPrivateMessage(event.UserID, msg), 10))
 }
 
 // SendChain 快捷发送消息-消息链
-func (ctx *Ctx) SendChain(message ...message.MessageSegment) int64 {
+func (ctx *Ctx) SendChain(message ...message.MessageSegment) message.MessageID {
 	return ctx.Send(message)
 }
 
