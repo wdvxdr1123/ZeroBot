@@ -38,6 +38,7 @@ type User struct {
 	// Private sender
 	// https://github.com/botuniverse/onebot-11/blob/master/event/message.md#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
 	ID       int64  `json:"user_id"`
+	TinyID   string `json:"tiny_id"` // TinyID 在 guild 下为 ID 的 string
 	NickName string `json:"nickname"`
 	Sex      string `json:"sex"` // "male"、"female"、"unknown"
 	Age      int    `json:"age"`
@@ -64,13 +65,13 @@ type Event struct {
 	MessageID     interface{}     // int64 in qq or string in guild
 	RawMessageID  json.RawMessage `json:"message_id"` // int64 in qq or string in guild
 	GroupID       int64           `json:"group_id"`
-	ChannelID     int64           `json:"channel_id"`
-	GuildID       int64           `json:"guild_id"`
+	ChannelID     string          `json:"channel_id"`
+	GuildID       string          `json:"guild_id"`
 	UserID        int64           `json:"user_id"`
-	TinyID        int64           `json:"tiny_id"`
+	TinyID        string          `json:"tiny_id"`
 	TargetID      int64           `json:"target_id"`
 	SelfID        int64           `json:"self_id"`
-	SelfTinyID    int64           `json:"self_tiny_id"`
+	SelfTinyID    string          `json:"self_tiny_id"`
 	RawMessage    string          `json:"raw_message"` // raw_message is always string
 	Anonymous     interface{}     `json:"anonymous"`
 	AnonymousFlag string          `json:"anonymous_flag"` // This field is deprecated and will get removed, see #11

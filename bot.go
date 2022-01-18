@@ -186,8 +186,7 @@ func preprocessMessageEvent(e *Event) {
 		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
 		processAt()
 	case e.DetailType == "guild" && e.SubType == "channel":
-		log.Infof("收到频道(%v-%v)消息 %v : %v", e.RawEvent.Get("guild_id"), e.RawEvent.Get("channel_id"),
-			e.Sender.String(), e.Message)
+		log.Infof("收到频道(%v-%v)消息 %v : %v", e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
 		processAt()
 	default:
 		e.IsToMe = true // 私聊也判断为at
