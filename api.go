@@ -342,7 +342,7 @@ func (ctx *Ctx) GetWordSlices(content string) gjson.Result {
 	}).Data
 }
 
-func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID int64, message interface{}) string {
+func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID string, message interface{}) string {
 	rsp := ctx.CallAction("send_guild_channel_msg", Params{
 		"guild_id":   guildID,
 		"channel_id": channelID,
