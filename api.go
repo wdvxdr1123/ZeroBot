@@ -72,7 +72,7 @@ func (ctx *Ctx) SendPrivateMessage(userID int64, message interface{}) int64 {
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#delete_msg-%E6%92%A4%E5%9B%9E%E6%B6%88%E6%81%AF
 func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
 	ctx.CallAction("delete_msg", Params{
-		"message_id": messageID.String(),
+		"message_id": messageID.String(), //nolint:interfacer
 	})
 }
 
@@ -80,7 +80,7 @@ func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
 func (ctx *Ctx) GetMessage(messageID message.MessageID) Message {
 	rsp := ctx.CallAction("get_msg", Params{
-		"message_id": messageID.String(),
+		"message_id": messageID.String(), //nolint:interfacer
 	}).Data
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
