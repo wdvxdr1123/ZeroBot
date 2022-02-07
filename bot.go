@@ -115,11 +115,6 @@ loop:
 		m := matcher.copy()
 		matcherLock.RUnlock()
 		ctx.ma = m
-		for _, rule := range m.Rules {
-			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
-				continue loop
-			}
-		}
 
 		// pre handler
 		if m.Engine != nil {
@@ -127,6 +122,12 @@ loop:
 				if !handler(ctx) { // 有 pre handler 未满足
 					continue loop
 				}
+			}
+		}
+
+		for _, rule := range m.Rules {
+			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
+				continue loop
 			}
 		}
 
