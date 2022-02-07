@@ -131,6 +131,15 @@ loop:
 			}
 		}
 
+		// mid handler
+		if m.Engine != nil {
+			for _, handler := range m.Engine.midHandler {
+				if !handler(ctx) { // 有 mid handler 未满足
+					continue loop
+				}
+			}
+		}
+
 		if m.Handler != nil {
 			m.Handler(ctx) // 处理事件
 		}
