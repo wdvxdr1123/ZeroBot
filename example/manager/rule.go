@@ -64,8 +64,8 @@ func (m *Manager) Disable(groupID int64) {
 }
 
 // Handler 返回 预处理器
-func (m *Manager) Handler() zero.Rule {
-	return func(ctx *zero.Ctx) bool {
+func (m *Manager) Handler() zero.Handler {
+	return zero.RuleWrapper(func(ctx *zero.Ctx) bool {
 		m.RLock()
 		ctx.State["manager"] = m
 		if st, ok := m.states[ctx.Event.GroupID]; ok {
@@ -79,7 +79,7 @@ func (m *Manager) Handler() zero.Rule {
 			m.Enable(ctx.Event.GroupID)
 		}
 		return !m.options.DisableOnDefault
-	}
+	})
 }
 
 // Lookup returns a Manager by the service name, if

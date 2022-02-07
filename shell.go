@@ -98,12 +98,13 @@ func ParseShell(s string) []string {
 }
 
 // ShellRule 定义shell-like规则
-func ShellRule(cmd string, model interface{}) Rule {
+func ShellRule(cmd string, model interface{}) Handler {
 	cmdRule := CommandRule(cmd)
 	t := reflect.TypeOf(model)
-	return func(ctx *Ctx) bool {
-		if !cmdRule(ctx) {
-			return false
+	return func(ctx *Ctx) {
+		cmdRule(ctx)
+		if ctx.IsAborted() {
+			return
 		}
 		// bind flag to struct
 		args := ParseShell(ctx.State["args"].(string))
@@ -111,11 +112,11 @@ func ShellRule(cmd string, model interface{}) Rule {
 		fs := registerFlag(t, val)
 		err := fs.Parse(args)
 		if err != nil {
-			return false
+			ctx.Abort()
+			return
 		}
 		ctx.State["args"] = fs.Args()
 		ctx.State["flag"] = val.Interface()
-		return true
 	}
 }
 

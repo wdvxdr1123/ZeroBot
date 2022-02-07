@@ -6,7 +6,7 @@ import (
 
 func init() { // 插件主体
 	engine := zero.New()
-	engine.OnCommand("开启复读", zero.OnlyToMe).SetBlock(true).SetPriority(10).
+	engine.OnCommand("开启复读", zero.OnlyToMe).SetPriority(10).Handle(zero.Block).
 		Handle(func(ctx *zero.Ctx) {
 			stop := zero.NewFutureEvent("message", 8, true,
 				zero.CommandRule("关闭复读"), // 关闭复读指令

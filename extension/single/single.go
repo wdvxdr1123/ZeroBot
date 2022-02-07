@@ -39,25 +39,23 @@ func New(op ...Option) *Single {
 	return &s
 }
 
-// Apply 为指定 Engine 添加反并发功能
-func (s *Single) Apply(engine *zero.Engine) {
-	engine.UsePreHandler(func(ctx *zero.Ctx) bool {
+// Handler 反并发中间件
+func (s *Single) Handler() zero.Handler {
+	return func(ctx *zero.Ctx) {
 		if s.key == nil {
-			return true
+			return
 		}
 		key := s.key(ctx)
 		if _, ok := s.group.Load(key); ok {
 			if s.post != nil {
 				defer s.post(ctx)
 			}
-			return false
+			ctx.Abort()
+			return
 		}
-		s.group.Store(key, struct{}{})
-		ctx.State["__single-key__"] = key
-		return true
-	})
 
-	engine.UsePostHandler(func(ctx *zero.Ctx) {
-		s.group.Delete(ctx.State["__single-key__"])
-	})
+		s.group.Store(key, struct{}{})
+		ctx.Next()
+		s.group.Delete(key)
+	}
 }

@@ -5,31 +5,21 @@ import (
 	"sync"
 )
 
-type (
-	// Rule filter the event
-	Rule func(ctx *Ctx) bool
-	// Handler 事件处理函数
-	Handler func(ctx *Ctx)
-)
+// Handler 事件处理函数
+type Handler func(ctx *Ctx)
 
 // Matcher 是 ZeroBot 匹配和处理事件的最小单元
 type Matcher struct {
 	// Temp 是否为临时Matcher，临时 Matcher 匹配一次后就会删除当前 Matcher
 	Temp bool
-	// Block 是否阻断后续 Matcher，为 true 时当前Matcher匹配成功后，后续Matcher不参与匹配
-	Block bool
 	// Priority 优先级，越小优先级越高
 	Priority int
 	// Event 当前匹配到的事件
 	Event *Event
-	// Type 匹配的事件类型
-	Type Rule
-	// Rules 匹配规则
-	Rules []Rule
-	// Handler 处理事件的函数
-	Handler Handler
-	// Engine 注册 Matcher 的 Engine，Engine可为一系列 Matcher 添加通用 Rule 和 其他钩子
-	Engine *Engine
+	// Handlers 处理事件的函数
+	Handlers []Handler
+	// MatcherGroup 所属的 MatcherGroup
+	MatcherGroup *MatcherGroup
 }
 
 var (
@@ -46,12 +36,6 @@ func sortMatcher() {
 	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
 		return matcherList[i].Priority < matcherList[j].Priority
 	})
-}
-
-// SetBlock 设置是否阻断后面的 Matcher 触发
-func (m *Matcher) SetBlock(block bool) *Matcher {
-	m.Block = block
-	return m
 }
 
 // SetPriority 设置当前 Matcher 优先级
@@ -78,20 +62,11 @@ func (m *Matcher) ThirdPriority() *Matcher {
 	return m.SetPriority(2)
 }
 
-// BindEngine bind the matcher to a engine
-func (m *Matcher) BindEngine(e *Engine) *Matcher {
-	m.Engine = e
-	return m
-}
-
 // StoreMatcher store a matcher to matcher list.
 func StoreMatcher(m *Matcher) *Matcher {
 	matcherLock.Lock()
 	defer matcherLock.Unlock()
 	// todo(wdvxdr): move to engine.
-	if m.Engine != nil {
-		m.Block = m.Block || m.Engine.block
-	}
 	matcherList = append(matcherList, m)
 	sortMatcher()
 	return m
@@ -117,18 +92,16 @@ func (m *Matcher) Delete() {
 
 func (m *Matcher) copy() *Matcher {
 	return &Matcher{
-		Type:     m.Type,
-		Rules:    m.Rules,
-		Block:    m.Block,
-		Priority: m.Priority,
-		Handler:  m.Handler,
-		Temp:     m.Temp,
-		Engine:   m.Engine,
+		Priority:     m.Priority,
+		Handlers:     m.Handlers,
+		Temp:         m.Temp,
+		Event:        m.Event,
+		MatcherGroup: m.MatcherGroup,
 	}
 }
 
 // Handle 直接处理事件
 func (m *Matcher) Handle(handler Handler) *Matcher {
-	m.Handler = handler
+	m.Handlers = append(m.Handlers, handler)
 	return m
 }

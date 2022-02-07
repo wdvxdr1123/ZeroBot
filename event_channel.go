@@ -4,27 +4,26 @@ package zero
 type FutureEvent struct {
 	Type     string
 	Priority int
-	Rule     []Rule
+	Handlers []Handler
 	Block    bool
 }
 
 // NewFutureEvent 创建一个FutureEvent, 并返回其指针
-func NewFutureEvent(Type string, Priority int, Block bool, rule ...Rule) *FutureEvent {
+func NewFutureEvent(Type string, Priority int, Block bool, handlers ...Handler) *FutureEvent {
 	return &FutureEvent{
 		Type:     Type,
 		Priority: Priority,
-		Rule:     rule,
+		Handlers: handlers,
 		Block:    Block,
 	}
 }
 
 // FutureEvent 返回一个 FutureEvent 实例指针，用于获取满足 Rule 的 未来事件
-func (m *Matcher) FutureEvent(Type string, rule ...Rule) *FutureEvent {
+func (m *Matcher) FutureEvent(Type string, handlers ...Handler) *FutureEvent {
 	return &FutureEvent{
 		Type:     Type,
 		Priority: m.Priority,
-		Block:    m.Block,
-		Rule:     rule,
+		Handlers: handlers,
 	}
 }
 
@@ -34,15 +33,15 @@ func (m *Matcher) FutureEvent(Type string, rule ...Rule) *FutureEvent {
 func (n *FutureEvent) Next() <-chan *Event {
 	ch := make(chan *Event, 1)
 	StoreTempMatcher(&Matcher{
-		Type:     Type(n.Type),
-		Block:    n.Block,
 		Priority: n.Priority,
-		Rules:    n.Rule,
-		Engine:   defaultEngine,
-		Handler: func(ctx *Ctx) {
-			ch <- ctx.Event
+		Handlers: append(n.Handlers, func(c *Ctx) {
+			ch <- c.Event
 			close(ch)
-		},
+			if n.Block {
+				c.Block()
+			}
+		}),
+		MatcherGroup: defualtMatcherGroup,
 	})
 	return ch
 }
@@ -56,14 +55,14 @@ func (n *FutureEvent) Repeat() (recv <-chan *Event, cancel func()) {
 		defer close(ch)
 		in := make(chan *Event, 1)
 		matcher := StoreMatcher(&Matcher{
-			Type:     Type(n.Type),
-			Block:    n.Block,
 			Priority: n.Priority,
-			Rules:    n.Rule,
-			Engine:   defaultEngine,
-			Handler: func(ctx *Ctx) {
+			Handlers: append(n.Handlers, func(ctx *Ctx) {
 				in <- ctx.Event
-			},
+				if n.Block {
+					ctx.Block()
+				}
+			}),
+			MatcherGroup: defualtMatcherGroup,
 		})
 		for {
 			select {

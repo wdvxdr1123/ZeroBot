@@ -105,46 +105,28 @@ func processEvent(response []byte, caller APICaller) {
 	}
 loop:
 	for _, matcher := range matcherList {
-		if !matcher.Type(ctx) {
-			continue
-		}
 		for k := range ctx.State { // Clear State
 			delete(ctx.State, k)
 		}
 		matcherLock.RLock()
 		m := matcher.copy()
 		matcherLock.RUnlock()
+		if m.MatcherGroup != nil {
+			ctx.handlers = append(m.MatcherGroup.handlers, m.Handlers...)
+		} else {
+			ctx.handlers = m.Handlers
+		}
 		ctx.ma = m
-		for _, rule := range m.Rules {
-			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
-				continue loop
-			}
-		}
-
-		// pre handler
-		if m.Engine != nil {
-			for _, handler := range m.Engine.preHandler {
-				if !handler(ctx) { // 有 pre handler 未满足
-					continue loop
-				}
-			}
-		}
-
-		if m.Handler != nil {
-			m.Handler(ctx) // 处理事件
+		handlers := ctx.handlers
+		ctx.index = 0
+		for ctx.index < int16(len(handlers)) {
+			handlers[ctx.index](ctx)
+			ctx.index++
 		}
 		if matcher.Temp { // 临时 Matcher 删除
 			matcher.Delete()
 		}
-
-		if m.Engine != nil {
-			// post handler
-			for _, handler := range m.Engine.postHandler {
-				handler(ctx)
-			}
-		}
-
-		if m.Block { // 阻断后续
+		if ctx.blocked { // 阻断后续
 			break loop
 		}
 	}

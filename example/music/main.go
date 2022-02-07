@@ -18,20 +18,33 @@ var (
 )
 
 func init() {
-	engine := zero.New()
-
-	single.New(
+	group := zero.New()
+	group.Use(m.Handler())
+	group.Use(single.New(
 		single.WithKeyFn(func(ctx *zero.Ctx) interface{} {
 			return ctx.Event.UserID
 		}),
 		single.WithPostFn(func(ctx *zero.Ctx) {
 			ctx.Send("您有操作正在执行，请稍后再试!")
 		}),
-	).Apply(engine)
+	).Handler())
 
-	_ = engine.OnCommandGroup([]string{"music", "点歌"}).
-		SetBlock(true).
+	group.Use(func(ctx *zero.Ctx) {
+		start := time.Now()
+		ctx.Next()
+		fmt.Println("cost time:", time.Since(start).String())
+	})
+
+	_ = group.OnCommandGroup([]string{"music", "点歌"}).
 		SetPriority(8).
+		Handle(zero.Block).
+		Handle(func(ctx *zero.Ctx) { // 限速器
+			if !limit.Load(ctx.Event.UserID).Acquire() {
+				ctx.Send("您的请求太快，请稍后重试0x0...")
+				ctx.Abort()
+				return
+			}
+		}).
 		Handle(func(ctx *zero.Ctx) {
 			var cmd extension.CommandModel
 			err := ctx.Parse(&cmd)
@@ -59,13 +72,4 @@ func init() {
 			})
 			// ctx.Send(message.Music("163", queryNeteaseMusic(cmd.Args)))
 		})
-	engine.UsePreHandler(m.Handler())
-
-	engine.UsePreHandler(func(ctx *zero.Ctx) bool { // 限速器
-		if !limit.Load(ctx.Event.UserID).Acquire() {
-			ctx.Send("您的请求太快，请稍后重试0x0...")
-			return false
-		}
-		return true
-	})
 }

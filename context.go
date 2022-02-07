@@ -2,6 +2,7 @@ package zero
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"sync"
@@ -9,13 +10,18 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
+const abortIndex = math.MaxInt16 >> 1
+
 // Ctx represents the Context which hold the event.
 // 代表上下文
 type Ctx struct {
-	ma     *Matcher
-	Event  *Event
-	State  State
-	caller APICaller
+	ma       *Matcher
+	Event    *Event
+	State    State
+	caller   APICaller
+	handlers []Handler
+	index    int16
+	blocked  bool
 
 	// lazy message
 	once    sync.Once
@@ -73,10 +79,13 @@ func (ctx *Ctx) Parse(model interface{}) (err error) {
 }
 
 // CheckSession 判断会话连续性
-func (ctx *Ctx) CheckSession() Rule {
-	return func(ctx2 *Ctx) bool {
-		return ctx.Event.UserID == ctx2.Event.UserID &&
-			ctx.Event.GroupID == ctx2.Event.GroupID // 私聊时GroupID为0，也相等
+func (ctx *Ctx) CheckSession() Handler {
+	return func(ctx2 *Ctx) {
+		if ctx.Event.UserID == ctx2.Event.UserID &&
+			ctx.Event.GroupID == ctx2.Event.GroupID { // 私聊时GroupID为0，也相等
+			return
+		}
+		ctx2.Abort()
 	}
 }
 
@@ -98,7 +107,7 @@ func (ctx *Ctx) SendChain(message ...message.MessageSegment) message.MessageID {
 }
 
 // FutureEvent ...
-func (ctx *Ctx) FutureEvent(Type string, rule ...Rule) *FutureEvent {
+func (ctx *Ctx) FutureEvent(Type string, rule ...Handler) *FutureEvent {
 	return ctx.ma.FutureEvent(Type, rule...)
 }
 
@@ -120,7 +129,28 @@ func (ctx *Ctx) ExtractPlainText() string {
 
 // Block 阻止后续触发
 func (ctx *Ctx) Block() {
-	ctx.ma.SetBlock(true)
+	ctx.blocked = true
+}
+
+// Next should be used only inside middleware.
+// It executes the pending handlers in the chain inside the calling handler.
+func (ctx *Ctx) Next() {
+	ctx.index++
+	handlers := ctx.handlers
+	for ctx.index < int16(len(handlers)) {
+		handlers[ctx.index](ctx)
+		ctx.index++
+	}
+}
+
+// Abort prevents pending handlers from being called. Note that this will not stop the current handler.
+func (ctx *Ctx) Abort() {
+	ctx.index = abortIndex
+}
+
+// IsAborted returns true if the current context was aborted.
+func (ctx *Ctx) IsAborted() bool {
+	return ctx.index >= abortIndex
 }
 
 // MessageString 字符串消息便于Regex

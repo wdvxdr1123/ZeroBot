@@ -6,21 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestType(t *testing.T) {
-	t1 := Type("notice/aaa/bbb")
-	t2 := Type("notice/aaa")
-	t3 := Type("aaa/aaa/bbb")
-	e1 := &Event{
-		PostType:   "notice",
-		DetailType: "aaa",
-		SubType:    "bbb",
-	}
-	testCtx.Event = e1
-	assert.Equal(t, true, t1(testCtx))
-	assert.Equal(t, true, t2(testCtx))
-	assert.Equal(t, false, t3(testCtx))
-}
-
 type pt struct {
 	x int
 	y int
