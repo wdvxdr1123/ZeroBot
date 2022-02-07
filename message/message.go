@@ -83,7 +83,11 @@ func (m MessageSegment) String() string {
 		sb.WriteByte(',')
 		sb.WriteString(k)
 		sb.WriteByte('=')
-		sb.WriteString(EscapeCQCodeText(v))
+		if m.Type == "node" {
+			sb.WriteString(v)
+		} else {
+			sb.WriteString(EscapeCQCodeText(v))
+		}
 	}
 	sb.WriteByte(']')
 	return sb.String()
@@ -274,9 +278,14 @@ func Node(id int64) MessageSegment {
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
 func CustomNode(nickname string, userID int64, content interface{}) MessageSegment {
 	var str string
-	if s, ok := content.(string); ok {
-		str = s
-	} else {
+	switch c := content.(type) {
+	case string:
+		str = c
+	case Message:
+		str = c.String()
+	case []MessageSegment:
+		str = (Message)(c).String()
+	default:
 		b, _ := json.Marshal(content)
 		str = helper.BytesToString(b)
 	}
