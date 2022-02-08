@@ -40,7 +40,7 @@ func New[K comparable](op ...Option[K]) *Single[K] {
 
 // Apply 为指定 Engine 添加反并发功能
 func (s *Single[K]) Apply(engine *zero.Engine) {
-	engine.UsePreHandler(func(ctx *zero.Ctx) bool {
+	engine.UseMidHandler(func(ctx *zero.Ctx) bool {
 		if s.key == nil {
 			return true
 		}
