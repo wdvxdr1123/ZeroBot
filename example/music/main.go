@@ -61,7 +61,7 @@ func init() {
 		})
 	engine.UsePreHandler(m.Handler())
 
-	engine.UsePreHandler(func(ctx *zero.Ctx) bool { // 限速器
+	engine.UseMidHandler(func(ctx *zero.Ctx) bool { // 限速器
 		if !limit.Load(ctx.Event.UserID).Acquire() {
 			ctx.Send("您的请求太快，请稍后重试0x0...")
 			return false

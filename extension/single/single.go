@@ -41,7 +41,7 @@ func New(op ...Option) *Single {
 
 // Apply 为指定 Engine 添加反并发功能
 func (s *Single) Apply(engine *zero.Engine) {
-	engine.UsePreHandler(func(ctx *zero.Ctx) bool {
+	engine.UseMidHandler(func(ctx *zero.Ctx) bool {
 		if s.key == nil {
 			return true
 		}
