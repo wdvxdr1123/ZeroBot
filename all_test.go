@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 func TestType(t *testing.T) {
@@ -61,4 +62,9 @@ func TestState_Parse2(t *testing.T) {
 func TestMatcher_Delete(t *testing.T) {
 	OnCommand("").Delete()
 	assert.Empty(t, matcherList)
+}
+
+func TestFormatMessage_Base64(t *testing.T) {
+	t.Log(formatMessage([]message.MessageSegment{message.Image("base64:///9j/2wCE")}))
+	t.Fail()
 }

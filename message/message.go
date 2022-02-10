@@ -1,6 +1,7 @@
 package message
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"hash/crc64"
@@ -135,6 +136,17 @@ func Image(file string) MessageSegment {
 		Type: "image",
 		Data: map[string]string{
 			"file": file,
+		},
+	}
+}
+
+// ImageBytes 普通图片
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
+func ImageBytes(data []byte) MessageSegment {
+	return MessageSegment{
+		Type: "image",
+		Data: map[string]string{
+			"file": "base64://" + base64.RawStdEncoding.EncodeToString(data),
 		},
 	}
 }
