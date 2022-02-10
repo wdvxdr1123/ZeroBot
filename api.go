@@ -1,8 +1,12 @@
 package zero
 
 import (
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -12,6 +16,7 @@ import (
 )
 
 // formatMessage 格式化消息数组
+//    仅用在 log 打印
 func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:
@@ -20,7 +25,15 @@ func formatMessage(msg interface{}) string {
 		return m.String()
 	default:
 		s, _ := json.Marshal(msg)
-		return helper.BytesToString(s)
+		return helper.BytesToString(regexp.MustCompile(`"base64://.*"`).ReplaceAllFunc(s, func(b []byte) []byte {
+			b = b[10 : len(b)-1]
+			b, err := base64.StdEncoding.DecodeString(helper.BytesToString(b))
+			if err != nil {
+				return helper.StringToBytes(fmt.Sprintf(`"%v.image"`, err))
+			}
+			m := md5.Sum(b)
+			return helper.StringToBytes(fmt.Sprintf(`"%s.image"`, hex.EncodeToString(m[:])))
+		}))
 	}
 }
 
