@@ -65,6 +65,6 @@ func TestMatcher_Delete(t *testing.T) {
 }
 
 func TestFormatMessage_Base64(t *testing.T) {
-	t.Log(formatMessage([]message.MessageSegment{message.Image("base64:///9j/2wCE")}))
-	t.Fail()
+	msg := formatMessage([]message.MessageSegment{message.Image("base64:///9j/2wCE")})
+	assert.Equal(t, `[{"type":"image","data":{"file":"59206ddf50ffcbc562aff15307a3ce2a.image"}}]`, msg)
 }
