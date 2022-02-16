@@ -4,6 +4,7 @@ package zero
 func New() *Engine {
 	return &Engine{
 		preHandler:  []Rule{},
+		midHandler:  []Rule{},
 		postHandler: []Handler{},
 	}
 }
@@ -13,6 +14,7 @@ var defaultEngine = New()
 // Engine is the pre_handler, post_handler manager
 type Engine struct {
 	preHandler  []Rule
+	midHandler  []Rule
 	postHandler []Handler
 	block       bool
 	matchers    []*Matcher
@@ -31,12 +33,21 @@ func (e *Engine) SetBlock(block bool) *Engine {
 }
 
 // UsePreHandler 向该 Engine 添加新 PreHandler(Rule),
-// 会在 Rule 判断后， Matcher 触发前触发，如果 preHandler
-// 没有通过，则 Matcher 不会触发
+// 会在 Rule 判断前触发，如果 preHandler
+// 没有通过，则 Rule, Matcher 不会触发
 //
-// 可用于速率限制，分群组管理插件等
+// 可用于分群组管理插件等
 func (e *Engine) UsePreHandler(rules ...Rule) {
 	e.preHandler = append(e.preHandler, rules...)
+}
+
+// UseMidHandler 向该 Engine 添加新 MidHandler(Rule),
+// 会在 Rule 判断后， Matcher 触发前触发，如果 midHandler
+// 没有通过，则 Matcher 不会触发
+//
+// 可用于速率限制等
+func (e *Engine) UseMidHandler(rules ...Rule) {
+	e.midHandler = append(e.midHandler, rules...)
 }
 
 // UsePostHandler 向该 Engine 添加新 PostHandler(Rule),
