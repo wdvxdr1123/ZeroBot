@@ -1,6 +1,9 @@
 package message
 
 import (
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"hash/crc64"
@@ -83,9 +86,24 @@ func (m MessageSegment) String() string {
 		sb.WriteByte(',')
 		sb.WriteString(k)
 		sb.WriteByte('=')
-		if m.Type == "node" {
+		switch m.Type {
+		case "node":
 			sb.WriteString(v)
-		} else {
+		case "image":
+			if strings.HasPrefix(v, "base64://") {
+				v = v[9:]
+				b, err := base64.StdEncoding.DecodeString(v)
+				if err != nil {
+					sb.WriteString(err.Error())
+				} else {
+					m := md5.Sum(b)
+					hex.NewEncoder(&sb).Write(m[:])
+				}
+				sb.WriteString(".image")
+				break
+			}
+			fallthrough
+		default:
 			sb.WriteString(EscapeCQCodeText(v))
 		}
 	}

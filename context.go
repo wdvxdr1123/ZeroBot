@@ -93,8 +93,8 @@ func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 }
 
 // SendChain 快捷发送消息-消息链
-func (ctx *Ctx) SendChain(message ...message.MessageSegment) message.MessageID {
-	return ctx.Send(message)
+func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
+	return ctx.Send((message.Message)(msg))
 }
 
 // FutureEvent ...
