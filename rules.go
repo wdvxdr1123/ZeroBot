@@ -130,8 +130,8 @@ func RegexRule(regexPattern string) Handler {
 	regex := regexp.MustCompile(regexPattern)
 	return func(ctx *Ctx) {
 		msg := ctx.MessageString()
-		if regex.MatchString(msg) {
-			ctx.State["regex_matched"] = regex.FindStringSubmatch(msg)
+		if matched := regex.FindStringSubmatch(msg); matched != nil {
+			ctx.State["regex_matched"] = matched
 			return
 		}
 		ctx.Abort()
