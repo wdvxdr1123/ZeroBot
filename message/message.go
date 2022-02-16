@@ -97,7 +97,7 @@ func (m MessageSegment) String() string {
 					sb.WriteString(err.Error())
 				} else {
 					m := md5.Sum(b)
-					hex.NewEncoder(&sb).Write(m[:])
+					_, _ = hex.NewEncoder(&sb).Write(m[:])
 				}
 				sb.WriteString(".image")
 				break
