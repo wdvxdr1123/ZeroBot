@@ -146,7 +146,7 @@ func ImageBytes(data []byte) MessageSegment {
 	return MessageSegment{
 		Type: "image",
 		Data: map[string]string{
-			"file": "base64://" + base64.RawStdEncoding.EncodeToString(data),
+			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
 		},
 	}
 }
