@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -14,6 +15,8 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
+
+var base64Reg = regexp.MustCompile(`"type":"image","data":\{"file":"base64://[\w/\+=]+`)
 
 // formatMessage 格式化消息数组
 //    仅用在 log 打印
@@ -25,14 +28,19 @@ func formatMessage(msg interface{}) string {
 		return m.String()
 	default:
 		s, _ := json.Marshal(msg)
-		return helper.BytesToString(regexp.MustCompile(`"base64://.*"`).ReplaceAllFunc(s, func(b []byte) []byte {
-			b = b[10 : len(b)-1]
+		return helper.BytesToString(base64Reg.ReplaceAllFunc(s, func(b []byte) []byte {
+			sb := strings.Builder{}
+			sb.WriteString(`"type":"image","data":{"file":"`)
+			b = b[40:]
 			b, err := base64.StdEncoding.DecodeString(helper.BytesToString(b))
 			if err != nil {
-				return helper.StringToBytes(fmt.Sprintf(`"%v.image"`, err))
+				sb.WriteString(err.Error())
+			} else {
+				m := md5.Sum(b)
+				hex.NewEncoder(&sb).Write(m[:])
+				sb.WriteString(".image")
 			}
-			m := md5.Sum(b)
-			return helper.StringToBytes(fmt.Sprintf(`"%s.image"`, hex.EncodeToString(m[:])))
+			return helper.StringToBytes(sb.String())
 		}))
 	}
 }
