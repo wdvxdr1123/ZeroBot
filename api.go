@@ -1,13 +1,13 @@
 package zero
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -29,18 +29,17 @@ func formatMessage(msg interface{}) string {
 	default:
 		s, _ := json.Marshal(msg)
 		return helper.BytesToString(base64Reg.ReplaceAllFunc(s, func(b []byte) []byte {
-			sb := strings.Builder{}
-			sb.WriteString(`"type":"image","data":{"file":"`)
+			buf := bytes.NewBuffer([]byte(`"type":"image","data":{"file":"`))
 			b = b[40:]
 			b, err := base64.StdEncoding.DecodeString(helper.BytesToString(b))
 			if err != nil {
-				sb.WriteString(err.Error())
+				buf.WriteString(err.Error())
 			} else {
 				m := md5.Sum(b)
-				_, _ = hex.NewEncoder(&sb).Write(m[:])
-				sb.WriteString(".image")
+				_, _ = hex.NewEncoder(buf).Write(m[:])
+				buf.WriteString(".image")
 			}
-			return helper.StringToBytes(sb.String())
+			return buf.Bytes()
 		}))
 	}
 }
