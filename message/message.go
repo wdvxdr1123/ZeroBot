@@ -157,6 +157,17 @@ func Image(file string) MessageSegment {
 	}
 }
 
+// ImageBytes 普通图片
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
+func ImageBytes(data []byte) MessageSegment {
+	return MessageSegment{
+		Type: "image",
+		Data: map[string]string{
+			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
+		},
+	}
+}
+
 // Record 语音
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E8%AF%AD%E9%9F%B3
 func Record(file string) MessageSegment {

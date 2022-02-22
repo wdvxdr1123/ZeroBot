@@ -1,8 +1,13 @@
 package zero
 
 import (
+	"bytes"
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -11,7 +16,10 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
+var base64Reg = regexp.MustCompile(`"type":"image","data":\{"file":"base64://[\w/\+=]+`)
+
 // formatMessage 格式化消息数组
+//    仅用在 log 打印
 func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:
@@ -20,7 +28,19 @@ func formatMessage(msg interface{}) string {
 		return m.String()
 	default:
 		s, _ := json.Marshal(msg)
-		return helper.BytesToString(s)
+		return helper.BytesToString(base64Reg.ReplaceAllFunc(s, func(b []byte) []byte {
+			buf := bytes.NewBuffer([]byte(`"type":"image","data":{"file":"`))
+			b = b[40:]
+			b, err := base64.StdEncoding.DecodeString(helper.BytesToString(b))
+			if err != nil {
+				buf.WriteString(err.Error())
+			} else {
+				m := md5.Sum(b)
+				_, _ = hex.NewEncoder(buf).Write(m[:])
+				buf.WriteString(".image")
+			}
+			return buf.Bytes()
+		}))
 	}
 }
 
