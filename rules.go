@@ -183,6 +183,18 @@ func CheckUser(userId ...int64) Rule {
 	}
 }
 
+// CheckGroup only triggered in specific group
+func CheckGroup(grpId ...int64) Rule {
+	return func(ctx *Ctx) bool {
+		for _, gid := range grpId {
+			if ctx.Event.GroupID == gid {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 // OnlyPrivate requires that the ctx.Event is private message
 func OnlyPrivate(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "private"
