@@ -119,7 +119,7 @@ func (ctx *Ctx) GetMessage(messageID message.MessageID) Message {
 
 // GetForwardMessage 获取合并转发消息
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_forward_msg-%E8%8E%B7%E5%8F%96%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E6%B6%88%E6%81%AF
-func (ctx *Ctx) GetForwardMessage(id int64) gjson.Result {
+func (ctx *Ctx) GetForwardMessage(id string) gjson.Result {
 	rsp := ctx.CallAction("get_forward_msg", Params{
 		"id": id,
 	}).Data
