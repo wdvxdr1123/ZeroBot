@@ -51,7 +51,7 @@ func (n *FutureEvent) Next() <-chan *Event {
 //
 // 如果没有取消监听，将不断监听指定事件
 func (n *FutureEvent) Repeat() (recv <-chan *Event, cancel func()) {
-	ch, done := make(chan *Event), make(chan struct{})
+	ch, done := make(chan *Event, 1), make(chan struct{})
 	go func() {
 		defer close(ch)
 		in := make(chan *Event, 1)
