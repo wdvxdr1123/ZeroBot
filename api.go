@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -375,4 +376,25 @@ func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID string, message inter
 		return rsp.String()
 	}
 	return "0" // 无法获取返回值
+}
+
+// NickName 从 args/at 获取昵称，如果都没有则获取发送者的昵称
+func (ctx *Ctx) NickName() (name string) {
+	name = ctx.State["args"].(string)
+	if len(ctx.Event.Message) > 1 && ctx.Event.Message[1].Type == "at" {
+		qq, _ := strconv.ParseInt(ctx.Event.Message[1].Data["qq"], 10, 64)
+		name = ctx.GetGroupMemberInfo(ctx.Event.GroupID, qq, false).Get("nickname").Str
+	} else if name == "" {
+		name = ctx.Event.Sender.NickName
+	}
+	return
+}
+
+// CardOrNickName 从 uid 获取群名片，如果没有则获取昵称
+func (ctx *Ctx) CardOrNickName(uid int64) (name string) {
+	name = ctx.GetGroupMemberInfo(ctx.Event.GroupID, uid, false).Get("card").String()
+	if name == "" {
+		name = ctx.GetStrangerInfo(uid, false).Get("nickname").String()
+	}
+	return
 }

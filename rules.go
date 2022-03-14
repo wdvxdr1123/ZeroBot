@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
@@ -235,4 +237,51 @@ func AdminPermission(ctx *Ctx) bool {
 func OwnerPermission(ctx *Ctx) bool {
 	return SuperUserPermission(ctx) ||
 		(ctx.Event.Sender.Role != "member" && ctx.Event.Sender.Role != "admin")
+}
+
+// UserOrGrpAdmin 允许用户单独使用或群管使用
+func UserOrGrpAdmin(ctx *Ctx) bool {
+	if OnlyGroup(ctx) {
+		return AdminPermission(ctx)
+	}
+	return OnlyToMe(ctx)
+}
+
+// IsPicExists 消息含有图片返回 true
+func IsPicExists(ctx *Ctx) bool {
+	var urls = []string{}
+	for _, elem := range ctx.Event.Message {
+		if elem.Type == "image" {
+			urls = append(urls, elem.Data["url"])
+		}
+	}
+	if len(urls) > 0 {
+		ctx.State["image_url"] = urls
+		return true
+	}
+	return false
+}
+
+// MustProvidePicture 消息不存在图片阻塞120秒至有图片，超时返回 false
+func MustProvidePicture(ctx *Ctx) bool {
+	if IsPicExists(ctx) {
+		return true
+	}
+	// 没有图片就索取
+	ctx.SendChain(message.Text("请发送一张图片"))
+	next := NewFutureEvent("message", 999, false, CheckUser(ctx.Event.UserID), IsPicExists)
+	recv, cancel := next.Repeat()
+	select {
+	case <-time.After(time.Second * 120):
+		return false
+	case e := <-recv:
+		cancel()
+		newCtx := &Ctx{Event: e, State: State{}}
+		if IsPicExists(newCtx) {
+			ctx.State["image_url"] = newCtx.State["image_url"]
+			ctx.Event.MessageID = newCtx.Event.MessageID
+			return true
+		}
+		return false
+	}
 }
