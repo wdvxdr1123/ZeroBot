@@ -49,13 +49,16 @@ func Run(op Config) {
 }
 
 // RunAndBlock 主函数初始化并阻塞
-func RunAndBlock(op Config) {
+func RunAndBlock(op Config, prelisten func()) {
 	BotConfig = op
 	switch len(op.Driver) {
 	case 0:
 		return
 	case 1:
 		op.Driver[0].Connect()
+		if prelisten != nil {
+			prelisten()
+		}
 		op.Driver[0].Listen(processEvent)
 	default:
 		i := 0
@@ -64,6 +67,9 @@ func RunAndBlock(op Config) {
 			go op.Driver[i].Listen(processEvent)
 		}
 		op.Driver[i].Connect()
+		if prelisten != nil {
+			prelisten()
+		}
 		op.Driver[i].Listen(processEvent)
 	}
 }
