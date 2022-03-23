@@ -1,9 +1,12 @@
 package driver
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -40,6 +43,31 @@ func NewWebSocketClient(url, accessToken string) *WSClient {
 	}
 }
 
+func cut(s, sep string) (before, after string, found bool) {
+	if i := strings.Index(s, sep); i >= 0 {
+		return s[:i], s[i+len(sep):], true
+	}
+	return s, "", false
+}
+
+func resolveURI(addr string) (network, address string) {
+	network, address = "tcp", addr
+	uri, err := url.Parse(addr)
+	if err == nil && uri.Scheme != "" {
+		// TODO(wdvxdr1123): use strings.Cut after switching to Go 1.18
+		scheme, ext, _ := cut(uri.Scheme, "+")
+		if ext != "" {
+			network = ext
+			uri.Scheme = scheme // remove `+unix`/`+tcp4`
+			if ext == "unix" {
+				uri.Host = base64.StdEncoding.EncodeToString([]byte(uri.Host + uri.Path)) // special handle for unix
+			}
+			address = uri.String()
+		}
+	}
+	return
+}
+
 // Connect 连接ws服务端
 func (ws *WSClient) Connect() {
 	var err error
@@ -51,8 +79,26 @@ func (ws *WSClient) Connect() {
 	if ws.AccessToken != "" {
 		header["Authorization"] = []string{"Bear " + ws.AccessToken}
 	}
+
+	network, address := resolveURI(ws.Url)
+	dialer := websocket.Dialer{
+		NetDial: func(_, addr string) (net.Conn, error) {
+			if network == "unix" {
+				host, _, err := net.SplitHostPort(addr)
+				if err != nil {
+					host = addr
+				}
+				filepath, err := base64.RawURLEncoding.DecodeString(host)
+				if err == nil {
+					addr = string(filepath)
+				}
+			}
+			return net.Dial(network, addr) // support unix socket transport
+		},
+	}
+
 RETRY:
-	conn, res, err := websocket.DefaultDialer.Dial(ws.Url, header)
+	conn, res, err := dialer.Dial(address, header)
 	for err != nil {
 		log.Warnf("连接到Websocket服务器 %v 时出现错误: %v", ws.Url, err)
 		time.Sleep(2 * time.Second) // 等待两秒后重新连接
