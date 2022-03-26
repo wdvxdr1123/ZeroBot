@@ -21,8 +21,8 @@ func init() { // 插件主体
 			ctx.Send("已开启复读模式!")
 			for {
 				select {
-				case e := <-echo: // 接收到需要复读的消息
-					ctx.Send(e.RawMessage)
+				case c := <-echo: // 接收到需要复读的消息
+					ctx.Send(c.Event.RawMessage)
 				case <-stop: // 收到关闭复读指令
 					return // 返回
 				}
