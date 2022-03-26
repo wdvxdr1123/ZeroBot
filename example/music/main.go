@@ -43,8 +43,8 @@ func init() {
 				ctx.Send(message.Message{message.Text("请输入要点的歌曲!")})
 				next := ctx.FutureEvent("message", ctx.CheckSession())
 				recv, cancel := next.Repeat()
-				for e := range recv {
-					msg := e.Message.ExtractPlainText()
+				for c := range recv {
+					msg := c.Event.Message.ExtractPlainText()
 					if msg != "" {
 						cmd.Args = msg
 						cancel()

@@ -269,19 +269,15 @@ func MustProvidePicture(ctx *Ctx) bool {
 	}
 	// 没有图片就索取
 	ctx.SendChain(message.Text("请发送一张图片"))
-	next := NewFutureEvent("message", 999, false, CheckUser(ctx.Event.UserID), IsPicExists)
+	next := NewFutureEvent("message", 999, false, ctx.CheckSession(), IsPicExists)
 	recv, cancel := next.Repeat()
 	select {
 	case <-time.After(time.Second * 120):
-		return false
-	case e := <-recv:
 		cancel()
-		newCtx := &Ctx{Event: e, State: State{}}
-		if IsPicExists(newCtx) {
-			ctx.State["image_url"] = newCtx.State["image_url"]
-			ctx.Event.MessageID = newCtx.Event.MessageID
-			return true
-		}
 		return false
+	case newCtx := <-recv:
+		ctx.State["image_url"] = newCtx.State["image_url"]
+		ctx.Event.MessageID = newCtx.Event.MessageID
+		return true
 	}
 }

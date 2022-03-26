@@ -107,7 +107,7 @@ func (ctx *Ctx) Get(prompt string) string {
 	if prompt != "" {
 		ctx.Send(prompt)
 	}
-	return (<-ctx.FutureEvent("message", ctx.CheckSession()).Next()).RawMessage
+	return (<-ctx.FutureEvent("message", ctx.CheckSession()).Next()).Event.RawMessage
 }
 
 // ExtractPlainText 提取消息中的纯文本
