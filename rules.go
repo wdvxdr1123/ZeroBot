@@ -247,8 +247,8 @@ func UserOrGrpAdmin(ctx *Ctx) bool {
 	return OnlyToMe(ctx)
 }
 
-// IsPicExists 消息含有图片返回 true
-func IsPicExists(ctx *Ctx) bool {
+// HasPicture 消息含有图片返回 true
+func HasPicture(ctx *Ctx) bool {
 	var urls = []string{}
 	for _, elem := range ctx.Event.Message {
 		if elem.Type == "image" {
@@ -264,18 +264,16 @@ func IsPicExists(ctx *Ctx) bool {
 
 // MustProvidePicture 消息不存在图片阻塞120秒至有图片，超时返回 false
 func MustProvidePicture(ctx *Ctx) bool {
-	if IsPicExists(ctx) {
+	if HasPicture(ctx) {
 		return true
 	}
 	// 没有图片就索取
 	ctx.SendChain(message.Text("请发送一张图片"))
-	next := NewFutureEvent("message", 999, false, ctx.CheckSession(), IsPicExists)
-	recv, cancel := next.Repeat()
+	next := NewFutureEvent("message", 999, false, ctx.CheckSession(), HasPicture).Next()
 	select {
 	case <-time.After(time.Second * 120):
-		cancel()
 		return false
-	case newCtx := <-recv:
+	case newCtx := <-next:
 		ctx.State["image_url"] = newCtx.State["image_url"]
 		ctx.Event.MessageID = newCtx.Event.MessageID
 		return true
