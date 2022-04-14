@@ -6,23 +6,23 @@ import (
 )
 
 // Cache is a synchronised map of items that auto-expire once stale
-type Cache struct {
+type Cache[K comparable, V any] struct {
 	sync.RWMutex
 	ttl   time.Duration
-	items map[interface{}]*Item
+	items map[K]*Item[V]
 }
 
 // NewCache 创建指定生命周期的 Cache
-func NewCache(ttl time.Duration) *Cache {
-	cache := &Cache{
+func NewCache[K comparable, V any](ttl time.Duration) *Cache[K, V] {
+	cache := &Cache[K, V]{
 		ttl:   ttl,
-		items: map[interface{}]*Item{},
+		items: map[K]*Item[V]{},
 	}
 	go cache.gc() // async gc
 	return cache
 }
 
-func (c *Cache) gc() {
+func (c *Cache[K, V]) gc() {
 	ticker := time.NewTicker(time.Minute)
 	for {
 		<-ticker.C
@@ -37,26 +37,26 @@ func (c *Cache) gc() {
 }
 
 // Get 通过 key 获取指定的元素
-func (c *Cache) Get(key interface{}) interface{} {
+func (c *Cache[K, V]) Get(key K) (v V) {
 	c.RLock()
 	item, ok := c.items[key]
 	c.RUnlock()
 	if ok && item.expired() {
 		c.Delete(key)
-		return nil
+		return
 	}
 	if item == nil {
-		return nil
+		return
 	}
 	item.exp = time.Now().Add(c.ttl) // reset the expired time
 	return item.value
 }
 
 // Set 设置指定 key 的值
-func (c *Cache) Set(key interface{}, val interface{}) {
+func (c *Cache[K, V]) Set(key K, val V) {
 	c.Lock()
 	defer c.Unlock()
-	item := &Item{
+	item := &Item[V]{
 		exp:   time.Now().Add(c.ttl),
 		value: val,
 	}
@@ -64,14 +64,14 @@ func (c *Cache) Set(key interface{}, val interface{}) {
 }
 
 // Delete 删除指定key
-func (c *Cache) Delete(key interface{}) {
+func (c *Cache[K, V]) Delete(key K) {
 	c.Lock()
 	defer c.Unlock()
 	delete(c.items, key)
 }
 
 // Touch 为指定key添加一定生命周期
-func (c *Cache) Touch(key interface{}, ttl time.Duration) {
+func (c *Cache[K, V]) Touch(key K, ttl time.Duration) {
 	c.Lock()
 	defer c.Unlock()
 	if c.items[key] != nil {

@@ -237,7 +237,7 @@ type MessageID struct {
 	s string
 }
 
-func NewMessageID(raw string) (m MessageID) {
+func NewMessageIDFromString(raw string) (m MessageID) {
 	var err error
 	m.i, err = strconv.ParseInt(raw, 10, 64)
 	if err != nil {
@@ -246,6 +246,12 @@ func NewMessageID(raw string) (m MessageID) {
 		m.i = int64(c.Sum64())
 	}
 	m.s = raw
+	return
+}
+
+func NewMessageIDFromInteger(raw int64) (m MessageID) {
+	m.s = strconv.FormatInt(raw, 10)
+	m.i = raw
 	return
 }
 

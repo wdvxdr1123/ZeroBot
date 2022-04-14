@@ -23,7 +23,7 @@ func main() {
 	zero.RunAndBlock(zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
-		SuperUsers:    []string{"123456"},
+		SuperUsers:    []int64{123456},
 		Driver: []zero.Driver{
 			driver.NewWebSocketClient("ws://127.0.0.1:6700/", ""),
 		},

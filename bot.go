@@ -2,6 +2,8 @@ package zero
 
 import (
 	"encoding/json"
+	"hash/crc64"
+	"os"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -17,8 +19,29 @@ import (
 type Config struct {
 	NickName      []string `json:"nickname"`       // 机器人名称
 	CommandPrefix string   `json:"command_prefix"` // 触发命令
-	SuperUsers    []string `json:"super_users"`    // 超级用户
+	SuperUsers    []int64  `json:"super_users"`    // 超级用户
 	Driver        []Driver `json:"-"`              // 通信驱动
+}
+
+// Load loads bot config from file
+func Load(file string) (c Config, err error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	err = json.NewDecoder(f).Decode(&c)
+	return
+}
+
+// Save saves bot config into file
+func (c *Config) Save(file string) error {
+	f, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return json.NewEncoder(f).Encode(c)
 }
 
 // APICallers 所有的APICaller列表， 通过self-ID映射
@@ -49,15 +72,16 @@ func Run(op Config) {
 }
 
 // RunAndBlock 主函数初始化并阻塞
-func RunAndBlock(op Config, prelisten func()) {
+//    prelisten 在所有 Driver 连接后，调用最后一个 Driver 的 Listen 阻塞前执行本函数
+func RunAndBlock(op Config, preblock func()) {
 	BotConfig = op
 	switch len(op.Driver) {
 	case 0:
 		return
 	case 1:
 		op.Driver[0].Connect()
-		if prelisten != nil {
-			prelisten()
+		if preblock != nil {
+			preblock()
 		}
 		op.Driver[0].Listen(processEvent)
 	default:
@@ -67,8 +91,8 @@ func RunAndBlock(op Config, prelisten func()) {
 			go op.Driver[i].Listen(processEvent)
 		}
 		op.Driver[i].Connect()
-		if prelisten != nil {
-			prelisten()
+		if preblock != nil {
+			preblock()
 		}
 		op.Driver[i].Listen(processEvent)
 	}
@@ -89,7 +113,29 @@ func processEvent(response []byte, caller APICaller) {
 	if err == nil {
 		event.MessageID = messageID
 	} else {
+		// 是 guild 消息，进行如下转换以适配非 guild 插件
+		// MessageID 填为 string
 		event.MessageID, _ = strconv.Unquote(helper.BytesToString(event.RawMessageID))
+		// 伪造 GroupID
+		crc := crc64.New(crc64.MakeTable(crc64.ISO))
+		crc.Write(helper.StringToBytes(event.GuildID))
+		crc.Write(helper.StringToBytes(event.ChannelID))
+		r := int64(crc.Sum64() & 0x7fff_ffff_ffff_ffff) // 确保为正数
+		if r <= 0xffff_ffff {
+			r |= 0x1_0000_0000 // 确保不与正常号码重叠
+		}
+		event.GroupID = r
+		// 伪造 UserID
+		crc.Reset()
+		crc.Write(helper.StringToBytes(event.TinyID))
+		r = int64(crc.Sum64() & 0x7fff_ffff_ffff_ffff) // 确保为正数
+		if r <= 0xffff_ffff {
+			r |= 0x1_0000_0000 // 确保不与正常号码重叠
+		}
+		event.UserID = r
+		if event.Sender != nil {
+			event.Sender.ID = r
+		}
 	}
 
 	switch event.PostType { // process DetailType
@@ -192,7 +238,7 @@ func preprocessMessageEvent(e *Event) {
 		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
 		processAt()
 	case e.DetailType == "guild" && e.SubType == "channel":
-		log.Infof("收到频道(%v-%v)消息 %v : %v", e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
+		log.Infof("收到频道(%v)(%v-%v)消息 %v : %v", e.GroupID, e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
 		processAt()
 	default:
 		e.IsToMe = true // 私聊也判断为at

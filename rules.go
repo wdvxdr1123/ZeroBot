@@ -219,9 +219,8 @@ func OnlyGuild(ctx *Ctx) bool {
 
 // SuperUserPermission only triggered by the bot's owner
 func SuperUserPermission(ctx *Ctx) bool {
-	uid := strconv.FormatInt(ctx.Event.UserID, 10)
 	for _, su := range BotConfig.SuperUsers {
-		if su == uid {
+		if su == ctx.Event.UserID {
 			return true
 		}
 	}

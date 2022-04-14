@@ -1,38 +1,37 @@
 package single
 
 import (
-	"sync"
-
+	"github.com/RomiChan/syncx"
 	zero "github.com/wdvxdr1123/ZeroBot"
 )
 
 // Option 配置项
-type Option func(*Single)
+type Option[K comparable] func(*Single[K])
 
 // Single 反并发
-type Single struct {
-	group sync.Map
-	key   func(ctx *zero.Ctx) interface{}
+type Single[K comparable] struct {
+	group syncx.Map[K, struct{}]
+	key   func(ctx *zero.Ctx) K
 	post  func(ctx *zero.Ctx)
 }
 
 // WithKeyFn 指定反并发的 Key
-func WithKeyFn(fn func(ctx *zero.Ctx) interface{}) Option {
-	return func(s *Single) {
+func WithKeyFn[K comparable](fn func(ctx *zero.Ctx) K) Option[K] {
+	return func(s *Single[K]) {
 		s.key = fn
 	}
 }
 
 // WithPostFn 指定反并发拦截后的操作
-func WithPostFn(fn func(ctx *zero.Ctx)) Option {
-	return func(s *Single) {
+func WithPostFn[K comparable](fn func(ctx *zero.Ctx)) Option[K] {
+	return func(s *Single[K]) {
 		s.post = fn
 	}
 }
 
 // New 创建反并发中间件
-func New(op ...Option) *Single {
-	s := Single{}
+func New[K comparable](op ...Option[K]) *Single[K] {
+	s := Single[K]{}
 	for _, option := range op {
 		option(&s)
 	}
@@ -40,7 +39,7 @@ func New(op ...Option) *Single {
 }
 
 // Apply 为指定 Engine 添加反并发功能
-func (s *Single) Apply(engine *zero.Engine) {
+func (s *Single[K]) Apply(engine *zero.Engine) {
 	engine.UsePreHandler(func(ctx *zero.Ctx) bool {
 		if s.key == nil {
 			return true
@@ -58,6 +57,6 @@ func (s *Single) Apply(engine *zero.Engine) {
 	})
 
 	engine.UsePostHandler(func(ctx *zero.Ctx) {
-		s.group.Delete(ctx.State["__single-key__"])
+		s.group.Delete(ctx.State["__single-key__"].(K))
 	})
 }
