@@ -8,7 +8,7 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	cache := NewCache(time.Second)
+	cache := NewCache[string, string](time.Second)
 
 	data := cache.Get("hello")
 	assert.Nil(t, data)
@@ -19,7 +19,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestExpiration(t *testing.T) {
-	cache := NewCache(time.Second)
+	cache := NewCache[string, string](time.Second)
 
 	cache.Set("x", "1")
 	cache.Set("y", "z")

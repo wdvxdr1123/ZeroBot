@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	limit = rate.NewManager(time.Minute*1, 1)
+	limit = rate.NewManager[int64](time.Minute*1, 1)
 	m     = manager.New("music", &manager.Options{DisableOnDefault: false})
 )
 
@@ -21,10 +21,10 @@ func init() {
 	engine := zero.New()
 
 	single.New(
-		single.WithKeyFn(func(ctx *zero.Ctx) interface{} {
+		single.WithKeyFn(func(ctx *zero.Ctx) int64 {
 			return ctx.Event.UserID
 		}),
-		single.WithPostFn(func(ctx *zero.Ctx) {
+		single.WithPostFn[int64](func(ctx *zero.Ctx) {
 			ctx.Send("您有操作正在执行，请稍后再试!")
 		}),
 	).Apply(engine)

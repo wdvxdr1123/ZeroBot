@@ -10,25 +10,25 @@ import (
 )
 
 // LimiterManager ...
-type LimiterManager struct {
-	limiters *ttl.Cache
+type LimiterManager[K comparable] struct {
+	limiters *ttl.Cache[K, *Limiter]
 	interval time.Duration
 	burst    int
 }
 
 // NewManager ..
-func NewManager(interval time.Duration, burst int) *LimiterManager {
-	return &LimiterManager{
-		limiters: ttl.NewCache(interval * time.Duration(burst)),
+func NewManager[K comparable](interval time.Duration, burst int) *LimiterManager[K] {
+	return &LimiterManager[K]{
+		limiters: ttl.NewCache[K, *Limiter](interval * time.Duration(burst)),
 		interval: interval,
 		burst:    burst,
 	}
 }
 
 // Load ...
-func (l *LimiterManager) Load(key interface{}) *Limiter {
+func (l *LimiterManager[K]) Load(key K) *Limiter {
 	if val := l.limiters.Get(key); val != nil {
-		return val.(*Limiter)
+		return val
 	}
 	val := NewLimiter(l.interval, l.burst)
 	l.limiters.Set(key, val)

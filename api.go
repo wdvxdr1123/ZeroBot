@@ -107,7 +107,7 @@ func (ctx *Ctx) GetMessage(messageID message.MessageID) Message {
 	}).Data
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
-		MessageId:   message.NewMessageID(rsp.Get("message_id").Raw),
+		MessageId:   message.NewMessageIDFromInteger(rsp.Get("message_id").Int()),
 		MessageType: rsp.Get("message_type").String(),
 		Sender:      &User{},
 	}
@@ -365,6 +365,7 @@ func (ctx *Ctx) GetWordSlices(content string) gjson.Result {
 	}).Data
 }
 
+// SendGuildChannelMessage 发送频道消息
 func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID string, message interface{}) string {
 	rsp := ctx.CallAction("send_guild_channel_msg", Params{
 		"guild_id":   guildID,
