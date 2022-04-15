@@ -3,7 +3,6 @@ package zero
 import (
 	"encoding/json"
 	"hash/crc64"
-	"os"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -21,27 +20,6 @@ type Config struct {
 	CommandPrefix string   `json:"command_prefix"` // 触发命令
 	SuperUsers    []int64  `json:"super_users"`    // 超级用户
 	Driver        []Driver `json:"-"`              // 通信驱动
-}
-
-// Load loads bot config from file
-func Load(file string) (c Config, err error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	err = json.NewDecoder(f).Decode(&c)
-	return
-}
-
-// Save saves bot config into file
-func (c *Config) Save(file string) error {
-	f, err := os.Create(file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return json.NewEncoder(f).Encode(c)
 }
 
 // APICallers 所有的APICaller列表， 通过self-ID映射
