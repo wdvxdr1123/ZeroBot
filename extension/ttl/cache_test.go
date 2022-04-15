@@ -11,7 +11,7 @@ func TestGet(t *testing.T) {
 	cache := NewCache[string, string](time.Second)
 
 	data := cache.Get("hello")
-	assert.Nil(t, data)
+	assert.Equal(t, "", data)
 
 	cache.Set("hello", "world")
 	data = cache.Get("hello")
@@ -31,10 +31,10 @@ func TestExpiration(t *testing.T) {
 
 	<-time.After(time.Second)
 	val = cache.Get("x")
-	assert.Equal(t, nil, val)
+	assert.Equal(t, "", val)
 	val = cache.Get("y")
-	assert.Equal(t, nil, val)
+	assert.Equal(t, "", val)
 	val = cache.Get("z")
-	assert.Equal(t, nil, val)
+	assert.Equal(t, "", val)
 	assert.Equal(t, 0, len(cache.items))
 }
