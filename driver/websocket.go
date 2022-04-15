@@ -43,24 +43,16 @@ func NewWebSocketClient(url, accessToken string) *WSClient {
 	}
 }
 
-func cut(s, sep string) (before, after string, found bool) {
-	if i := strings.Index(s, sep); i >= 0 {
-		return s[:i], s[i+len(sep):], true
-	}
-	return s, "", false
-}
-
 func resolveURI(addr string) (network, address string) {
 	network, address = "tcp", addr
 	uri, err := url.Parse(addr)
 	if err == nil && uri.Scheme != "" {
-		// TODO(wdvxdr1123): use strings.Cut after switching to Go 1.18
-		scheme, ext, _ := cut(uri.Scheme, "+")
+		scheme, ext, _ := strings.Cut(uri.Scheme, "+")
 		if ext != "" {
 			network = ext
 			uri.Scheme = scheme // remove `+unix`/`+tcp4`
 			if ext == "unix" {
-				uri.Host, uri.Path, _ = cut(uri.Path, ":")
+				uri.Host, uri.Path, _ = strings.Cut(uri.Path, ":")
 				uri.Host = base64.StdEncoding.EncodeToString([]byte(uri.Host)) // special handle for unix
 			}
 			address = uri.String()
