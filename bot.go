@@ -90,7 +90,7 @@ func processEvent(response []byte, caller APICaller) {
 	messageID, err := strconv.ParseInt(helper.BytesToString(event.RawMessageID), 10, 64)
 	if err == nil {
 		event.MessageID = messageID
-	} else {
+	} else if event.MessageType == "guild" {
 		// 是 guild 消息，进行如下转换以适配非 guild 插件
 		// MessageID 填为 string
 		event.MessageID, _ = strconv.Unquote(helper.BytesToString(event.RawMessageID))
