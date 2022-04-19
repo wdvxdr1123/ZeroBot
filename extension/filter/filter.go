@@ -40,11 +40,11 @@ func Or(filters ...FilterFunc) FilterFunc {
 func And(filters ...FilterFunc) FilterFunc {
 	return func(result gjson.Result) bool {
 		for _, filter := range filters {
-			if filter(result) {
-				return true
+			if !filter(result) {
+				return false
 			}
 		}
-		return false
+		return true
 	}
 }
 
