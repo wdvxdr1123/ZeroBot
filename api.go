@@ -357,6 +357,87 @@ func (ctx *Ctx) GetGroupSystemMessage() gjson.Result {
 	return ctx.CallAction("get_group_system_msg", Params{}).Data
 }
 
+// MarkMessageAsRead 标记消息已读
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%A0%87%E8%AE%B0%E6%B6%88%E6%81%AF%E5%B7%B2%E8%AF%BB
+func (ctx *Ctx) MarkMessageAsRead(messageID int64) APIResponse {
+	return ctx.CallAction("mark_msg_as_read", Params{
+		"message_id": messageID,
+	})
+}
+
+// MarkThisMessageAsRead 标记本消息已读
+func (ctx *Ctx) MarkThisMessageAsRead() APIResponse {
+	return ctx.CallAction("mark_msg_as_read", Params{
+		"message_id": ctx.Event.MessageID,
+	})
+}
+
+// GetOnlineClients 获取当前账号在线客户端列表
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%B4%A6%E5%8F%B7%E5%9C%A8%E7%BA%BF%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetOnlineClients(noCache bool) gjson.Result {
+	return ctx.CallAction("get_online_clients", Params{
+		"no_cache": noCache,
+	}).Data
+}
+
+// GetGroupAtAllRemain 获取群@全体成员剩余次数
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E5%85%A8%E4%BD%93%E6%88%90%E5%91%98%E5%89%A9%E4%BD%99%E6%AC%A1%E6%95%B0
+func (ctx *Ctx) GetGroupAtAllRemain(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_at_all_remain", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetGroupMessageHistory 获取群消息历史记录
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%B6%88%E6%81%AF%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95
+//    messageID: 起始消息序号, 可通过 get_msg 获得
+func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID int64) gjson.Result {
+	return ctx.CallAction("get_group_msg_history", Params{
+		"group_id":    groupID,
+		"message_seq": messageID,
+	}).Data
+}
+
+// GetThisGroupMessageHistory 获取本群消息历史记录
+//    messageID: 起始消息序号, 可通过 get_msg 获得
+func (ctx *Ctx) GetThisGroupMessageHistory(messageID int64) gjson.Result {
+	return ctx.CallAction("get_group_msg_history", Params{
+		"group_id":    ctx.Event.GroupID,
+		"message_seq": messageID,
+	}).Data
+}
+
+// GetGroupEssenceMessageList 获取群精华消息列表
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%B2%BE%E5%8D%8E%E6%B6%88%E6%81%AF%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetGroupEssenceMessageList(groupID int64) gjson.Result {
+	return ctx.CallAction("get_essence_msg_list", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupEssenceMessageList 获取本群精华消息列表
+func (ctx *Ctx) GetThisGroupEssenceMessageList() gjson.Result {
+	return ctx.CallAction("get_essence_msg_list", Params{
+		"group_id": ctx.Event.GroupID,
+	}).Data
+}
+
+// SetGroupEssenceMessage 设置群精华消息
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%AE%BE%E7%BD%AE%E7%B2%BE%E5%8D%8E%E6%B6%88%E6%81%AF
+func (ctx *Ctx) SetGroupEssenceMessage(messageID int64) APIResponse {
+	return ctx.CallAction("set_essence_msg", Params{
+		"message_id": messageID,
+	})
+}
+
+// DeleteGroupEssenceMessage 移出群精华消息
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E7%A7%BB%E5%87%BA%E7%B2%BE%E5%8D%8E%E6%B6%88%E6%81%AF
+func (ctx *Ctx) DeleteGroupEssenceMessage(messageID int64) APIResponse {
+	return ctx.CallAction("delete_essence_msg", Params{
+		"message_id": messageID,
+	})
+}
+
 // GetWordSlices 获取中文分词
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D
 func (ctx *Ctx) GetWordSlices(content string) gjson.Result {
@@ -398,4 +479,86 @@ func (ctx *Ctx) CardOrNickName(uid int64) (name string) {
 		name = ctx.GetStrangerInfo(uid, false).Get("nickname").String()
 	}
 	return
+}
+
+// GetGroupFilesystemInfo 获取群文件系统信息
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF
+func (ctx *Ctx) GetGroupFilesystemInfo(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_file_system_info", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetGroupRootFiles 获取群根目录文件列表
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%A0%B9%E7%9B%AE%E5%BD%95%E6%96%87%E4%BB%B6%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetGroupRootFiles(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_root_files", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupRootFiles 获取本群根目录文件列表
+func (ctx *Ctx) GetThisGroupRootFiles(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_root_files", Params{
+		"group_id": ctx.Event.GroupID,
+	}).Data
+}
+
+// GetGroupFilesByFolder 获取群子目录文件列表
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E5%AD%90%E7%9B%AE%E5%BD%95%E6%96%87%E4%BB%B6%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetGroupFilesByFolder(groupID int64, folderID string) gjson.Result {
+	return ctx.CallAction("get_group_files_by_folder", Params{
+		"group_id":  groupID,
+		"folder_id": folderID,
+	}).Data
+}
+
+// GetThisGroupFilesByFolder 获取本群子目录文件列表
+func (ctx *Ctx) GetThisGroupFilesByFolder(folderID string) gjson.Result {
+	return ctx.CallAction("get_group_files_by_folder", Params{
+		"group_id":  ctx.Event.GroupID,
+		"folder_id": folderID,
+	}).Data
+}
+
+// GetGroupFileUrl 获取群文件资源链接
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E9%93%BE%E6%8E%A5
+func (ctx *Ctx) GetGroupFileUrl(groupID, busid int64, fileID string) string {
+	return ctx.CallAction("get_group_file_url", Params{
+		"group_id": groupID,
+		"file_id":  fileID,
+		"busid":    busid,
+	}).Data.Get("url").Str
+}
+
+// GetThisGroupFileUrl 获取本群文件资源链接
+func (ctx *Ctx) GetThisGroupFileUrl(busid int64, fileID string) string {
+	return ctx.CallAction("get_group_file_url", Params{
+		"group_id": ctx.Event.GroupID,
+		"file_id":  fileID,
+		"busid":    busid,
+	}).Data.Get("url").Str
+}
+
+// UploadGroupFile 上传群文件
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E4%B8%8A%E4%BC%A0%E7%BE%A4%E6%96%87%E4%BB%B6
+//    msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
+func (ctx *Ctx) UploadGroupFile(groupID int64, file, name, folder string) APIResponse {
+	return ctx.CallAction("upload_group_file", Params{
+		"group_id": groupID,
+		"file":     file,
+		"name":     name,
+		"folder":   folder,
+	})
+}
+
+// UploadThisGroupFile 上传本群文件
+//    msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
+func (ctx *Ctx) UploadThisGroupFile(file, name, folder string) APIResponse {
+	return ctx.CallAction("upload_group_file", Params{
+		"group_id": ctx.Event.GroupID,
+		"file":     file,
+		"name":     name,
+		"folder":   folder,
+	})
 }
