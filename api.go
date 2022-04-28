@@ -291,6 +291,30 @@ func (ctx *Ctx) GetGroupMemberList(groupID int64) gjson.Result {
 	}).Data
 }
 
+// GetThisGroupMemberList 获取本群成员列表
+func (ctx *Ctx) GetThisGroupMemberList() gjson.Result {
+	return ctx.CallAction("get_group_member_list", Params{
+		"group_id": ctx.Event.GroupID,
+	}).Data
+}
+
+// GetGroupMemberListNoCache 无缓存获取群员列表
+// https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_group_member_list-%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%88%90%E5%91%98%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetGroupMemberListNoCache(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_member_list", Params{
+		"group_id": groupID,
+		"no_cache": true,
+	}).Data
+}
+
+// GetThisGroupMemberListNoCache 无缓存获取本群员列表
+func (ctx *Ctx) GetThisGroupMemberListNoCache() gjson.Result {
+	return ctx.CallAction("get_group_member_list", Params{
+		"group_id": ctx.Event.GroupID,
+		"no_cache": true,
+	}).Data
+}
+
 // GetGroupHonorInfo 获取群荣誉信息
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_group_honor_info-%E8%8E%B7%E5%8F%96%E7%BE%A4%E8%8D%A3%E8%AA%89%E4%BF%A1%E6%81%AF
 func (ctx *Ctx) GetGroupHonorInfo(groupID int64, hType string) gjson.Result {
@@ -398,12 +422,26 @@ func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID int64) gjson.Result {
 	}).Data
 }
 
+// GettLatestGroupMessageHistory 获取最新群消息历史记录
+func (ctx *Ctx) GetLatestGroupMessageHistory(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_msg_history", Params{
+		"group_id": groupID,
+	}).Data
+}
+
 // GetThisGroupMessageHistory 获取本群消息历史记录
 //    messageID: 起始消息序号, 可通过 get_msg 获得
 func (ctx *Ctx) GetThisGroupMessageHistory(messageID int64) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
 		"group_id":    ctx.Event.GroupID,
 		"message_seq": messageID,
+	}).Data
+}
+
+// GettLatestThisGroupMessageHistory 获取最新本群消息历史记录
+func (ctx *Ctx) GetLatestThisGroupMessageHistory() gjson.Result {
+	return ctx.CallAction("get_group_msg_history", Params{
+		"group_id": ctx.Event.GroupID,
 	}).Data
 }
 
