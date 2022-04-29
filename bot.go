@@ -133,7 +133,7 @@ func processEvent(response []byte, caller APICaller) {
 		State:  State{},
 		caller: caller,
 	}
-	matcherLock.RLock()
+	matcherLock.Lock()
 	if hasMatcherListChanged {
 		if len(matcherListForRanging) < len(matcherList) {
 			matcherListForRanging = append(
@@ -146,7 +146,7 @@ func processEvent(response []byte, caller APICaller) {
 		copy(matcherListForRanging, matcherList)
 		hasMatcherListChanged = false
 	}
-	matcherLock.RUnlock()
+	matcherLock.Unlock()
 loop:
 	for _, matcher := range matcherListForRanging {
 		if !matcher.Type(ctx) {
