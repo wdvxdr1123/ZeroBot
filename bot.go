@@ -140,6 +140,8 @@ func processEvent(response []byte, caller APICaller) {
 				matcherListForRanging,
 				make([]*Matcher, len(matcherList)-len(matcherListForRanging))...,
 			)
+		} else if len(matcherListForRanging) > len(matcherList) {
+			matcherListForRanging = matcherListForRanging[:len(matcherList)]
 		}
 		copy(matcherListForRanging, matcherList)
 	}
