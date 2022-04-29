@@ -37,6 +37,12 @@ var (
 	matcherList = make([]*Matcher, 0)
 	// Matcher 修改读写锁
 	matcherLock = sync.RWMutex{}
+	// 用于迭代的所有主匹配器列表
+	matcherListForRanging []*Matcher
+	// 是否 matcherList 已经改变
+	// 如果改变，下次迭代需要更新
+	// matcherListForRanging
+	hasMatcherListChanged bool
 )
 
 // State store the context of a matcher.
@@ -46,6 +52,7 @@ func sortMatcher() {
 	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
 		return matcherList[i].Priority < matcherList[j].Priority
 	})
+	hasMatcherListChanged = true
 }
 
 // SetBlock 设置是否阻断后面的 Matcher 触发
@@ -111,6 +118,7 @@ func (m *Matcher) Delete() {
 	for i, matcher := range matcherList {
 		if m == matcher {
 			matcherList = append(matcherList[:i], matcherList[i+1:]...)
+			hasMatcherListChanged = true
 		}
 	}
 }
