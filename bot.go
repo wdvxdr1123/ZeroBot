@@ -144,6 +144,7 @@ func processEvent(response []byte, caller APICaller) {
 			matcherListForRanging = matcherListForRanging[:len(matcherList)]
 		}
 		copy(matcherListForRanging, matcherList)
+		hasMatcherListChanged = false
 	}
 	matcherLock.RUnlock()
 loop:
