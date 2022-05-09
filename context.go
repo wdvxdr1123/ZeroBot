@@ -96,6 +96,11 @@ func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
 	return ctx.Send((message.Message)(msg))
 }
 
+// Echo 向自身分发虚拟事件
+func (ctx *Ctx) Echo(response []byte) {
+	processEvent(response, ctx.caller)
+}
+
 // FutureEvent ...
 func (ctx *Ctx) FutureEvent(Type string, rule ...Rule) *FutureEvent {
 	return ctx.ma.FutureEvent(Type, rule...)
