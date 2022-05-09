@@ -251,7 +251,9 @@ func HasPicture(ctx *Ctx) bool {
 	var urls = []string{}
 	for _, elem := range ctx.Event.Message {
 		if elem.Type == "image" {
-			urls = append(urls, elem.Data["url"])
+			if elem.Data["url"] != "" {
+				urls = append(urls, elem.Data["url"])
+			}
 		}
 	}
 	if len(urls) > 0 {
