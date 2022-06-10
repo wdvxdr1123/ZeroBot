@@ -14,6 +14,7 @@ type Cache[K comparable, V any] struct {
 	onget func(K, V)
 	ondel func(K, V)
 	ontch func(K, V)
+	stop  func() // Stop stops the gc loop
 }
 
 // NewCache 创建指定生命周期的 Cache
@@ -32,25 +33,44 @@ func NewCacheOn[K comparable, V any](ttl time.Duration, on [4]func(K, V)) *Cache
 		ondel: on[2],
 		ontch: on[3],
 	}
-	go cache.gc() // async gc
+	cache.stop = cache.gc() // async gc
 	return cache
 }
 
-func (c *Cache[K, V]) gc() {
+func (c *Cache[K, V]) gc() (stop func()) {
 	ticker := time.NewTicker(time.Minute)
-	for {
-		<-ticker.C
-		c.Lock()
-		for key, item := range c.items {
-			if item.expired() {
-				if c.ondel != nil {
-					c.ondel(key, c.items[key].value)
+	stopchan := make(chan struct{})
+	go func() {
+	loop:
+		for {
+			select {
+			case <-ticker.C:
+				c.Lock()
+				for key, item := range c.items {
+					if item.expired() {
+						if c.ondel != nil {
+							c.ondel(key, c.items[key].value)
+						}
+						delete(c.items, key)
+					}
 				}
-				delete(c.items, key)
+				c.Unlock()
+			case <-stopchan:
+				break loop
 			}
 		}
-		c.Unlock()
+	}()
+	return func() {
+		ticker.Stop()
+		stopchan <- struct{}{}
 	}
+}
+
+// Destroy 销毁 chahe, 不可再使用, 否则 panic
+func (c *Cache[K, V]) Destroy() {
+	c.stop()
+	c.items = nil
+	c.stop = nil
 }
 
 // Get 通过 key 获取指定的元素
