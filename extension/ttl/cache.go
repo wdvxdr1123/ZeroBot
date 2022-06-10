@@ -10,13 +10,27 @@ type Cache[K comparable, V any] struct {
 	sync.RWMutex
 	ttl   time.Duration
 	items map[K]*Item[V]
+	onset func(K, V)
+	onget func(K, V)
+	ondel func(K, V)
+	ontch func(K, V)
 }
 
 // NewCache 创建指定生命周期的 Cache
 func NewCache[K comparable, V any](ttl time.Duration) *Cache[K, V] {
+	return NewCacheOn(ttl, [4]func(K, V){})
+}
+
+// NewCacheOn 创建指定生命周期的 Cache
+//   on: [onset, onget, ondel, ontouch]
+func NewCacheOn[K comparable, V any](ttl time.Duration, on [4]func(K, V)) *Cache[K, V] {
 	cache := &Cache[K, V]{
 		ttl:   ttl,
 		items: map[K]*Item[V]{},
+		onset: on[0],
+		onget: on[1],
+		ondel: on[2],
+		ontch: on[3],
 	}
 	go cache.gc() // async gc
 	return cache
@@ -29,6 +43,9 @@ func (c *Cache[K, V]) gc() {
 		c.Lock()
 		for key, item := range c.items {
 			if item.expired() {
+				if c.ondel != nil {
+					c.ondel(key, c.items[key].value)
+				}
 				delete(c.items, key)
 			}
 		}
@@ -49,6 +66,9 @@ func (c *Cache[K, V]) Get(key K) (v V) {
 		return
 	}
 	item.exp = time.Now().Add(c.ttl) // reset the expired time
+	if c.onget != nil {
+		c.onget(key, item.value)
+	}
 	return item.value
 }
 
@@ -61,12 +81,18 @@ func (c *Cache[K, V]) Set(key K, val V) {
 		value: val,
 	}
 	c.items[key] = item
+	if c.onset != nil {
+		c.onset(key, val)
+	}
 }
 
 // Delete 删除指定key
 func (c *Cache[K, V]) Delete(key K) {
 	c.Lock()
 	defer c.Unlock()
+	if c.ondel != nil {
+		c.ondel(key, c.items[key].value)
+	}
 	delete(c.items, key)
 }
 
@@ -76,5 +102,8 @@ func (c *Cache[K, V]) Touch(key K, ttl time.Duration) {
 	defer c.Unlock()
 	if c.items[key] != nil {
 		c.items[key].exp = c.items[key].exp.Add(ttl)
+		if c.ontch != nil {
+			c.ontch(key, c.items[key].value)
+		}
 	}
 }
