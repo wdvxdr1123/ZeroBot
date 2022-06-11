@@ -20,6 +20,9 @@ func TestFilter(t *testing.T) {
 		RawEvent: rawEvent,
 	}
 	result := Filter(
+		func(ctx *zero.Ctx) gjson.Result {
+			return ctx.Event.RawEvent
+		},
 		Field("post_type").Any(
 			Equal("notice"),
 			Not(

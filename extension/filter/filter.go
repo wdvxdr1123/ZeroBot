@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/tidwall/gjson"
-
-	zero "github.com/wdvxdr1123/ZeroBot"
 )
 
 type (
@@ -18,9 +16,9 @@ type (
 )
 
 // Filter return a rule filter the message.
-func Filter(filters ...FilterFunc) zero.Rule {
-	return func(ctx *zero.Ctx) bool {
-		return And(filters...)(ctx.Event.RawEvent)
+func Filter[Ctx any](getevent func(Ctx) gjson.Result, filters ...FilterFunc) func(ctx Ctx) bool {
+	return func(ctx Ctx) bool {
+		return And(filters...)(getevent(ctx))
 	}
 }
 
