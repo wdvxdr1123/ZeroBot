@@ -56,7 +56,8 @@ func (s *Single[K]) Apply(engine *zero.Engine) {
 		return true
 	})
 
-	engine.UsePostHandler(func(ctx *zero.Ctx) {
+	engine.UsePostHandler(func(ctx *zero.Ctx) bool {
 		s.group.Delete(ctx.State["__single-key__"].(K))
+		return true
 	})
 }

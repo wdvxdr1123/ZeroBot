@@ -4,7 +4,7 @@ package zero
 func New() *Engine {
 	return &Engine{
 		preHandler:  []Rule{},
-		postHandler: []Handler{},
+		postHandler: []Rule{},
 	}
 }
 
@@ -13,7 +13,7 @@ var defaultEngine = New()
 // Engine is the pre_handler, post_handler manager
 type Engine struct {
 	preHandler  []Rule
-	postHandler []Handler
+	postHandler []Rule
 	block       bool
 	matchers    []*Matcher
 }
@@ -44,8 +44,8 @@ func (e *Engine) UsePreHandler(rules ...Rule) {
 // 则后续的 post handler 不会触发
 //
 // 不知道有啥用...(先留一个
-func (e *Engine) UsePostHandler(handler ...Handler) {
-	e.postHandler = append(e.postHandler, handler...)
+func (e *Engine) UsePostHandler(rules ...Rule) {
+	e.postHandler = append(e.postHandler, rules...)
 }
 
 // On 添加新的指定消息类型的匹配器(默认Engine)
