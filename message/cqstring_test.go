@@ -75,8 +75,10 @@ var benchBase64 = `[CQ:image,file=base64://iVBORw0KGgoAAAANSUhEUgAAAuwAAALsCAIAA
 
 func TestParseMessageFromString_Base64(t *testing.T) {
 	assert.Equal(t,
-		"[CQ:image,file=384719ec36e304efa42c746d0cd40576.image]", ParseMessageFromString(benchBase64).String())
+		"[CQ:image,file=384719ec36e304efa42c746d0cd40576.image]", ParseMessageFromString(benchBase64).CQCode())
+	assert.Equal(t, benchBase64, ParseMessageFromString(benchBase64).String())
 }
+
 func BenchmarkParseMessageFromString_Base64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		ParseMessageFromString(benchBase64)
