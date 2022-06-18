@@ -25,6 +25,11 @@ type MessageSegment struct {
 	Data map[string]string `json:"data"`
 }
 
+// CQCoder 用于 log 打印 CQ 码
+type CQCoder interface {
+	CQCode() string
+}
+
 // EscapeCQText escapes special characters in a non-media plain message.\
 //
 // CQ码字符转换
@@ -71,13 +76,10 @@ func UnescapeCQCodeText(str string) string {
 }
 
 // CQCode 将数组消息转换为CQ码
-// Deprecated: use String instead.
+// 与 String 不同之处在于，对于
+// base64 的图片消息会将其哈希
+// 方便 log 打印，不可用作发送
 func (m MessageSegment) CQCode() string {
-	return m.String()
-}
-
-// String impls the interface fmt.Stringer
-func (m MessageSegment) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("[CQ:")
 	sb.WriteString(m.Type)
@@ -108,6 +110,42 @@ func (m MessageSegment) String() string {
 		}
 	}
 	sb.WriteByte(']')
+	return sb.String()
+}
+
+// String impls the interface fmt.Stringer
+func (m MessageSegment) String() string {
+	sb := strings.Builder{}
+	sb.WriteString("[CQ:")
+	sb.WriteString(m.Type)
+	for k, v := range m.Data { // 消息参数
+		// sb.WriteString("," + k + "=" + escape(v))
+		sb.WriteByte(',')
+		sb.WriteString(k)
+		sb.WriteByte('=')
+		if m.Type == "node" {
+			sb.WriteString(v)
+		} else {
+			sb.WriteString(EscapeCQCodeText(v))
+		}
+	}
+	sb.WriteByte(']')
+	return sb.String()
+}
+
+// CQCode 将数组消息转换为CQ码
+// 与 String 不同之处在于，对于
+// base64 的图片消息会将其哈希
+// 方便 log 打印，不可用作发送
+func (m Message) CQCode() string {
+	sb := strings.Builder{}
+	for _, media := range m {
+		if media.Type != "text" {
+			sb.WriteString(media.CQCode())
+		} else {
+			sb.WriteString(EscapeCQText(media.Data["text"]))
+		}
+	}
 	return sb.String()
 }
 

@@ -25,6 +25,8 @@ func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:
 		return m
+	case message.CQCoder:
+		return m.CQCode()
 	case fmt.Stringer:
 		return m.String()
 	default:
