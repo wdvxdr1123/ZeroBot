@@ -79,38 +79,32 @@ func (ctx *Ctx) CheckSession() Rule {
 	}
 }
 
-// Send 快捷发送消息
+// Send 快捷发送消息/合并转发
 func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
-	if event.DetailType == "guild" {
-		return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
-	}
-	if event.GroupID != 0 {
-		return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
+	for _, m := range msg.(message.Message) {
+		if m.Type == "node" {
+			if event.DetailType == "guild" {
+				return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, message.Text("频道不支持发送合并转发消息")))
+			}
+			if event.GroupID != 0 {
+				return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg.(message.Message)).Get("message_id").Int())
+			}
+			return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg.(message.Message)).Get("message_id").Int())
+		}
+		if event.DetailType == "guild" {
+			return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
+		}
+		if event.GroupID != 0 {
+			return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
+		}
 	}
 	return message.NewMessageIDFromInteger(ctx.SendPrivateMessage(event.UserID, msg))
 }
 
-// SendForward 快捷发送合并转发消息
-func (ctx *Ctx) SendForward(msg interface{}) message.MessageID {
-	event := ctx.Event
-	if event.DetailType == "guild" {
-		return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, message.Text("频道不支持发送合并转发消息")))
-	}
-	if event.GroupID != 0 {
-		return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg.(message.Message)).Get("message_id").Int())
-	}
-	return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg.(message.Message)).Get("message_id").Int())
-}
-
-// SendChain 快捷发送消息-消息链
+// SendChain 快捷发送消息/合并转发-消息链
 func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
 	return ctx.Send((message.Message)(msg))
-}
-
-// SendChainForward 快捷发送合并转发消息-消息链
-func (ctx *Ctx) SendChainForward(msg ...message.MessageSegment) message.MessageID {
-	return ctx.SendForward((message.Message)(msg))
 }
 
 // Echo 向自身分发虚拟事件
