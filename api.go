@@ -375,6 +375,15 @@ func (ctx *Ctx) SendGroupForwardMessage(groupID int64, message message.Message) 
 	}).Data
 }
 
+// SendPrivateForwardMessage 发送合并转发(私聊)
+// https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E5%9B%BE%E7%89%87ocr
+func (ctx *Ctx) SendPrivateForwardMessage(userID int64, message message.Message) gjson.Result {
+	return ctx.CallAction("send_private_forward_msg", Params{
+		"user_id":  userID,
+		"messages": message,
+	}).Data
+}
+
 // GetGroupSystemMessage 获取群系统消息
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF
 func (ctx *Ctx) GetGroupSystemMessage() gjson.Result {
