@@ -84,24 +84,13 @@ func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
 	switch msg := msg.(type) {
 	case message.Message:
-		switch msg[0].Type {
-		case "node":
-			if event.DetailType == "guild" {
-				return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, message.Text("频道不支持发送合并转发消息")))
-			}
+		if len(msg) > 0 && msg[0].Type == "node" && event.DetailType != "guild" {
 			if event.GroupID != 0 {
 				return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg).Get("message_id").Int())
 			}
 			return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg).Get("message_id").Int())
-		default:
-			if event.DetailType == "guild" {
-				return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
-			}
-			if event.GroupID != 0 {
-				return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
-			}
-			return message.NewMessageIDFromInteger(ctx.SendPrivateMessage(event.UserID, msg))
 		}
+		fallthrough
 	default:
 		if event.DetailType == "guild" {
 			return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
