@@ -92,9 +92,9 @@ func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	}
 	if ok && len(m) > 0 && m[0].Type == "node" && event.DetailType != "guild" {
 		if event.GroupID != 0 {
-			return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg).Get("message_id").Int())
+			return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int())
 		}
-		return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg).Get("message_id").Int())
+		return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, m).Get("message_id").Int())
 	}
 	if event.DetailType == "guild" {
 		return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
