@@ -82,24 +82,27 @@ func (ctx *Ctx) CheckSession() Rule {
 // Send 快捷发送消息/合并转发
 func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
-	switch msg := msg.(type) {
-	case message.Message:
-		if len(msg) > 0 && msg[0].Type == "node" && event.DetailType != "guild" {
-			if event.GroupID != 0 {
-				return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg).Get("message_id").Int())
-			}
-			return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg).Get("message_id").Int())
+	msg, ok := msg.(message.Message)
+	if !ok {
+		var msgp *message.Message
+		msgp, ok = msg.(*message.Message)
+		if ok {
+			msg = *msgp
 		}
-		fallthrough
-	default:
-		if event.DetailType == "guild" {
-			return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
-		}
-		if event.GroupID != 0 {
-			return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
-		}
-		return message.NewMessageIDFromInteger(ctx.SendPrivateMessage(event.UserID, msg))
 	}
+	if ok && len(msg) > 0 && msg[0].Type == "node" && event.DetailType != "guild" {
+		if event.GroupID != 0 {
+			return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg).Get("message_id").Int())
+		}
+		return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.GroupID, msg).Get("message_id").Int())
+	}
+	if event.DetailType == "guild" {
+		return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
+	}
+	if event.GroupID != 0 {
+		return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
+	}
+	return message.NewMessageIDFromInteger(ctx.SendPrivateMessage(event.UserID, msg))
 }
 
 // SendChain 快捷发送消息/合并转发-消息链
