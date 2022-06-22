@@ -82,15 +82,15 @@ func (ctx *Ctx) CheckSession() Rule {
 // Send 快捷发送消息/合并转发
 func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 	event := ctx.Event
-	msg, ok := msg.(message.Message)
+	m, ok := msg.(message.Message)
 	if !ok {
-		var msgp *message.Message
-		msgp, ok = msg.(*message.Message)
+		var p *message.Message
+		p, ok = msg.(*message.Message)
 		if ok {
-			msg = *msgp
+			m = *p
 		}
 	}
-	if ok && len(msg) > 0 && msg[0].Type == "node" && event.DetailType != "guild" {
+	if ok && len(m) > 0 && m[0].Type == "node" && event.DetailType != "guild" {
 		if event.GroupID != 0 {
 			return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, msg).Get("message_id").Int())
 		}
