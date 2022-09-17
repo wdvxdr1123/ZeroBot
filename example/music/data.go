@@ -1,7 +1,7 @@
 package music
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -19,7 +19,7 @@ func queryNeteaseMusic(musicName string) int64 {
 	if err != nil {
 		return 0
 	}
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if err != nil {
 		return 0
