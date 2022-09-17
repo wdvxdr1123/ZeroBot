@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wdvxdr1123/ZeroBot/extension/ttl"
+	"github.com/FloatTech/ttl"
 )
 
 // LimiterManager ...
