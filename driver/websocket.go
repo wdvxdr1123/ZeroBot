@@ -70,7 +70,7 @@ func (ws *WSClient) Connect() {
 		"User-Agent":    []string{"ZeroBot/0.9.2"},
 	}
 	if ws.AccessToken != "" {
-		header["Authorization"] = []string{"Bear " + ws.AccessToken}
+		header["Authorization"] = []string{"Bearer " + ws.AccessToken}
 	}
 
 	network, address := resolveURI(ws.Url)
