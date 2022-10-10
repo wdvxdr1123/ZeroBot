@@ -18,6 +18,8 @@ type Matcher struct {
 	Temp bool
 	// Block 是否阻断后续 Matcher，为 true 时当前Matcher匹配成功后，后续Matcher不参与匹配
 	Block bool
+	// Break 是否退出后续匹配流程, 只有 rule 返回 false 且此值为真才会退出, 且不对 mid handler 以下的 rule 生效
+	Break bool
 	// Priority 优先级，越小优先级越高
 	Priority int
 	// Event 当前匹配到的事件

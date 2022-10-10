@@ -136,9 +136,14 @@ func (ctx *Ctx) ExtractPlainText() string {
 	return ctx.Event.Message.ExtractPlainText()
 }
 
-// Block 阻止后续触发
+// Block 匹配成功后阻止后续触发
 func (ctx *Ctx) Block() {
 	ctx.ma.SetBlock(true)
+}
+
+// Block 在 pre, rules, mid 阶段阻止后续触发
+func (ctx *Ctx) Break() {
+	ctx.ma.Break = true
 }
 
 // MessageString 字符串消息便于Regex
