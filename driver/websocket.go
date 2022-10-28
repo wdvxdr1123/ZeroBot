@@ -98,13 +98,15 @@ func (ws *WSClient) Connect() {
 		}
 		ws.conn = conn
 		_ = res.Body.Close()
-		rsp, _ := ws.CallApi(zero.APIRequest{
-			Action: "get_login_info",
-			Params: nil,
-		})
-		ws.selfID = rsp.Data.Get("user_id").Int()
-		zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
-		log.Infof("连接Websocket服务器: %v 成功", ws.Url)
+		go func() {
+			rsp, _ := ws.CallApi(zero.APIRequest{
+				Action: "get_login_info",
+				Params: nil,
+			})
+			ws.selfID = rsp.Data.Get("user_id").Int()
+			zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
+			log.Infof("连接Websocket服务器: %v 成功", ws.Url)
+		}()
 		break
 	}
 }
