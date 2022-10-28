@@ -93,9 +93,7 @@ func RunAndBlock(op Config, preblock func()) {
 	}
 }
 
-// processEventAsync 异步从池中处理事件
-//
-//	函数本身并未 go, 需要调用者 go
+// processEventAsync 从池中处理事件, 异步调用匹配 mather
 func processEventAsync(response []byte, caller APICaller) {
 	var event Event
 	_ = json.Unmarshal(response, &event)
@@ -168,7 +166,7 @@ func processEventAsync(response []byte, caller APICaller) {
 func match(ctx *Ctx) {
 	defer func() {
 		if pa := recover(); pa != nil {
-			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
+			log.Errorf("handle event err: %v\n%v", pa, helper.BytesToString(debug.Stack()))
 		}
 	}()
 	matcherListForRangingLock.RLock()
@@ -181,9 +179,7 @@ loop:
 		for k := range ctx.State { // Clear State
 			delete(ctx.State, k)
 		}
-		matcherLock.RLock()
 		m := matcher.copy()
-		matcherLock.RUnlock()
 		ctx.ma = m
 
 		// pre handler
