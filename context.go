@@ -112,7 +112,7 @@ func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
 
 // Echo 向自身分发虚拟事件
 func (ctx *Ctx) Echo(response []byte) {
-	processEvent(response, ctx.caller)
+	evring.processEvent(response, ctx.caller)
 }
 
 // FutureEvent ...

@@ -19,6 +19,7 @@ type Config struct {
 	NickName      []string `json:"nickname"`       // 机器人名称
 	CommandPrefix string   `json:"command_prefix"` // 触发命令
 	SuperUsers    []int64  `json:"super_users"`    // 超级用户
+	RingLen       uint     `json:"ring_len"`       // 事件环长度
 	Driver        []Driver `json:"-"`              // 通信驱动
 }
 
@@ -40,12 +41,20 @@ type Driver interface {
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
 var BotConfig Config
 
+// evring 事件环
+var evring eventRing
+
 // Run 主函数初始化
 func Run(op Config) {
+	if op.RingLen == 0 {
+		op.RingLen = 4096
+	}
 	BotConfig = op
+	evring = newring(op.RingLen)
+	go evring.handle()
 	for _, driver := range op.Driver {
 		driver.Connect()
-		go driver.Listen(processEvent)
+		go driver.Listen(evring.processEvent)
 	}
 }
 
@@ -53,7 +62,12 @@ func Run(op Config) {
 //
 //	prelisten 在所有 Driver 连接后，调用最后一个 Driver 的 Listen 阻塞前执行本函数
 func RunAndBlock(op Config, preblock func()) {
+	if op.RingLen == 0 {
+		op.RingLen = 4096
+	}
 	BotConfig = op
+	evring = newring(op.RingLen)
+	go evring.handle()
 	switch len(op.Driver) {
 	case 0:
 		return
@@ -62,23 +76,25 @@ func RunAndBlock(op Config, preblock func()) {
 		if preblock != nil {
 			preblock()
 		}
-		op.Driver[0].Listen(processEvent)
+		op.Driver[0].Listen(evring.processEvent)
 	default:
 		i := 0
 		for ; i < len(op.Driver)-1; i++ {
 			op.Driver[i].Connect()
-			go op.Driver[i].Listen(processEvent)
+			go op.Driver[i].Listen(evring.processEvent)
 		}
 		op.Driver[i].Connect()
 		if preblock != nil {
 			preblock()
 		}
-		op.Driver[i].Listen(processEvent)
+		op.Driver[i].Listen(evring.processEvent)
 	}
 }
 
-// processEvent 处理事件
-func processEvent(response []byte, caller APICaller) {
+// processEventAsync 异步从池中处理事件
+//
+//	函数本身并未 go, 需要调用者 go
+func processEventAsync(response []byte, caller APICaller) {
 	defer func() {
 		if pa := recover(); pa != nil {
 			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
