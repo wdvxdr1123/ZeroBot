@@ -1,9 +1,9 @@
 # ZeroBot
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/wdvxdr1123/ZeroBot)](https://goreportcard.com/report/github.com/github.com/wdvxdr1123/ZeroBot)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wdvxdr1123/ZeroBot)](https://goreportcard.com/report/github.com/wdvxdr1123/ZeroBot)
 ![golangci-lint](https://github.com/wdvxdr1123/ZeroBot/workflows/golang-ci/badge.svg)
 ![Badge](https://img.shields.io/badge/OneBot-v11-black)
-![Badge](https://img.shields.io/badge/gocqhttp-v1.0.0--rc1-black)
+![Badge](https://img.shields.io/badge/gocqhttp-v1.0.0-black)
 [![License](https://img.shields.io/github/license/wdvxdr1123/ZeroBot.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/wdvxdr1123/ZeroBot/main/LICENSE)
 [![qq group](https://img.shields.io/badge/group-892659456-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=E6Zov6Fi)
 
