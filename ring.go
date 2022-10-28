@@ -2,7 +2,10 @@ package zero
 
 import (
 	"container/ring"
+	"math/rand"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 type eventRing struct {
@@ -12,8 +15,9 @@ type eventRing struct {
 
 type eventRingItem struct {
 	sync.Mutex
-	response []byte
-	caller   APICaller
+	response     []byte
+	caller       APICaller
+	isprocessing uintptr
 }
 
 func newring(ringLen uint) eventRing {
@@ -35,20 +39,29 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 	defer evr.Unlock()
 	r := evr.r
 	it := r.Value.(*eventRingItem)
+	if atomic.LoadUintptr(&it.isprocessing) > 0 { // 池满, 丢弃事件
+		return
+	}
 	it.response = response
 	it.caller = caller
+	atomic.StoreUintptr(&it.isprocessing, 1)
 	it.Unlock() // 开始处理事件
 	evr.r = r.Next()
 }
 
 // handle 循环处理事件
-func (evr *eventRing) handle() {
+//
+//	latency 延迟 latency + (0~1000ms) 再处理事件
+func (evr *eventRing) handle(latency time.Duration) {
 	r := evr.r
 	for {
 		it := r.Value.(*eventRingItem)
 		it.Lock()
+		if latency > 0 {
+			time.Sleep(latency + time.Duration(rand.Intn(1000))*time.Millisecond)
+		}
 		processEventAsync(it.response, it.caller)
-		it.Unlock()
+		atomic.StoreUintptr(&it.isprocessing, 1)
 		r = r.Next()
 	}
 }

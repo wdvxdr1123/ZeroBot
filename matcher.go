@@ -39,6 +39,8 @@ var (
 	matcherList = make([]*Matcher, 0)
 	// Matcher 修改读写锁
 	matcherLock = sync.RWMutex{}
+	// matcherListForRanging 修改读写锁
+	matcherListForRangingLock = sync.RWMutex{}
 	// 用于迭代的所有主匹配器列表
 	matcherListForRanging []*Matcher
 	// 是否 matcherList 已经改变

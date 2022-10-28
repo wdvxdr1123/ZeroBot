@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -16,11 +17,12 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	NickName      []string `json:"nickname"`       // 机器人名称
-	CommandPrefix string   `json:"command_prefix"` // 触发命令
-	SuperUsers    []int64  `json:"super_users"`    // 超级用户
-	RingLen       uint     `json:"ring_len"`       // 事件环长度
-	Driver        []Driver `json:"-"`              // 通信驱动
+	NickName      []string      `json:"nickname"`       // 机器人名称
+	CommandPrefix string        `json:"command_prefix"` // 触发命令
+	SuperUsers    []int64       `json:"super_users"`    // 超级用户
+	RingLen       uint          `json:"ring_len"`       // 事件环长度
+	Latency       time.Duration `json:"latency"`        // 事件处理延迟 (延迟 latency + (0~1000ms) 再处理事件)
+	Driver        []Driver      `json:"-"`              // 通信驱动
 }
 
 // APICallers 所有的APICaller列表， 通过self-ID映射
@@ -51,7 +53,7 @@ func Run(op Config) {
 	}
 	BotConfig = op
 	evring = newring(op.RingLen)
-	go evring.handle()
+	go evring.handle(op.Latency)
 	for _, driver := range op.Driver {
 		driver.Connect()
 		go driver.Listen(evring.processEvent)
@@ -67,7 +69,7 @@ func RunAndBlock(op Config, preblock func()) {
 	}
 	BotConfig = op
 	evring = newring(op.RingLen)
-	go evring.handle()
+	go evring.handle(op.Latency)
 	switch len(op.Driver) {
 	case 0:
 		return
@@ -95,12 +97,6 @@ func RunAndBlock(op Config, preblock func()) {
 //
 //	函数本身并未 go, 需要调用者 go
 func processEventAsync(response []byte, caller APICaller) {
-	defer func() {
-		if pa := recover(); pa != nil {
-			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
-		}
-	}()
-
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = gjson.Parse(helper.BytesToString(response))
@@ -152,6 +148,7 @@ func processEventAsync(response []byte, caller APICaller) {
 	}
 	matcherLock.Lock()
 	if hasMatcherListChanged {
+		matcherListForRangingLock.Lock()
 		if len(matcherListForRanging) < len(matcherList) {
 			matcherListForRanging = append(
 				matcherListForRanging,
@@ -162,8 +159,20 @@ func processEventAsync(response []byte, caller APICaller) {
 		}
 		copy(matcherListForRanging, matcherList)
 		hasMatcherListChanged = false
+		matcherListForRangingLock.Unlock()
 	}
 	matcherLock.Unlock()
+	go match(ctx)
+}
+
+func match(ctx *Ctx) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			log.Errorf("handle event err: %v\n%v", pa, string(debug.Stack()))
+		}
+	}()
+	matcherListForRangingLock.RLock()
+	defer matcherListForRangingLock.RUnlock()
 loop:
 	for _, matcher := range matcherListForRanging {
 		if !matcher.Type(ctx) {
