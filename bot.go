@@ -146,31 +146,20 @@ func processEventAsync(response []byte, caller APICaller) {
 	}
 	matcherLock.Lock()
 	if hasMatcherListChanged {
-		matcherListForRangingLock.Lock()
-		if len(matcherListForRanging) < len(matcherList) {
-			matcherListForRanging = append(
-				matcherListForRanging,
-				make([]*Matcher, len(matcherList)-len(matcherListForRanging))...,
-			)
-		} else if len(matcherListForRanging) > len(matcherList) {
-			matcherListForRanging = matcherListForRanging[:len(matcherList)]
-		}
+		matcherListForRanging = make([]*Matcher, len(matcherList))
 		copy(matcherListForRanging, matcherList)
 		hasMatcherListChanged = false
-		matcherListForRangingLock.Unlock()
 	}
 	matcherLock.Unlock()
-	go match(ctx)
+	go match(ctx, matcherListForRanging)
 }
 
-func match(ctx *Ctx) {
+func match(ctx *Ctx, matchers []*Matcher) {
 	defer func() {
 		if pa := recover(); pa != nil {
 			log.Errorf("handle event err: %v\n%v", pa, helper.BytesToString(debug.Stack()))
 		}
 	}()
-	matcherListForRangingLock.RLock()
-	defer matcherListForRangingLock.RUnlock()
 loop:
 	for _, matcher := range matcherListForRanging {
 		if !matcher.Type(ctx) {
