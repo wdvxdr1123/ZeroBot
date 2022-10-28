@@ -161,7 +161,7 @@ func match(ctx *Ctx, matchers []*Matcher) {
 		}
 	}()
 loop:
-	for _, matcher := range matcherListForRanging {
+	for _, matcher := range matchers {
 		if !matcher.Type(ctx) {
 			continue
 		}
