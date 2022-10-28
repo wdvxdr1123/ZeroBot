@@ -39,12 +39,11 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 	defer evr.Unlock()
 	r := evr.r
 	it := r.Value.(*eventRingItem)
-	if atomic.LoadUintptr(&it.isprocessing) > 0 { // 池满, 丢弃事件
+	if !atomic.CompareAndSwapUintptr(&it.isprocessing, 0, 1) { // 池满, 丢弃事件
 		return
 	}
 	it.response = response
 	it.caller = caller
-	atomic.StoreUintptr(&it.isprocessing, 1)
 	it.Unlock() // 开始处理事件
 	evr.r = r.Next()
 }
@@ -61,7 +60,7 @@ func (evr *eventRing) handle(latency time.Duration) {
 			time.Sleep(latency + time.Duration(rand.Intn(1000))*time.Millisecond)
 		}
 		processEventAsync(it.response, it.caller)
-		atomic.StoreUintptr(&it.isprocessing, 1)
+		atomic.StoreUintptr(&it.isprocessing, 0)
 		r = r.Next()
 	}
 }
