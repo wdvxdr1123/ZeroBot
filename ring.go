@@ -16,9 +16,9 @@ type eventRing struct {
 
 type eventRingItem struct {
 	sync.Mutex
-	response     []byte
-	caller       APICaller
-	isprocessing uintptr
+	recvtime int64 // atomic field
+	response []byte
+	caller   APICaller
 }
 
 func newring(ringLen uint) eventRing {
@@ -40,7 +40,7 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 	defer evr.Unlock()
 	r := evr.r
 	it := r.Value.(*eventRingItem)
-	if !atomic.CompareAndSwapUintptr(&it.isprocessing, 0, 1) { // 池满, 丢弃事件
+	if !atomic.CompareAndSwapInt64(&it.recvtime, 0, time.Now().UnixNano()) { // 池满, 丢弃事件
 		return
 	}
 	it.response = response
@@ -51,15 +51,19 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 
 // handle 循环处理事件
 //
-//	latency 延迟 latency + (0~1000ms) 再处理事件
+//	latency 延迟 latency + (0~100ms) 再处理事件
 func (evr *eventRing) handle(latency, maxwait time.Duration) {
 	r := evr.r
 	for {
 		it := r.Value.(*eventRingItem)
 		it.Lock()
-		time.Sleep(latency + time.Duration(rand.Intn(100))*time.Millisecond)
-		processEventAsync(it.response, it.caller, maxwait)
-		atomic.StoreUintptr(&it.isprocessing, 0)
+		if time.Now().UnixNano()-it.recvtime < int64(maxwait/time.Nanosecond) {
+			time.Sleep(latency + time.Duration(rand.Intn(100))*time.Millisecond)
+			processEventAsync(it.response, it.caller, maxwait)
+		} // 等待时间太长，不做处理直接跳过
+		it.response = nil
+		it.caller = nil
+		atomic.StoreInt64(&it.recvtime, 0)
 		r = r.Next()
 		runtime.GC()
 	}
