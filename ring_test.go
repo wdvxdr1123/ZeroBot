@@ -14,10 +14,10 @@ var buf [256]byte
 
 func TestRing(t *testing.T) {
 	r := newring(128)
-	go r.testHandle(8 * time.Millisecond)
 	for i := 0; i < 256; i++ {
 		r.testProcessEvent([]byte{byte(i), byte(i)}, nil)
 	}
+	go r.testHandle(8 * time.Millisecond)
 	time.Sleep(8 * time.Millisecond * 300)
 	for i := 128; i < 256; i++ {
 		if buf[i] != byte(i) {
