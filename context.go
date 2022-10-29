@@ -146,6 +146,11 @@ func (ctx *Ctx) Break() {
 	ctx.ma.Break = true
 }
 
+// NoTimeout 处理时不设超时
+func (ctx *Ctx) NoTimeout() {
+	ctx.ma.NoTimeout = true
+}
+
 // MessageString 字符串消息便于Regex
 func (ctx *Ctx) MessageString() string {
 	ctx.once.Do(func() {

@@ -20,7 +20,7 @@ func init() {
 }
 
 func main() {
-	zero.RunAndBlock(zero.Config{
+	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
 		SuperUsers:    []int64{123456},

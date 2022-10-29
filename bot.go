@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -17,12 +18,13 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	NickName      []string      `json:"nickname"`       // 机器人名称
-	CommandPrefix string        `json:"command_prefix"` // 触发命令
-	SuperUsers    []int64       `json:"super_users"`    // 超级用户
-	RingLen       uint          `json:"ring_len"`       // 事件环长度
-	Latency       time.Duration `json:"latency"`        // 事件处理延迟 (延迟 latency + (0~1000ms) 再处理事件)
-	Driver        []Driver      `json:"-"`              // 通信驱动
+	NickName       []string      `json:"nickname"`         // 机器人名称
+	CommandPrefix  string        `json:"command_prefix"`   // 触发命令
+	SuperUsers     []int64       `json:"super_users"`      // 超级用户
+	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认4096)
+	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency + (0~100ms) 再处理事件) (默认1min)
+	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
+	Driver         []Driver      `json:"-"`                // 通信驱动
 }
 
 // APICallers 所有的APICaller列表， 通过self-ID映射
@@ -43,17 +45,32 @@ type Driver interface {
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝
 var BotConfig Config
 
-// evring 事件环
-var evring eventRing
+var (
+	evring    eventRing // evring 事件环
+	isrunning uintptr
+)
 
-// Run 主函数初始化
-func Run(op Config) {
+func runinit(op *Config) {
 	if op.RingLen == 0 {
 		op.RingLen = 4096
 	}
-	BotConfig = op
+	if op.Latency == 0 {
+		op.Latency = time.Second
+	}
+	if op.MaxProcessTime == 0 {
+		op.MaxProcessTime = time.Minute * 4
+	}
+	BotConfig = *op
 	evring = newring(op.RingLen)
-	go evring.handle(op.Latency)
+	go evring.handle(op.Latency, op.MaxProcessTime)
+}
+
+// Run 主函数初始化
+func Run(op *Config) {
+	if !atomic.CompareAndSwapUintptr(&isrunning, 0, 1) {
+		log.Warnln("[bot] 已忽略重复调用的 Run")
+	}
+	runinit(op)
 	for _, driver := range op.Driver {
 		driver.Connect()
 		go driver.Listen(evring.processEvent)
@@ -62,14 +79,12 @@ func Run(op Config) {
 
 // RunAndBlock 主函数初始化并阻塞
 //
-//	prelisten 在所有 Driver 连接后，调用最后一个 Driver 的 Listen 阻塞前执行本函数
-func RunAndBlock(op Config, preblock func()) {
-	if op.RingLen == 0 {
-		op.RingLen = 4096
+//	preblock 在所有 Driver 连接后，调用最后一个 Driver 的 Listen 阻塞前执行本函数
+func RunAndBlock(op *Config, preblock func()) {
+	if !atomic.CompareAndSwapUintptr(&isrunning, 0, 1) {
+		log.Warnln("[bot] 已忽略重复调用的 RunAndBlock")
 	}
-	BotConfig = op
-	evring = newring(op.RingLen)
-	go evring.handle(op.Latency)
+	runinit(op)
 	switch len(op.Driver) {
 	case 0:
 		return
@@ -94,7 +109,7 @@ func RunAndBlock(op Config, preblock func()) {
 }
 
 // processEventAsync 从池中处理事件, 异步调用匹配 mather
-func processEventAsync(response []byte, caller APICaller) {
+func processEventAsync(response []byte, caller APICaller, maxwait time.Duration) {
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = gjson.Parse(helper.BytesToString(response))
@@ -151,15 +166,39 @@ func processEventAsync(response []byte, caller APICaller) {
 		hasMatcherListChanged = false
 	}
 	matcherLock.Unlock()
-	go match(ctx, matcherListForRanging)
+	go match(ctx, matcherListForRanging, maxwait)
 }
 
-func match(ctx *Ctx, matchers []*Matcher) {
-	defer func() {
-		if pa := recover(); pa != nil {
-			log.Errorf("handle event err: %v\n%v", pa, helper.BytesToString(debug.Stack()))
-		}
-	}()
+func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
+	gorule := func(rule Rule) <-chan bool {
+		ch := make(chan bool, 1)
+		go func() {
+			defer func() {
+				close(ch)
+				if pa := recover(); pa != nil {
+					log.Errorf("[bot] execute rule err: %v\n%v", pa, helper.BytesToString(debug.Stack()))
+				}
+			}()
+			ch <- rule(ctx)
+		}()
+		return ch
+	}
+	gohandler := func(h Handler) <-chan struct{} {
+		ch := make(chan struct{}, 1)
+		go func() {
+			defer func() {
+				close(ch)
+				if pa := recover(); pa != nil {
+					log.Errorf("[bot] execute handler err: %v\n%v", pa, helper.BytesToString(debug.Stack()))
+				}
+			}()
+			h(ctx)
+			ch <- struct{}{}
+		}()
+		return ch
+	}
+	t := time.NewTimer(maxwait)
+	defer t.Stop()
 loop:
 	for _, matcher := range matchers {
 		if !matcher.Type(ctx) {
@@ -174,38 +213,94 @@ loop:
 		// pre handler
 		if m.Engine != nil {
 			for _, handler := range m.Engine.preHandler {
-				if !handler(ctx) { // 有 pre handler 未满足
-					if m.Break { // 阻断后续
+				c := gorule(handler)
+				for {
+					select {
+					case ok := <-c:
+						if !ok { // 有 pre handler 未满足
+							if m.Break { // 阻断后续
+								break loop
+							}
+							continue loop
+						}
+					case <-t.C:
+						if m.NoTimeout { // 不设超时限制
+							t.Reset(maxwait)
+							continue
+						}
+						log.Warnln("[bot] preHandler 处理达到最大时延, 退出")
 						break loop
 					}
-					continue loop
+					break
 				}
 			}
 		}
 
 		for _, rule := range m.Rules {
-			if rule != nil && !rule(ctx) { // 有 Rule 的条件未满足
-				if m.Break { // 阻断后续
+			c := gorule(rule)
+			for {
+				select {
+				case ok := <-c:
+					if !ok { // 有 Rule 的条件未满足
+						if m.Break { // 阻断后续
+							break loop
+						}
+						continue loop
+					}
+				case <-t.C:
+					if m.NoTimeout { // 不设超时限制
+						t.Reset(maxwait)
+						continue
+					}
+					log.Warnln("[bot] rule 处理达到最大时延, 退出")
 					break loop
 				}
-				continue loop
+				break
 			}
+
 		}
 
 		// mid handler
 		if m.Engine != nil {
 			for _, handler := range m.Engine.midHandler {
-				if !handler(ctx) { // 有 mid handler 未满足
-					if m.Break { // 阻断后续
+				c := gorule(handler)
+				for {
+					select {
+					case ok := <-c:
+						if !ok { // 有 mid handler 未满足
+							if m.Break { // 阻断后续
+								break loop
+							}
+							continue loop
+						}
+					case <-t.C:
+						if m.NoTimeout { // 不设超时限制
+							t.Reset(maxwait)
+							continue
+						}
+						log.Warnln("[bot] midHandler 处理达到最大时延, 退出")
 						break loop
 					}
-					continue loop
+					break
 				}
 			}
 		}
 
 		if m.Handler != nil {
-			m.Handler(ctx) // 处理事件
+			c := gohandler(m.Handler)
+			for {
+				select {
+				case <-c: // 处理事件
+				case <-t.C:
+					if m.NoTimeout { // 不设超时限制
+						t.Reset(maxwait)
+						continue
+					}
+					log.Warnln("[bot] Handler 处理达到最大时延, 退出")
+					break loop
+				}
+				break
+			}
 		}
 		if matcher.Temp { // 临时 Matcher 删除
 			matcher.Delete()
@@ -214,7 +309,20 @@ loop:
 		if m.Engine != nil {
 			// post handler
 			for _, handler := range m.Engine.postHandler {
-				handler(ctx)
+				c := gohandler(handler)
+				for {
+					select {
+					case <-c:
+					case <-t.C:
+						if m.NoTimeout { // 不设超时限制
+							t.Reset(maxwait)
+							continue
+						}
+						log.Warnln("[bot] postHandler 处理达到最大时延, 退出")
+						break loop
+					}
+					break
+				}
 			}
 		}
 
@@ -257,14 +365,14 @@ func preprocessMessageEvent(e *Event) {
 
 	switch {
 	case e.DetailType == "group":
-		log.Infof("收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
+		log.Infof("[bot] 收到群(%v)消息 %v : %v", e.GroupID, e.Sender.String(), e.RawMessage)
 		processAt()
 	case e.DetailType == "guild" && e.SubType == "channel":
-		log.Infof("收到频道(%v)(%v-%v)消息 %v : %v", e.GroupID, e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
+		log.Infof("[bot] 收到频道(%v)(%v-%v)消息 %v : %v", e.GroupID, e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
 		processAt()
 	default:
 		e.IsToMe = true // 私聊也判断为at
-		log.Infof("收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
+		log.Infof("[bot] 收到私聊消息 %v : %v", e.Sender.String(), e.RawMessage)
 	}
 	if len(e.Message) > 0 && e.Message[0].Type == "text" { // Trim Again!
 		e.Message[0].Data["text"] = strings.TrimLeft(e.Message[0].Data["text"], " ")

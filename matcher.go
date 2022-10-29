@@ -20,6 +20,8 @@ type Matcher struct {
 	Block bool
 	// Break 是否退出后续匹配流程, 只有 rule 返回 false 且此值为真才会退出, 且不对 mid handler 以下的 rule 生效
 	Break bool
+	// NoTimeout 处理是否不设超时
+	NoTimeout bool
 	// Priority 优先级，越小优先级越高
 	Priority int
 	// Event 当前匹配到的事件

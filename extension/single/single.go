@@ -1,6 +1,8 @@
 package single
 
 import (
+	"runtime"
+
 	"github.com/RomiChan/syncx"
 	zero "github.com/wdvxdr1123/ZeroBot"
 )
@@ -53,6 +55,9 @@ func (s *Single[K]) Apply(engine *zero.Engine) {
 		}
 		s.group.Store(key, struct{}{})
 		ctx.State["__single-key__"] = key
+		runtime.SetFinalizer(ctx, func(ctx *zero.Ctx) { // 防止任务因 panic 使反并发无法回收
+			s.group.Delete(ctx.State["__single-key__"].(K))
+		})
 		return true
 	})
 

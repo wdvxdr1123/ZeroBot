@@ -3,6 +3,7 @@ package zero
 import (
 	"container/ring"
 	"math/rand"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -51,16 +52,15 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 // handle 循环处理事件
 //
 //	latency 延迟 latency + (0~1000ms) 再处理事件
-func (evr *eventRing) handle(latency time.Duration) {
+func (evr *eventRing) handle(latency, maxwait time.Duration) {
 	r := evr.r
 	for {
 		it := r.Value.(*eventRingItem)
 		it.Lock()
-		if latency > 0 {
-			time.Sleep(latency + time.Duration(rand.Intn(1000))*time.Millisecond)
-		}
-		processEventAsync(it.response, it.caller)
+		time.Sleep(latency + time.Duration(rand.Intn(100))*time.Millisecond)
+		processEventAsync(it.response, it.caller, maxwait)
 		atomic.StoreUintptr(&it.isprocessing, 0)
 		r = r.Next()
+		runtime.GC()
 	}
 }

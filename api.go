@@ -20,7 +20,8 @@ import (
 var base64Reg = regexp.MustCompile(`"type":"image","data":\{"file":"base64://[\w/\+=]+`)
 
 // formatMessage 格式化消息数组
-//    仅用在 log 打印
+//
+//	仅用在 log 打印
 func formatMessage(msg interface{}) string {
 	switch m := msg.(type) {
 	case string:
@@ -55,10 +56,10 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 	}
 	rsp, err := ctx.caller.CallApi(req)
 	if err != nil {
-		log.Errorf("调用 API: %v 时出现错误: %v", action, err.Error())
+		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}
 	if err == nil && rsp.RetCode != 0 {
-		log.Errorf("调用 API: %v 时出现错误, RetCode: %v, Msg: %v, Wording: %v", action, rsp.RetCode, rsp.Msg, rsp.Wording)
+		log.Errorln("[api] 调用", action, "时出现错误, 返回值:", rsp.RetCode, ", 信息:", rsp.Msg, "解释:", rsp.Wording)
 	}
 	return rsp
 }
@@ -71,7 +72,7 @@ func (ctx *Ctx) SendGroupMessage(groupID int64, message interface{}) int64 {
 		"message":  message,
 	}).Data.Get("message_id")
 	if rsp.Exists() {
-		log.Infof("发送群消息(%v): %v (id=%v)", groupID, formatMessage(message), rsp.Int())
+		log.Infof("[api] 发送群消息(%v): %v (id=%v)", groupID, formatMessage(message), rsp.Int())
 		return rsp.Int()
 	}
 	return 0 // 无法获取返回值
@@ -85,7 +86,7 @@ func (ctx *Ctx) SendPrivateMessage(userID int64, message interface{}) int64 {
 		"message": message,
 	}).Data.Get("message_id")
 	if rsp.Exists() {
-		log.Infof("发送私聊消息(%v): %v (id=%v)", userID, formatMessage(message), rsp.Int())
+		log.Infof("[api] 发送私聊消息(%v): %v (id=%v)", userID, formatMessage(message), rsp.Int())
 		return rsp.Int()
 	}
 	return 0 // 无法获取返回值
@@ -93,6 +94,7 @@ func (ctx *Ctx) SendPrivateMessage(userID int64, message interface{}) int64 {
 
 // DeleteMessage 撤回消息
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#delete_msg-%E6%92%A4%E5%9B%9E%E6%B6%88%E6%81%AF
+//
 //nolint:interfacer
 func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
 	ctx.CallAction("delete_msg", Params{
@@ -102,6 +104,7 @@ func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
 
 // GetMessage 获取消息
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
+//
 //nolint:interfacer
 func (ctx *Ctx) GetMessage(messageID message.MessageID) Message {
 	rsp := ctx.CallAction("get_msg", Params{
@@ -425,7 +428,8 @@ func (ctx *Ctx) GetGroupAtAllRemain(groupID int64) gjson.Result {
 
 // GetGroupMessageHistory 获取群消息历史记录
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%B6%88%E6%81%AF%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95
-//    messageID: 起始消息序号, 可通过 get_msg 获得
+//
+//	messageID: 起始消息序号, 可通过 get_msg 获得
 func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID int64) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
 		"group_id":    groupID,
@@ -441,7 +445,8 @@ func (ctx *Ctx) GetLatestGroupMessageHistory(groupID int64) gjson.Result {
 }
 
 // GetThisGroupMessageHistory 获取本群消息历史记录
-//    messageID: 起始消息序号, 可通过 get_msg 获得
+//
+//	messageID: 起始消息序号, 可通过 get_msg 获得
 func (ctx *Ctx) GetThisGroupMessageHistory(messageID int64) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
 		"group_id":    ctx.Event.GroupID,
@@ -503,7 +508,7 @@ func (ctx *Ctx) SendGuildChannelMessage(guildID, channelID string, message inter
 		"message":    message,
 	}).Data.Get("message_id")
 	if rsp.Exists() {
-		log.Infof("发送频道消息(%v-%v): %v (id=%v)", guildID, channelID, formatMessage(message), rsp.Int())
+		log.Infof("[api] 发送频道消息(%v-%v): %v (id=%v)", guildID, channelID, formatMessage(message), rsp.Int())
 		return rsp.String()
 	}
 	return "0" // 无法获取返回值
@@ -591,7 +596,8 @@ func (ctx *Ctx) GetThisGroupFileUrl(busid int64, fileID string) string {
 
 // UploadGroupFile 上传群文件
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E4%B8%8A%E4%BC%A0%E7%BE%A4%E6%96%87%E4%BB%B6
-//    msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
+//
+//	msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
 func (ctx *Ctx) UploadGroupFile(groupID int64, file, name, folder string) APIResponse {
 	return ctx.CallAction("upload_group_file", Params{
 		"group_id": groupID,
@@ -602,7 +608,8 @@ func (ctx *Ctx) UploadGroupFile(groupID int64, file, name, folder string) APIRes
 }
 
 // UploadThisGroupFile 上传本群文件
-//    msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
+//
+//	msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
 func (ctx *Ctx) UploadThisGroupFile(file, name, folder string) APIResponse {
 	return ctx.CallAction("upload_group_file", Params{
 		"group_id": ctx.Event.GroupID,

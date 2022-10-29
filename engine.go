@@ -54,7 +54,7 @@ func (e *Engine) UseMidHandler(rules ...Rule) {
 // 会在 Matcher 触发后触发，如果 PostHandler 返回 false,
 // 则后续的 post handler 不会触发
 //
-// 不知道有啥用...(先留一个
+// 可用于反并发等
 func (e *Engine) UsePostHandler(handler ...Handler) {
 	e.postHandler = append(e.postHandler, handler...)
 }
