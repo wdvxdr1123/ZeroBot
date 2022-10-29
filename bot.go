@@ -3,6 +3,7 @@ package zero
 import (
 	"encoding/json"
 	"hash/crc64"
+	"math/rand"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -62,7 +63,7 @@ func runinit(op *Config) {
 	}
 	BotConfig = *op
 	evring = newring(op.RingLen)
-	go evring.handle(op.Latency, op.MaxProcessTime)
+	evring.loop(op.Latency, op.MaxProcessTime, processEventAsync)
 }
 
 // Run 主函数初始化
@@ -169,6 +170,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 	go match(ctx, matcherListForRanging, maxwait)
 }
 
+// match 延迟 (1~100ms) 再处理事件
 func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
 	gorule := func(rule Rule) <-chan bool {
 		ch := make(chan bool, 1)
@@ -197,6 +199,7 @@ func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
 		}()
 		return ch
 	}
+	time.Sleep(time.Duration(rand.Intn(100)+1) * time.Millisecond)
 	t := time.NewTimer(maxwait)
 	defer t.Stop()
 loop:
