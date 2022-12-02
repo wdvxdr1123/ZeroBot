@@ -51,6 +51,6 @@ func main() {
 
 ## 特别感谢
 
-- [nonebot/nonebot2](https://github.com/nonebot/nonebot2)
+- [nonebot/nonebot2](https://github.com/nonebot/nonebot2): 跨平台 Python 异步聊天机器人框架
 
-- [catsworld/qq-bot-api](https://github.com/catsworld/qq-bot-api)
+- [catsworld/qq-bot-api](https://github.com/catsworld/qq-bot-api): Golang bindings for the Coolq HTTP API Plugin
