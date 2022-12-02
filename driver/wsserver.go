@@ -123,7 +123,7 @@ func (wss *WSServer) any(w http.ResponseWriter, r *http.Request) {
 		selfID: rsp.SelfID,
 	}
 	zero.APICallers.Store(rsp.SelfID, c) // 添加Caller到 APICaller list...
-	log.Infof("[wss] 连接Websocket服务器: %v 成功", wss.Url)
+	log.Infof("[wss] 连接Websocket服务器: %s 成功, 账号: %d", wss.Url, rsp.SelfID)
 	wss.caller <- c
 }
 

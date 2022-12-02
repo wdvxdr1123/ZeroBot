@@ -90,7 +90,7 @@ func (ws *WSClient) Connect() {
 		}
 		ws.selfID = rsp.SelfID
 		zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
-		log.Infof("[ws] 连接Websocket服务器: %v 成功", ws.Url)
+		log.Infof("[ws] 连接Websocket服务器: %s 成功, 账号: %d", ws.Url, rsp.SelfID)
 		break
 	}
 }
