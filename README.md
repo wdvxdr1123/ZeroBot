@@ -54,3 +54,10 @@ func main() {
 - [nonebot/nonebot2](https://github.com/nonebot/nonebot2): 跨平台 Python 异步聊天机器人框架
 
 - [catsworld/qq-bot-api](https://github.com/catsworld/qq-bot-api): Golang bindings for the Coolq HTTP API Plugin
+
+
+同时感谢以下开发者对 ZeroBot 作出的贡献：
+
+<a href="https://github.com/wdvxdr1123/ZeroBot/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=wdvxdr1123/ZeroBot&max=1000" />
+</a>
