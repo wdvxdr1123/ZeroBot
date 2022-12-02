@@ -12,6 +12,8 @@ import (
 type eventRing struct {
 	sync.Mutex
 	r *ring.Ring
+	i uintptr
+	p []eventRingItem
 }
 
 type eventRingItem struct {
@@ -27,7 +29,7 @@ func newring(ringLen uint) eventRing {
 		r.Value = (*eventRingItem)(nil)
 		r = r.Next()
 	}
-	return eventRing{r: r}
+	return eventRing{r: r, p: make([]eventRingItem, ringLen)}
 }
 
 // processEvent 同步向池中放入事件
@@ -35,12 +37,19 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 	evr.Lock()
 	defer evr.Unlock()
 	r := evr.r
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&r.Value), unsafe.Sizeof(uintptr(0)))),
-		unsafe.Pointer(&eventRingItem{
-			response: response,
-			caller:   caller,
-		}),
+	p := evr.i % uintptr(len(evr.p))
+	evr.p[p] = eventRingItem{
+		response: response,
+		caller:   caller,
+	}
+	atomic.StorePointer(
+		(*unsafe.Pointer)(unsafe.Add(
+			unsafe.Pointer(&r.Value),
+			unsafe.Sizeof(uintptr(0)),
+		)),
+		unsafe.Pointer(&evr.p[p]),
 	)
+	evr.i++
 	evr.r = r.Next()
 }
 
@@ -57,7 +66,13 @@ func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, 
 			process(it.response, it.caller, maxwait)
 			it.response = nil
 			it.caller = nil
-			atomic.StorePointer((*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&r.Value), unsafe.Sizeof(uintptr(0)))), unsafe.Pointer(nil))
+			atomic.StorePointer(
+				(*unsafe.Pointer)(unsafe.Add(
+					unsafe.Pointer(&r.Value),
+					unsafe.Sizeof(uintptr(0)),
+				)),
+				unsafe.Pointer(nil),
+			)
 			r = r.Next()
 			runtime.GC()
 		}
