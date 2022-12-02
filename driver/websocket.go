@@ -66,7 +66,7 @@ func (ws *WSClient) Connect() {
 	log.Infof("[ws] 开始尝试连接到Websocket服务器: %v", ws.Url)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
-		"User-Agent":    []string{"ZeroBot/0.9.2"},
+		"User-Agent":    []string{"ZeroBot/1.6.3"},
 	}
 	if ws.AccessToken != "" {
 		header["Authorization"] = []string{"Bearer " + ws.AccessToken}
@@ -98,15 +98,18 @@ func (ws *WSClient) Connect() {
 		}
 		ws.conn = conn
 		_ = res.Body.Close()
-		go func() {
-			rsp, _ := ws.CallApi(zero.APIRequest{
-				Action: "get_login_info",
-				Params: nil,
-			})
-			ws.selfID = rsp.Data.Get("user_id").Int()
-			zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
-			log.Infof("[ws] 连接Websocket服务器: %v 成功", ws.Url)
-		}()
+		var rsp struct {
+			SelfID int64 `json:"self_id"`
+		}
+		err = ws.conn.ReadJSON(&rsp)
+		if err != nil {
+			log.Warnf("[ws] 与Websocket服务器 %v 握手时出现错误: %v", ws.Url, err)
+			time.Sleep(2 * time.Second) // 等待两秒后重新连接
+			continue
+		}
+		ws.selfID = rsp.SelfID
+		zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
+		log.Infof("[ws] 连接Websocket服务器: %v 成功", ws.Url)
 		break
 	}
 }
