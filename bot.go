@@ -40,7 +40,6 @@ type APICaller interface {
 type Driver interface {
 	Connect()
 	Listen(func([]byte, APICaller))
-	SelfID() int64
 }
 
 // BotConfig 运行中bot的配置，是Run函数的参数的拷贝

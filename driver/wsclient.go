@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -41,24 +40,6 @@ func NewWebSocketClient(url, accessToken string) *WSClient {
 		Url:         url,
 		AccessToken: accessToken,
 	}
-}
-
-func resolveURI(addr string) (network, address string) {
-	network, address = "tcp", addr
-	uri, err := url.Parse(addr)
-	if err == nil && uri.Scheme != "" {
-		scheme, ext, _ := strings.Cut(uri.Scheme, "+")
-		if ext != "" {
-			network = ext
-			uri.Scheme = scheme // remove `+unix`/`+tcp4`
-			if ext == "unix" {
-				uri.Host, uri.Path, _ = strings.Cut(uri.Path, ":")
-				uri.Host = base64.StdEncoding.EncodeToString(helper.StringToBytes(uri.Host)) // special handle for unix
-			}
-			address = uri.String()
-		}
-	}
-	return
 }
 
 // Connect 连接ws服务端
@@ -180,9 +161,4 @@ func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
 	case <-time.After(time.Minute):
 		return nullResponse, os.ErrDeadlineExceeded
 	}
-}
-
-// SelfID 获得 bot qq 号
-func (ws *WSClient) SelfID() int64 {
-	return ws.selfID
 }
