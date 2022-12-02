@@ -30,8 +30,10 @@ func main() {
 		CommandPrefix: "/",
 		SuperUsers:    []int64{123456},
 		Driver: []zero.Driver{
-			driver.NewWebSocketClient("ws://127.0.0.1:6700", "access_token"),
-			driver.NewWebSocketServer(16, "ws://127.0.0.1:6701", "access_token"),
+			// 正向 WS
+			driver.NewWebSocketClient("ws://127.0.0.1:6700", ""),
+			// 反向 WS
+			driver.NewWebSocketServer(16, "ws://127.0.0.1:6701", ""),
 		},
 	}, nil)
 }
