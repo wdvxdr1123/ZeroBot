@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"container/ring"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -11,7 +10,8 @@ import (
 
 type eventRing struct {
 	sync.Mutex
-	r *ring.Ring
+	c uintptr
+	r []*eventRingItem
 	i uintptr
 	p []eventRingItem
 }
@@ -22,58 +22,48 @@ type eventRingItem struct {
 }
 
 func newring(ringLen uint) eventRing {
-	n := int(ringLen)
-	r := ring.New(n)
-	// Initialize the ring with locked eventRing
-	for i := 0; i < n; i++ {
-		r.Value = (*eventRingItem)(nil)
-		r = r.Next()
-	}
-	return eventRing{r: r, p: make([]eventRingItem, ringLen)}
+	return eventRing{
+		r: make([]*eventRingItem, ringLen),
+		p: make([]eventRingItem, ringLen+1),
+	} // 同一节点, 每 ringLen*(ringLen+1) 轮将共用同一 buffer
 }
 
 // processEvent 同步向池中放入事件
+//
+//go:nosplit
 func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 	evr.Lock()
 	defer evr.Unlock()
-	r := evr.r
+	r := evr.c % uintptr(len(evr.r))
 	p := evr.i % uintptr(len(evr.p))
 	evr.p[p] = eventRingItem{
 		response: response,
 		caller:   caller,
 	}
-	atomic.StorePointer(
-		(*unsafe.Pointer)(unsafe.Add(
-			unsafe.Pointer(&r.Value),
-			unsafe.Sizeof(uintptr(0)),
-		)),
-		unsafe.Pointer(&evr.p[p]),
-	)
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&evr.r[r])), unsafe.Pointer(&evr.p[p]))
+	evr.c++
 	evr.i++
-	evr.r = r.Next()
 }
 
 // loop 循环处理事件
 //
 //	latency 延迟 latency 再处理事件
+//
+//go:nosplit
 func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, APICaller, time.Duration)) {
-	go func(r *ring.Ring) {
+	go func(r []*eventRingItem) {
+		c := uintptr(0)
 		for range time.NewTicker(latency).C {
-			it := r.Value.(*eventRingItem)
+			i := c % uintptr(len(r))
+			it := (*eventRingItem)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&r[i]))))
 			if it == nil { // 还未有消息
 				continue
 			}
 			process(it.response, it.caller, maxwait)
 			it.response = nil
 			it.caller = nil
-			atomic.StorePointer(
-				(*unsafe.Pointer)(unsafe.Add(
-					unsafe.Pointer(&r.Value),
-					unsafe.Sizeof(uintptr(0)),
-				)),
-				unsafe.Pointer(nil),
-			)
-			r = r.Next()
+			atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&r[i])), unsafe.Pointer(nil))
+			c++
 			runtime.GC()
 		}
 	}(evr.r)

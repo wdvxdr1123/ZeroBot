@@ -3,46 +3,11 @@ package zero
 import (
 	"fmt"
 	"math/rand"
-	"runtime"
-	"sync/atomic"
 	"testing"
 	"time"
-	"unsafe"
 )
 
 var buf [256]byte
-
-func TestNewRing(t *testing.T) {
-	r := newring(128)
-	rr := r.r
-	for i := 0; i < 128; i++ {
-		it := rr.Value.(*eventRingItem)
-		if it != nil {
-			t.Fatal("unexpected non nil value")
-		}
-	}
-	rr = r.r
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&rr.Value), unsafe.Sizeof(uintptr(0)))),
-		unsafe.Pointer(&eventRingItem{
-			response: make([]byte, 2),
-		}),
-	)
-	runtime.GC()
-	it := rr.Value.(*eventRingItem)
-	if it == nil {
-		t.Fatal("unexpected nil value")
-	}
-	it.response = nil
-	it.caller = nil
-	it = nil
-	runtime.GC()
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&rr.Value), unsafe.Sizeof(uintptr(0)))), unsafe.Pointer(nil))
-	runtime.GC()
-	it = rr.Value.(*eventRingItem)
-	if it != nil {
-		t.Fatal("unexpected non nil value")
-	}
-}
 
 func TestRing(t *testing.T) {
 	r := newring(128)
