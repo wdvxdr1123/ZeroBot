@@ -48,8 +48,6 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 // loop 循环处理事件
 //
 //	latency 延迟 latency 再处理事件
-//
-//go:nosplit
 func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, APICaller, time.Duration)) {
 	go func(r []*eventRingItem) {
 		c := uintptr(0)
