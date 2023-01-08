@@ -7,9 +7,11 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/FloatTech/ttl"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
@@ -108,14 +110,54 @@ func RunAndBlock(op *Config, preblock func()) {
 	}
 }
 
+var (
+	triggeredMessages   = ttl.NewCache[int64, []message.MessageID](time.Minute * 5)
+	triggeredMessagesMu = sync.Mutex{}
+)
+
+type messageLogger struct {
+	msgid  message.MessageID
+	caller APICaller
+}
+
+// CallApi 记录被触发的回复消息
+func (m *messageLogger) CallApi(request APIRequest) (rsp APIResponse, err error) {
+	rsp, err = m.caller.CallApi(request)
+	if err != nil {
+		return
+	}
+	id := rsp.Data.Get("message_id")
+	if id.Exists() {
+		mid := m.msgid.ID()
+		triggeredMessagesMu.Lock()
+		defer triggeredMessagesMu.Unlock()
+		triggeredMessages.Set(mid,
+			append(
+				triggeredMessages.Get(mid),
+				message.NewMessageIDFromString(id.String()),
+			),
+		)
+	}
+	return
+}
+
+// GetTriggeredMessages 获取被 id 消息触发的回复消息 id
+func GetTriggeredMessages(id message.MessageID) []message.MessageID {
+	triggeredMessagesMu.Lock()
+	defer triggeredMessagesMu.Unlock()
+	return triggeredMessages.Get(id.ID())
+}
+
 // processEventAsync 从池中处理事件, 异步调用匹配 mather
 func processEventAsync(response []byte, caller APICaller, maxwait time.Duration) {
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = gjson.Parse(helper.BytesToString(response))
+	var msgid message.MessageID
 	messageID, err := strconv.ParseInt(helper.BytesToString(event.RawMessageID), 10, 64)
 	if err == nil {
 		event.MessageID = messageID
+		msgid = message.NewMessageIDFromInteger(messageID)
 	} else if event.MessageType == "guild" {
 		// 是 guild 消息，进行如下转换以适配非 guild 插件
 		// MessageID 填为 string
@@ -140,6 +182,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 		if event.Sender != nil {
 			event.Sender.ID = r
 		}
+		msgid = message.NewMessageIDFromString(event.MessageID.(string))
 	}
 
 	switch event.PostType { // process DetailType
@@ -157,7 +200,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 	ctx := &Ctx{
 		Event:  &event,
 		State:  State{},
-		caller: caller,
+		caller: &messageLogger{msgid: msgid, caller: caller},
 	}
 	matcherLock.Lock()
 	if hasMatcherListChanged {
