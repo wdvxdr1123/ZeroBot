@@ -24,8 +24,8 @@ type Config struct {
 	NickName       []string      `json:"nickname"`         // 机器人名称
 	CommandPrefix  string        `json:"command_prefix"`   // 触发命令
 	SuperUsers     []int64       `json:"super_users"`      // 超级用户
-	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认4096)
-	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency + (0~100ms) 再处理事件) (默认1min)
+	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认关闭)
+	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency + (0~100ms) 再处理事件) (默认为0)
 	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
 	Driver         []Driver      `json:"-"`                // 通信驱动
 }
@@ -53,18 +53,24 @@ var (
 )
 
 func runinit(op *Config) {
-	if op.RingLen == 0 {
-		op.RingLen = 4096
-	}
-	if op.Latency == 0 {
-		op.Latency = time.Second
-	}
 	if op.MaxProcessTime == 0 {
 		op.MaxProcessTime = time.Minute * 4
 	}
 	BotConfig = *op
+	if op.RingLen == 0 {
+		return
+	}
 	evring = newring(op.RingLen)
 	evring.loop(op.Latency, op.MaxProcessTime, processEventAsync)
+}
+
+func (op *Config) directlink(b []byte, c APICaller) {
+	go func() {
+		if op.Latency != 0 {
+			time.Sleep(op.Latency)
+		}
+		go processEventAsync(b, c, op.MaxProcessTime)
+	}()
 }
 
 // Run 主函数初始化
@@ -73,9 +79,13 @@ func Run(op *Config) {
 		log.Warnln("[bot] 已忽略重复调用的 Run")
 	}
 	runinit(op)
+	linkf := op.directlink
+	if op.RingLen != 0 {
+		linkf = evring.processEvent
+	}
 	for _, driver := range op.Driver {
 		driver.Connect()
-		go driver.Listen(evring.processEvent)
+		go driver.Listen(linkf)
 	}
 }
 
@@ -87,6 +97,10 @@ func RunAndBlock(op *Config, preblock func()) {
 		log.Warnln("[bot] 已忽略重复调用的 RunAndBlock")
 	}
 	runinit(op)
+	linkf := op.directlink
+	if op.RingLen != 0 {
+		linkf = evring.processEvent
+	}
 	switch len(op.Driver) {
 	case 0:
 		return
@@ -95,18 +109,18 @@ func RunAndBlock(op *Config, preblock func()) {
 		if preblock != nil {
 			preblock()
 		}
-		op.Driver[0].Listen(evring.processEvent)
+		op.Driver[0].Listen(linkf)
 	default:
 		i := 0
 		for ; i < len(op.Driver)-1; i++ {
 			op.Driver[i].Connect()
-			go op.Driver[i].Listen(evring.processEvent)
+			go op.Driver[i].Listen(linkf)
 		}
 		op.Driver[i].Connect()
 		if preblock != nil {
 			preblock()
 		}
-		op.Driver[i].Listen(evring.processEvent)
+		op.Driver[i].Listen(linkf)
 	}
 }
 
