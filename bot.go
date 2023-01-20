@@ -69,7 +69,7 @@ func (op *Config) directlink(b []byte, c APICaller) {
 		if op.Latency != 0 {
 			time.Sleep(op.Latency)
 		}
-		go processEventAsync(b, c, op.MaxProcessTime)
+		processEventAsync(b, c, op.MaxProcessTime)
 	}()
 }
 
