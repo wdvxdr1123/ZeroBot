@@ -112,7 +112,11 @@ func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
 
 // Echo 向自身分发虚拟事件
 func (ctx *Ctx) Echo(response []byte) {
-	evring.processEvent(response, ctx.caller)
+	if BotConfig.RingLen != 0 {
+		evring.processEvent(response, ctx.caller)
+	} else {
+		processEventAsync(response, ctx.caller, BotConfig.MaxProcessTime)
+	}
 }
 
 // FutureEvent ...

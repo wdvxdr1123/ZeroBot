@@ -3,7 +3,6 @@ package zero
 import (
 	"encoding/json"
 	"hash/crc64"
-	"math/rand"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -25,7 +24,7 @@ type Config struct {
 	CommandPrefix  string        `json:"command_prefix"`   // 触发命令
 	SuperUsers     []int64       `json:"super_users"`      // 超级用户
 	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认关闭)
-	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency + (0~100ms) 再处理事件) (默认为0)
+	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency 再处理事件) (latency 不可低于 100ms)
 	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
 	Driver         []Driver      `json:"-"`                // 通信驱动
 }
@@ -226,7 +225,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 	go match(ctx, matcherListForRanging, maxwait)
 }
 
-// match 延迟 (1~100ms) 再处理事件
+// match 匹配规则，处理事件
 func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
 	gorule := func(rule Rule) <-chan bool {
 		ch := make(chan bool, 1)
@@ -255,7 +254,6 @@ func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
 		}()
 		return ch
 	}
-	time.Sleep(time.Duration(rand.Intn(100)+1) * time.Millisecond)
 	t := time.NewTimer(maxwait)
 	defer t.Stop()
 loop:
