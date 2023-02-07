@@ -17,7 +17,7 @@ func TestRing(t *testing.T) {
 		r.processEvent([]byte{byte(i), byte(i)}, nil)
 		time.Sleep(time.Duration(rand.Intn(10)+1) * time.Millisecond)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * 256 * 10)
 	for i := 0; i < 256; i++ {
 		if buf[i] != byte(i) {
 			t.Fatal("ring missed", i)

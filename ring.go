@@ -51,8 +51,8 @@ func (evr *eventRing) processEvent(response []byte, caller APICaller) {
 func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, APICaller, time.Duration)) {
 	go func(r []*eventRingItem) {
 		c := uintptr(0)
-		if latency < time.Millisecond*100 {
-			latency = time.Millisecond * 100
+		if latency < time.Millisecond {
+			latency = time.Millisecond
 		}
 		for range time.NewTicker(latency).C {
 			i := c % uintptr(len(r))

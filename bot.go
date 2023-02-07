@@ -24,7 +24,7 @@ type Config struct {
 	CommandPrefix  string        `json:"command_prefix"`   // 触发命令
 	SuperUsers     []int64       `json:"super_users"`      // 超级用户
 	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认关闭)
-	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency 再处理事件，在 ring 模式下不可低于 100ms)
+	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency 再处理事件，在 ring 模式下不可低于 1ms)
 	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
 	Driver         []Driver      `json:"-"`                // 通信驱动
 }
