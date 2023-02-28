@@ -1,6 +1,6 @@
 module github.com/wdvxdr1123/ZeroBot
 
-go 1.18
+go 1.19
 
 require (
 	github.com/FloatTech/ttl v0.0.0-20220715042055-15612be72f5b
