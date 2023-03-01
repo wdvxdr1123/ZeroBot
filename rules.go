@@ -229,13 +229,12 @@ func SuperUserPermission(ctx *Ctx) bool {
 
 // AdminPermission only triggered by the group admins or higher permission
 func AdminPermission(ctx *Ctx) bool {
-	return SuperUserPermission(ctx) || ctx.Event.Sender.Role != "member"
+	return SuperUserPermission(ctx) || ctx.Event.Sender.Role == "owner" || ctx.Event.Sender.Role == "admin"
 }
 
 // OwnerPermission only triggered by the group owner or higher permission
 func OwnerPermission(ctx *Ctx) bool {
-	return SuperUserPermission(ctx) ||
-		(ctx.Event.Sender.Role != "member" && ctx.Event.Sender.Role != "admin")
+	return SuperUserPermission(ctx) || ctx.Event.Sender.Role == "owner"
 }
 
 // UserOrGrpAdmin 允许用户单独使用或群管使用
