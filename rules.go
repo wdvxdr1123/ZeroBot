@@ -269,7 +269,7 @@ func MustProvidePicture(ctx *Ctx) bool {
 	}
 	// 没有图片就索取
 	ctx.SendChain(message.Text("请发送一张图片"))
-	next := NewFutureEvent("message", 999, false, ctx.CheckSession(), HasPicture).Next()
+	next := NewFutureEvent("message", 999, true, ctx.CheckSession(), HasPicture).Next()
 	select {
 	case <-time.After(time.Second * 120):
 		return false
