@@ -217,14 +217,18 @@ func OnlyGuild(ctx *Ctx) bool {
 	return ctx.Event.PostType == "message" && ctx.Event.DetailType == "guild"
 }
 
-// SuperUserPermission only triggered by the bot's owner
-func SuperUserPermission(ctx *Ctx) bool {
+func issu(id int64) bool {
 	for _, su := range BotConfig.SuperUsers {
-		if su == ctx.Event.UserID {
+		if su == id {
 			return true
 		}
 	}
 	return false
+}
+
+// SuperUserPermission only triggered by the bot's owner
+func SuperUserPermission(ctx *Ctx) bool {
+	return issu(ctx.Event.UserID)
 }
 
 // AdminPermission only triggered by the group admins or higher permission
@@ -243,6 +247,29 @@ func UserOrGrpAdmin(ctx *Ctx) bool {
 		return AdminPermission(ctx)
 	}
 	return OnlyToMe(ctx)
+}
+
+// GroupHigherPermission 群发送者权限高于 target
+//
+// 隐含 OnlyGroup 判断
+func GroupHigherPermission(target int64) Rule {
+	return func(ctx *Ctx) bool {
+		if !OnlyGroup(ctx) {
+			return false
+		}
+		if SuperUserPermission(ctx) {
+			sender := ctx.Event.UserID
+			return BotConfig.GetFirstSuperUser(sender, target) == sender
+		}
+		if ctx.Event.Sender.Role == "owner" {
+			return !issu(target) && ctx.GetThisGroupMemberInfo(target, false).Get("role").Str != "owner"
+		}
+		if ctx.Event.Sender.Role == "admin" {
+			tgtrole := ctx.GetThisGroupMemberInfo(target, false).Get("role").Str
+			return !issu(target) && tgtrole != "owner" && tgtrole != "admin"
+		}
+		return false // member is the lowest
+	}
 }
 
 // HasPicture 消息含有图片返回 true

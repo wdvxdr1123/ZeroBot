@@ -26,6 +26,7 @@ type Config struct {
 	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认关闭)
 	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency 再处理事件，在 ring 模式下不可低于 1ms)
 	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
+	MarkMessage    bool          `json:"mark_message"`     // 自动标记消息为已读
 	Driver         []Driver      `json:"-"`                // 通信驱动
 }
 
@@ -227,6 +228,9 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 
 // match 匹配规则，处理事件
 func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
+	if BotConfig.MarkMessage {
+		ctx.MarkThisMessageAsRead()
+	}
 	gorule := func(rule Rule) <-chan bool {
 		ch := make(chan bool, 1)
 		go func() {
@@ -461,4 +465,20 @@ func RangeBot(iter func(id int64, ctx *Ctx) bool) {
 	APICallers.Range(func(key int64, value APICaller) bool {
 		return iter(key, &Ctx{caller: value})
 	})
+}
+
+// GetFirstSuperUser 在 qqs 中获得 SuperUsers 列表的首个 qq
+//
+// 找不到返回 -1
+func (c *Config) GetFirstSuperUser(qqs ...int64) int64 {
+	m := make(map[int64]struct{}, len(qqs)*4)
+	for _, qq := range qqs {
+		m[qq] = struct{}{}
+	}
+	for _, qq := range c.SuperUsers {
+		if _, ok := m[qq]; ok {
+			return qq
+		}
+	}
+	return -1
 }
