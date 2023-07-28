@@ -228,7 +228,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 
 // match 匹配规则，处理事件
 func match(ctx *Ctx, matchers []*Matcher, maxwait time.Duration) {
-	if BotConfig.MarkMessage {
+	if BotConfig.MarkMessage && ctx.Event.MessageID != nil {
 		ctx.MarkThisMessageAsRead()
 	}
 	gorule := func(rule Rule) <-chan bool {
