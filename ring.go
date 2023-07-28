@@ -61,9 +61,9 @@ func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, 
 				continue
 			}
 			process(it.response, it.caller, maxwait)
+			atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&r[i])), unsafe.Pointer(nil))
 			it.response = nil
 			it.caller = nil
-			atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&r[i])), unsafe.Pointer(nil))
 			c++
 			runtime.GC()
 		}
