@@ -11,6 +11,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/RomiChan/websocket"
 	log "github.com/sirupsen/logrus"
@@ -32,7 +33,11 @@ type WSServer struct {
 
 // UnmarshalJSON init WSServer with waitn=16
 func (wss *WSServer) UnmarshalJSON(data []byte) error {
-	err := json.Unmarshal(data, wss)
+	type jsoncfg struct {
+		Url         string // ws连接地址
+		AccessToken string
+	}
+	err := json.Unmarshal(data, (*jsoncfg)(unsafe.Pointer(wss)))
 	if err != nil {
 		return err
 	}
