@@ -252,11 +252,12 @@ func UserOrGrpAdmin(ctx *Ctx) bool {
 // GroupHigherPermission 群发送者权限高于 target
 //
 // 隐含 OnlyGroup 判断
-func GroupHigherPermission(target int64) Rule {
+func GroupHigherPermission(gettarget func(ctx *Ctx) int64) Rule {
 	return func(ctx *Ctx) bool {
 		if !OnlyGroup(ctx) {
 			return false
 		}
+		target := gettarget(ctx)
 		if SuperUserPermission(ctx) {
 			sender := ctx.Event.UserID
 			return BotConfig.GetFirstSuperUser(sender, target) == sender
