@@ -258,6 +258,9 @@ func GroupHigherPermission(gettarget func(ctx *Ctx) int64) Rule {
 			return false
 		}
 		target := gettarget(ctx)
+		if target == ctx.Event.UserID { // 特判, 自己和自己比
+			return false
+		}
 		if SuperUserPermission(ctx) {
 			sender := ctx.Event.UserID
 			return BotConfig.GetFirstSuperUser(sender, target) == sender
