@@ -125,10 +125,10 @@ func (ws *WSClient) Listen(handler func([]byte, zero.APICaller)) {
 			}
 			continue
 		}
-		if rsp.Get("meta_event_type").Str != "heartbeat" { // 忽略心跳事件
-			log.Debug("[ws] 接收到事件: ", helper.BytesToString(payload))
+		if rsp.Get("meta_event_type").Str == "heartbeat" { // 忽略心跳事件
 			continue
 		}
+		log.Debug("[ws] 接收到事件: ", helper.BytesToString(payload))
 		handler(payload, ws)
 	}
 }
