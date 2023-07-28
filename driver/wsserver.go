@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -25,6 +26,18 @@ type WSServer struct {
 	AccessToken string
 	lstn        net.Listener
 	caller      chan *WSSCaller
+
+	json.Unmarshaler
+}
+
+// UnmarshalJSON init WSServer with waitn=16
+func (wss *WSServer) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, wss)
+	if err != nil {
+		return err
+	}
+	wss.caller = make(chan *WSSCaller, 16)
+	return nil
 }
 
 // NewWebSocketServer 使用反向WS通信
