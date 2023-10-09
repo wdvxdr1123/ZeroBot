@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"unsafe"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
@@ -24,6 +25,11 @@ type Ctx struct {
 // GetMatcher ...
 func (ctx *Ctx) GetMatcher() *Matcher {
 	return ctx.ma
+}
+
+// ExposeCaller as *T, maybe panic if misused
+func ExposeCaller[T any](ctx *Ctx) *T {
+	return (*T)(*(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&ctx.caller), unsafe.Sizeof(uintptr(0)))))
 }
 
 // decoder 反射获取的数据
