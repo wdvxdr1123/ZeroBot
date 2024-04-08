@@ -217,6 +217,17 @@ func Record(file string) MessageSegment {
 	}
 }
 
+// Video 短视频
+// https://github.com/botuniverse/onebot-11/blob/master/message/segment.md#%E7%9F%AD%E8%A7%86%E9%A2%91
+func Video(file string) MessageSegment {
+	return MessageSegment{
+		Type: "video",
+		Data: map[string]string{
+			"file": file,
+		},
+	}
+}
+
 // At @某人
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
 func At(qq int64) MessageSegment {
