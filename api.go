@@ -132,6 +132,15 @@ func (ctx *Ctx) GetForwardMessage(id string) gjson.Result {
 	return rsp
 }
 
+// SendLike 发送好友赞
+// https://github.com/botuniverse/onebot-11/blob/master/api/public.md#send_like-%E5%8F%91%E9%80%81%E5%A5%BD%E5%8F%8B%E8%B5%9E
+func (ctx *Ctx) SendLike(userID int64, times int) {
+	ctx.CallAction("send_like", Params{
+		"user_id": userID,
+		"times":   times,
+	})
+}
+
 // SetGroupKick 群组踢人
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#set_group_kick-%E7%BE%A4%E7%BB%84%E8%B8%A2%E4%BA%BA
 func (ctx *Ctx) SetGroupKick(groupID, userID int64, rejectAddRequest bool) {
