@@ -184,15 +184,36 @@ func Face(id int) MessageSegment {
 	}
 }
 
-// Image 普通图片
-// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
-func Image(file string) MessageSegment {
+// File 文件
+// https://llonebot.github.io/zh-CN/develop/extends_api
+func File(file, name string) MessageSegment {
 	return MessageSegment{
+		Type: "file",
+		Data: map[string]string{
+			"file": file,
+			"name": name,
+		},
+	}
+}
+
+// Image 普通图片
+//
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+//
+// summary: LLOneBot的扩展字段：图片预览文字
+func Image(file string, summary ...string) MessageSegment {
+	m := MessageSegment{
 		Type: "image",
 		Data: map[string]string{
 			"file": file,
 		},
 	}
+	if len(summary) > 0 {
+		m.Data["summary"] = fmt.Sprint(summary)
+	}
+	return m
 }
 
 // ImageBytes 普通图片

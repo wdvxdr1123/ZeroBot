@@ -471,6 +471,26 @@ func (ctx *Ctx) SendPrivateForwardMessage(userID int64, message message.Message)
 	}).Data
 }
 
+// ForwardFriendSingleMessage 转发单条消息到好友
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+func (ctx *Ctx) ForwardFriendSingleMessage(userID int64, messageID message.MessageID) APIResponse {
+	return ctx.CallAction("forward_friend_single_msg", Params{
+		"user_id":    userID,
+		"message_id": messageID,
+	})
+}
+
+// ForwardGroupSingleMessage 转发单条消息到群
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+func (ctx *Ctx) ForwardGroupSingleMessage(groupID int64, messageID message.MessageID) APIResponse {
+	return ctx.CallAction("forward_group_single_msg", Params{
+		"group_id":   groupID,
+		"message_id": messageID,
+	})
+}
+
 // GetGroupSystemMessage 获取群系统消息
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF
 func (ctx *Ctx) GetGroupSystemMessage() gjson.Result {
@@ -695,4 +715,34 @@ func (ctx *Ctx) UploadGroupFile(groupID int64, file, name, folder string) APIRes
 //	msg: FILE_NOT_FOUND FILE_SYSTEM_UPLOAD_API_ERROR ...
 func (ctx *Ctx) UploadThisGroupFile(file, name, folder string) APIResponse {
 	return ctx.UploadGroupFile(ctx.Event.GroupID, file, name, folder)
+}
+
+// SetMyAvatar 设置我的头像
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+func (ctx *Ctx) SetMyAvatar(file string) APIResponse {
+	return ctx.CallAction("set_qq_avatar", Params{
+		"file": file,
+	})
+}
+
+// GetFile 下载收到的群文件或私聊文件
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+func (ctx *Ctx) GetFile(fileID string) gjson.Result {
+	return ctx.CallAction("get_file", Params{
+		"file_id": fileID,
+	}).Data
+}
+
+// SetMessageEmojiLike 发送表情回应
+//
+// https://llonebot.github.io/zh-CN/develop/extends_api
+//
+// emoji_id 参考 https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
+func (ctx *Ctx) SetMessageEmojiLike(messageID message.MessageID, emojiID string) APIResponse {
+	return ctx.CallAction("set_msg_emoji_like", Params{
+		"message_id": messageID,
+		"emoji_id":   emojiID,
+	})
 }
