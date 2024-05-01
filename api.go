@@ -96,9 +96,9 @@ func (ctx *Ctx) SendPrivateMessage(userID int64, message interface{}) int64 {
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#delete_msg-%E6%92%A4%E5%9B%9E%E6%B6%88%E6%81%AF
 //
 //nolint:interfacer
-func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
+func (ctx *Ctx) DeleteMessage(messageID interface{}) {
 	ctx.CallAction("delete_msg", Params{
-		"message_id": messageID.String(),
+		"message_id": messageID,
 	})
 }
 
@@ -106,9 +106,9 @@ func (ctx *Ctx) DeleteMessage(messageID message.MessageID) {
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
 //
 //nolint:interfacer
-func (ctx *Ctx) GetMessage(messageID message.MessageID) Message {
+func (ctx *Ctx) GetMessage(messageID interface{}) Message {
 	rsp := ctx.CallAction("get_msg", Params{
-		"message_id": messageID.String(),
+		"message_id": messageID,
 	}).Data
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
@@ -474,7 +474,7 @@ func (ctx *Ctx) SendPrivateForwardMessage(userID int64, message message.Message)
 // ForwardFriendSingleMessage 转发单条消息到好友
 //
 // https://llonebot.github.io/zh-CN/develop/extends_api
-func (ctx *Ctx) ForwardFriendSingleMessage(userID int64, messageID message.MessageID) APIResponse {
+func (ctx *Ctx) ForwardFriendSingleMessage(userID int64, messageID interface{}) APIResponse {
 	return ctx.CallAction("forward_friend_single_msg", Params{
 		"user_id":    userID,
 		"message_id": messageID,
@@ -484,7 +484,7 @@ func (ctx *Ctx) ForwardFriendSingleMessage(userID int64, messageID message.Messa
 // ForwardGroupSingleMessage 转发单条消息到群
 //
 // https://llonebot.github.io/zh-CN/develop/extends_api
-func (ctx *Ctx) ForwardGroupSingleMessage(groupID int64, messageID message.MessageID) APIResponse {
+func (ctx *Ctx) ForwardGroupSingleMessage(groupID int64, messageID interface{}) APIResponse {
 	return ctx.CallAction("forward_group_single_msg", Params{
 		"group_id":   groupID,
 		"message_id": messageID,
@@ -740,7 +740,7 @@ func (ctx *Ctx) GetFile(fileID string) gjson.Result {
 // https://llonebot.github.io/zh-CN/develop/extends_api
 //
 // emoji_id 参考 https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
-func (ctx *Ctx) SetMessageEmojiLike(messageID message.MessageID, emojiID string) APIResponse {
+func (ctx *Ctx) SetMessageEmojiLike(messageID interface{}, emojiID string) APIResponse {
 	return ctx.CallAction("set_msg_emoji_like", Params{
 		"message_id": messageID,
 		"emoji_id":   emojiID,
