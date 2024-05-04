@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -740,9 +741,13 @@ func (ctx *Ctx) GetFile(fileID string) gjson.Result {
 // https://llonebot.github.io/zh-CN/develop/extends_api
 //
 // emoji_id 参考 https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
-func (ctx *Ctx) SetMessageEmojiLike(messageID interface{}, emojiID string) APIResponse {
-	return ctx.CallAction("set_msg_emoji_like", Params{
+func (ctx *Ctx) SetMessageEmojiLike(messageID interface{}, emojiID rune) error {
+	ret := ctx.CallAction("set_msg_emoji_like", Params{
 		"message_id": messageID,
 		"emoji_id":   emojiID,
-	})
+	}).Data.Get("errMsg").Str
+	if ret != "" {
+		return errors.New(ret)
+	}
+	return nil
 }
