@@ -1,6 +1,7 @@
 package message
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
@@ -323,6 +324,19 @@ func NewMessageIDFromInteger(raw int64) (m MessageID) {
 	m.s = strconv.FormatInt(raw, 10)
 	m.i = raw
 	return
+}
+
+func (m MessageID) MarshalJSON() ([]byte, error) {
+	sb := bytes.NewBuffer(make([]byte, 0, len(m.s)+2))
+	_, err := strconv.ParseInt(m.s, 10, 64)
+	if err != nil {
+		sb.WriteByte('"')
+		json.HTMLEscape(sb, []byte(m.s))
+		sb.WriteByte('"')
+	} else {
+		sb.WriteString(m.s)
+	}
+	return sb.Bytes(), nil
 }
 
 func (m MessageID) String() string {
