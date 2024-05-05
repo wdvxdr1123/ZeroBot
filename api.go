@@ -744,7 +744,7 @@ func (ctx *Ctx) GetFile(fileID string) gjson.Result {
 func (ctx *Ctx) SetMessageEmojiLike(messageID interface{}, emojiID rune) error {
 	ret := ctx.CallAction("set_msg_emoji_like", Params{
 		"message_id": messageID,
-		"emoji_id":   emojiID,
+		"emoji_id":   strconv.Itoa(int(emojiID)),
 	}).Data.Get("errMsg").Str
 	if ret != "" {
 		return errors.New(ret)
