@@ -53,7 +53,7 @@ var (
 type State map[string]interface{}
 
 func sortMatcher() {
-	sort.Slice(matcherList, func(i, j int) bool { // 按优先级排序
+	sort.SliceStable(matcherList, func(i, j int) bool { // 按优先级排序
 		return matcherList[i].Priority < matcherList[j].Priority
 	})
 	hasMatcherListChanged = true
