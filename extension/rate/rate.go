@@ -59,6 +59,11 @@ func NewLimiter(interval time.Duration, burst int) *Limiter {
 	}
 }
 
+// AcquireTime ...
+func (lim *Limiter) AcquireTime() *time.Time {
+	return &lim.lastTime
+}
+
 // Acquire ...
 func (lim *Limiter) Acquire() bool {
 	return lim.AcquireN(1)
