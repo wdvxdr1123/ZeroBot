@@ -59,9 +59,9 @@ func NewLimiter(interval time.Duration, burst int) *Limiter {
 	}
 }
 
-// AcquireTime ...
-func (lim *Limiter) AcquireTime() *time.Time {
-	return &lim.lastTime
+// LastTouch ...
+func (lim *Limiter) LastTouch() int64 {
+	return lim.lastTime.Unix()
 }
 
 // Acquire ...
