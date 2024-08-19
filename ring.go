@@ -54,6 +54,7 @@ func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, 
 		if latency < time.Millisecond {
 			latency = time.Millisecond
 		}
+		totl := time.Duration(0)
 		for range time.NewTicker(latency).C {
 			i := c % uintptr(len(r))
 			it := (*eventRingItem)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&r[i]))))
@@ -65,7 +66,11 @@ func (evr *eventRing) loop(latency, maxwait time.Duration, process func([]byte, 
 			it.response = nil
 			it.caller = nil
 			c++
-			runtime.GC()
+			totl += latency
+			if totl > time.Second {
+				totl = 0
+				runtime.GC()
+			}
 		}
 	}(evr.r)
 }
