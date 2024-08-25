@@ -60,8 +60,8 @@ func NewLimiter(interval time.Duration, burst int) *Limiter {
 }
 
 // LastTouch ...
-func (lim *Limiter) LastTouch() int64 {
-	return lim.lastTime.Unix()
+func (lim *Limiter) LastTouch() int {
+	return lim.lastTime.Second()
 }
 
 // Acquire ...
