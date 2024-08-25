@@ -409,7 +409,7 @@ func preprocessMessageEvent(e *Event) {
 				}
 			}
 		}
-		if e.Message == nil || len(e.Message) == 0 || e.Message[0].Type != "text" {
+		if len(e.Message) == 0 || e.Message[0].Type != "text" {
 			return
 		}
 		first := e.Message[0]

@@ -6,10 +6,6 @@ linters-settings:
   goimports:
     local-prefixes: github.com/wdvxdr1123/ZeroBot
 
-  gocritic:
-    disabled-checks:
-      - exitAfterDefer
-
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
@@ -64,7 +60,8 @@ run:
 
 # output configuration options
 output:
-  format: 'colored-line-number'
+  formats:
+   - format: "colored-line-number"
   print-issued-lines: true
   print-linter-name: true
   uniq-by-line: true
