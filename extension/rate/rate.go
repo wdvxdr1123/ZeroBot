@@ -25,6 +25,11 @@ func NewManager[K comparable](interval time.Duration, burst int) *LimiterManager
 	}
 }
 
+// DeleteLimter 删除对应限速器
+func (l *LimiterManager[K]) DeleteLimiter(key K)  {
+	l.limiters.Delete(key)
+}
+
 // Load ...
 func (l *LimiterManager[K]) Load(key K) *Limiter {
 	if val := l.limiters.Get(key); val != nil {
