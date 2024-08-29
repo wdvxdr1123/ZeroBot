@@ -1,16 +1,16 @@
 module github.com/wdvxdr1123/ZeroBot
 
-go 1.19
+go 1.20
 
 require (
-	github.com/FloatTech/ttl v0.0.0-20220715042055-15612be72f5b
+	github.com/FloatTech/ttl v0.0.0-20240716161252-965925764562
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
-	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/sirupsen/logrus v1.9.3
+	github.com/stretchr/testify v1.9.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/gjson v1.17.3
 )
 
 require (
