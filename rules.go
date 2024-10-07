@@ -1,6 +1,7 @@
 package zero
 
 import (
+	log "github.com/sirupsen/logrus"
 	"hash/crc64"
 	"regexp"
 	"strconv"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
+)
+
+const (
+	KEY_REGEX   = "regex_matched"
+	KEY_PATTERN = "pattern_matched"
 )
 
 // Type check the ctx.Event's type
@@ -119,6 +125,125 @@ func RegexRule(regexPattern string) Rule {
 			return true
 		}
 		return false
+	}
+}
+
+type PatternSegment struct {
+	Type    string
+	Matcher func(ctx *Ctx, msg message.MessageSegment) bool
+}
+type Pattern []PatternSegment
+
+// PatternText KEY_PATTERN type []string
+func PatternText(regex string) PatternSegment {
+	re := regexp.MustCompile(regex)
+	return PatternSegment{
+		Type: "text",
+		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+			s := msg.Data["text"]
+			s = strings.Trim(s, " \n\r\t")
+			matchString := re.MatchString(s)
+			if matchString {
+				if _, ok := ctx.State["pattern_matched"]; !ok {
+					ctx.State["pattern_matched"] = make([]interface{}, 0)
+				}
+
+				ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), re.FindStringSubmatch(s))
+			}
+			return matchString
+		},
+	}
+}
+func patternAt(target any) PatternSegment {
+	switch t := target.(type) {
+	case int64:
+		return PatternSegment{
+			Type: "at",
+			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+				b := msg.Data["qq"] == strconv.FormatInt(t, 10)
+				if b {
+					if _, ok := ctx.State["pattern_matched"]; !ok {
+						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					}
+					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+				}
+				return b
+			},
+		}
+	case int:
+		return PatternSegment{
+			Type: "at",
+			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+				b := msg.Data["qq"] == strconv.FormatInt(int64(t), 10)
+				if b {
+					if _, ok := ctx.State["pattern_matched"]; !ok {
+						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					}
+					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+				}
+				return b
+			}}
+	case string:
+		return PatternSegment{
+			Type: "at",
+			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+				b := msg.Data["name"] == t
+				if b {
+					if _, ok := ctx.State["pattern_matched"]; !ok {
+						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					}
+					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["name"])
+				}
+				return b
+			}}
+	default:
+		panic("unsupported type")
+	}
+}
+
+// PatternAt KEY_PATTERN type string
+func PatternAt() PatternSegment {
+	return PatternSegment{
+		Type: "at",
+		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+			if _, ok := ctx.State["pattern_matched"]; !ok {
+				ctx.State["pattern_matched"] = make([]interface{}, 0)
+			}
+			ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+			return true
+		},
+	}
+}
+
+// PatternImage KEY_PATTERN type msg.Data
+func PatternImage() PatternSegment {
+	return PatternSegment{
+		Type: "image",
+		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+			if _, ok := ctx.State["pattern_matched"]; !ok {
+				ctx.State["pattern_matched"] = make([]interface{}, 0)
+			}
+			ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data)
+			return true
+		},
+	}
+}
+func patternMatch(ctx *Ctx, pattern []PatternSegment, msgs []message.MessageSegment) bool {
+	if len(pattern) != len(msgs) {
+		return false
+	}
+	for i := 0; i < len(pattern); i++ {
+		if pattern[i].Type != (msgs[i].Type) || !pattern[i].Matcher(ctx, msgs[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// PatternRule check if the message can be matched by the pattern
+func PatternRule(pattern ...PatternSegment) Rule {
+	return func(ctx *Ctx) bool {
+		return patternMatch(ctx, pattern, ctx.Event.Message)
 	}
 }
 
