@@ -153,52 +153,6 @@ func PatternText(regex string) PatternSegment {
 		},
 	}
 }
-func patternAt(target any) PatternSegment {
-	switch t := target.(type) {
-	case int64:
-		return PatternSegment{
-			Type: "at",
-			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
-				b := msg.Data["qq"] == strconv.FormatInt(t, 10)
-				if b {
-					if _, ok := ctx.State[KEY_PATTERN]; !ok {
-						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
-					}
-					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
-				}
-				return b
-			},
-		}
-	case int:
-		return PatternSegment{
-			Type: "at",
-			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
-				b := msg.Data["qq"] == strconv.FormatInt(int64(t), 10)
-				if b {
-					if _, ok := ctx.State[KEY_PATTERN]; !ok {
-						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
-					}
-					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
-				}
-				return b
-			}}
-	case string:
-		return PatternSegment{
-			Type: "at",
-			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
-				b := msg.Data["name"] == t
-				if b {
-					if _, ok := ctx.State[KEY_PATTERN]; !ok {
-						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
-					}
-					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["name"])
-				}
-				return b
-			}}
-	default:
-		panic("unsupported type")
-	}
-}
 
 // PatternAt KEY_PATTERN type string
 func PatternAt() PatternSegment {
