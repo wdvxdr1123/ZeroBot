@@ -399,7 +399,7 @@ func preprocessMessageEvent(e *Event) {
 
 	for i := 0; i < len(msgs)-1; i++ {
 		if msgs[i].Type == "at" && msgs[i+1].Type == "text" {
-			msgs[i+1].Data["text"] = msgs[i+1].Data["text"][1:]
+			msgs[i+1].Data["text"] = strings.Trim(msgs[i+1].Data["text"], " ")
 		}
 	}
 	// remove empty text segment
