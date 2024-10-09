@@ -1,7 +1,6 @@
 package zero
 
 import (
-	log "github.com/sirupsen/logrus"
 	"hash/crc64"
 	"regexp"
 	"strconv"
@@ -144,11 +143,11 @@ func PatternText(regex string) PatternSegment {
 			s = strings.Trim(s, " \n\r\t")
 			matchString := re.MatchString(s)
 			if matchString {
-				if _, ok := ctx.State["pattern_matched"]; !ok {
-					ctx.State["pattern_matched"] = make([]interface{}, 0)
+				if _, ok := ctx.State[KEY_PATTERN]; !ok {
+					ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 				}
 
-				ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), re.FindStringSubmatch(s))
+				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), re.FindStringSubmatch(s))
 			}
 			return matchString
 		},
@@ -162,10 +161,10 @@ func patternAt(target any) PatternSegment {
 			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 				b := msg.Data["qq"] == strconv.FormatInt(t, 10)
 				if b {
-					if _, ok := ctx.State["pattern_matched"]; !ok {
-						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					if _, ok := ctx.State[KEY_PATTERN]; !ok {
+						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 					}
-					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
 				}
 				return b
 			},
@@ -176,10 +175,10 @@ func patternAt(target any) PatternSegment {
 			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 				b := msg.Data["qq"] == strconv.FormatInt(int64(t), 10)
 				if b {
-					if _, ok := ctx.State["pattern_matched"]; !ok {
-						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					if _, ok := ctx.State[KEY_PATTERN]; !ok {
+						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 					}
-					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
 				}
 				return b
 			}}
@@ -189,10 +188,10 @@ func patternAt(target any) PatternSegment {
 			Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 				b := msg.Data["name"] == t
 				if b {
-					if _, ok := ctx.State["pattern_matched"]; !ok {
-						ctx.State["pattern_matched"] = make([]interface{}, 0)
+					if _, ok := ctx.State[KEY_PATTERN]; !ok {
+						ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 					}
-					ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["name"])
+					ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["name"])
 				}
 				return b
 			}}
@@ -206,10 +205,10 @@ func PatternAt() PatternSegment {
 	return PatternSegment{
 		Type: "at",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
-			if _, ok := ctx.State["pattern_matched"]; !ok {
-				ctx.State["pattern_matched"] = make([]interface{}, 0)
+			if _, ok := ctx.State[KEY_PATTERN]; !ok {
+				ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 			}
-			ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data["qq"])
+			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
 			return true
 		},
 	}
@@ -220,10 +219,10 @@ func PatternImage() PatternSegment {
 	return PatternSegment{
 		Type: "image",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
-			if _, ok := ctx.State["pattern_matched"]; !ok {
-				ctx.State["pattern_matched"] = make([]interface{}, 0)
+			if _, ok := ctx.State[KEY_PATTERN]; !ok {
+				ctx.State[KEY_PATTERN] = make([]interface{}, 0)
 			}
-			ctx.State["pattern_matched"] = append(ctx.State["pattern_matched"].([]interface{}), msg.Data)
+			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data)
 			return true
 		},
 	}
