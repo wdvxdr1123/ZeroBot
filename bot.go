@@ -402,16 +402,14 @@ func preprocessMessageEvent(e *Event) {
 			msgs[i+1].Data["text"] = strings.Trim(msgs[i+1].Data["text"], " ")
 		}
 	}
+	var filtered = make([]message.MessageSegment, 0)
 	// remove empty text segment
 	for i := 0; i < len(msgs); {
-		if msgs[i].Type == "text" && msgs[i].Data["text"] == "" {
-			log.Debugf("[matcher.pattern] remove empty text segment at %d", i)
-			msgs = append(msgs[:i], msgs[i+1:]...)
-		} else {
-			i++
+		if !(msgs[i].Type == "text" && msgs[i].Data["text"] == "") {
+			filtered = append(filtered, msgs[i])
 		}
 	}
-	e.Message = msgs
+	e.Message = filtered
 	processAt := func() { // 处理是否at机器人
 		e.IsToMe = false
 		for i, m := range e.Message {
