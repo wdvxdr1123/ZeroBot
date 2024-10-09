@@ -395,8 +395,23 @@ loop:
 
 // preprocessMessageEvent 返回信息事件
 func preprocessMessageEvent(e *Event) {
-	e.Message = message.ParseMessage(e.NativeMessage)
+	msgs := message.ParseMessage(e.NativeMessage)
 
+	for i := 0; i < len(msgs)-1; i++ {
+		if msgs[i].Type == "at" && msgs[i+1].Type == "text" {
+			msgs[i+1].Data["text"] = msgs[i+1].Data["text"][1:]
+		}
+	}
+	// remove empty text segment
+	for i := 0; i < len(msgs); {
+		if msgs[i].Type == "text" && msgs[i].Data["text"] == "" {
+			log.Debugf("[matcher.pattern] remove empty text segment at %d", i)
+			msgs = append(msgs[:i], msgs[i+1:]...)
+		} else {
+			i++
+		}
+	}
+	e.Message = msgs
 	processAt := func() { // 处理是否at机器人
 		e.IsToMe = false
 		for i, m := range e.Message {
