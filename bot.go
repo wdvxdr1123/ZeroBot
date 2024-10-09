@@ -401,7 +401,7 @@ func preprocessMessageEvent(e *Event) {
 			msgs[i+1].Data["text"] = strings.TrimSpace(msgs[i+1].Data["text"])
 		}
 	}
-	var filtered = make([]message.MessageSegment, 0)
+	var filtered = make([]message.MessageSegment, 0, len(msgs))
 	// remove empty text segment
 	for i := 0; i < len(msgs); {
 		if msgs[i].Type != "text" || msgs[i].Data["text"] != "" {
