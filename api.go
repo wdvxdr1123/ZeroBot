@@ -543,7 +543,8 @@ func (ctx *Ctx) GetThisGroupAtAllRemain() gjson.Result {
 func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID int64) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
 		"group_id":    groupID,
-		"message_seq": messageID,
+		"message_seq": messageID, // 兼容旧版本
+		"message_id":  messageID,
 	}).Data
 }
 
