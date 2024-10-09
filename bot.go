@@ -399,7 +399,7 @@ func preprocessMessageEvent(e *Event) {
 
 	for i := 0; i < len(msgs)-1; i++ {
 		if msgs[i].Type == "at" && msgs[i+1].Type == "text" {
-			msgs[i+1].Data["text"] = strings.Trim(msgs[i+1].Data["text"], " ")
+			msgs[i+1].Data["text"] = strings.TrimSpace(msgs[i+1].Data["text"])
 		}
 	}
 	var filtered = make([]message.MessageSegment, 0)
