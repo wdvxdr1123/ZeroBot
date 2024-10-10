@@ -147,6 +147,9 @@ func (p PatternMatched) AsAt() PatternAtMatched {
 func (p PatternMatched) AsImage() PatternImageMatched {
 	return PatternImageMatched{File: p["file"].(string)}
 }
+func (p PatternMatched) AsReply() PatternReplyMatched {
+	return PatternReplyMatched{MessageID: p["file"].(string)}
+}
 
 type PatternImageMatched = struct {
 	File string
@@ -156,6 +159,9 @@ type PatternAtMatched = struct {
 }
 type PatternTextMatched = struct {
 	Groups []string
+}
+type PatternReplyMatched = struct {
+	MessageID string
 }
 
 // PatternText type zero.PatternTextMatched
@@ -210,6 +216,22 @@ func PatternImage() PatternSegment {
 			}
 			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched), PatternMatched{
 				"file": msg.Data["file"],
+			})
+			return true
+		},
+	}
+}
+
+// PatternReply type zero.PatternReplyMatched
+func PatternReply() PatternSegment {
+	return PatternSegment{
+		Type: "reply",
+		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
+			if _, ok := ctx.State[KEY_PATTERN]; !ok {
+				ctx.State[KEY_PATTERN] = make([]PatternMatched, 0, 1)
+			}
+			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched), PatternMatched{
+				"id": msg.Data["id"],
 			})
 			return true
 		},
