@@ -201,9 +201,9 @@ type PatternReplyMatched = struct {
 }
 
 // PatternText type zero.PatternTextMatched
-func PatternText(regex string) PatternSegment {
+func PatternText(regex string) *PatternSegment {
 	re := regexp.MustCompile(regex)
-	return PatternSegment{
+	return &PatternSegment{
 		Type: "text",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			s := msg.Data["text"]
@@ -225,8 +225,8 @@ func PatternText(regex string) PatternSegment {
 }
 
 // PatternAt type zero.PatternAtMatched
-func PatternAt() PatternSegment {
-	return PatternSegment{
+func PatternAt() *PatternSegment {
+	return &PatternSegment{
 		Type: "at",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			if _, ok := ctx.State[KEY_PATTERN]; !ok {
@@ -243,8 +243,8 @@ func PatternAt() PatternSegment {
 }
 
 // PatternImage type zero.PatternImageMatched
-func PatternImage() PatternSegment {
-	return PatternSegment{
+func PatternImage() *PatternSegment {
+	return &PatternSegment{
 		Type: "image",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			if _, ok := ctx.State[KEY_PATTERN]; !ok {
@@ -259,8 +259,8 @@ func PatternImage() PatternSegment {
 }
 
 // PatternReply type zero.PatternReplyMatched
-func PatternReply() PatternSegment {
-	return PatternSegment{
+func PatternReply() *PatternSegment {
+	return &PatternSegment{
 		Type: "reply",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			if _, ok := ctx.State[KEY_PATTERN]; !ok {
@@ -273,7 +273,7 @@ func PatternReply() PatternSegment {
 		},
 	}
 }
-func containsOptional(pattern []PatternSegment) bool {
+func containsOptional(pattern []*PatternSegment) bool {
 	for _, p := range pattern {
 		if p.Optional {
 			return true
@@ -281,7 +281,7 @@ func containsOptional(pattern []PatternSegment) bool {
 	}
 	return false
 }
-func patternMatch(ctx *Ctx, pattern []PatternSegment, msgs []message.MessageSegment) bool {
+func patternMatch(ctx *Ctx, pattern []*PatternSegment, msgs []message.MessageSegment) bool {
 	if !containsOptional(pattern) && len(pattern) != len(msgs) {
 		return false
 	}
@@ -298,7 +298,7 @@ func patternMatch(ctx *Ctx, pattern []PatternSegment, msgs []message.MessageSegm
 }
 
 // PatternRule check if the message can be matched by the pattern
-func PatternRule(pattern ...PatternSegment) Rule {
+func PatternRule(pattern ...*PatternSegment) Rule {
 	return func(ctx *Ctx) bool {
 		// copy messages
 		msgs := make([]message.MessageSegment, 0, len(ctx.Event.Message))
