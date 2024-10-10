@@ -32,3 +32,8 @@ type FullMatchModel struct {
 type RegexModel struct {
 	Matched []string `zero:"regex_matched"`
 }
+
+// PatternModel is model of zero.PatternRule
+type PatternModel struct {
+	Matched []interface{} `zero:"pattern_matched"`
+}
