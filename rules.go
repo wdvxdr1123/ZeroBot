@@ -127,8 +127,19 @@ func RegexRule(regexPattern string) Rule {
 }
 
 type PatternSegment struct {
-	Type    string
-	Matcher func(ctx *Ctx, msg message.MessageSegment) bool
+	Type     string
+	Optional bool
+	Matcher  func(ctx *Ctx, msg message.MessageSegment) bool
+}
+
+// SetOptional set Pattern is optional, is v is empty, Optional will be true
+func (p *PatternSegment) SetOptional(v ...bool) *PatternSegment {
+	if len(v) == 1 {
+		p.Optional = v[0]
+	} else {
+		p.Optional = true
+	}
+	return p
 }
 
 type Pattern []PatternSegment
@@ -137,30 +148,55 @@ type Pattern []PatternSegment
 type PatternMatched map[string]interface{}
 
 func (p PatternMatched) AsText() PatternTextMatched {
-	return PatternTextMatched{
-		Groups: p["groups"].([]string),
+	if _, ok := p["groups"]; !ok {
+		return PatternTextMatched{}
 	}
+	return PatternTextMatched{HasValue: true, Groups: p["groups"].([]string)}
 }
 func (p PatternMatched) AsAt() PatternAtMatched {
-	return PatternAtMatched{UID: p["qq"].(int64)}
+	if _, ok := p["qq"]; !ok {
+		return PatternAtMatched{}
+	}
+	return PatternAtMatched{HasValue: true, UID: p["qq"].(int64)}
 }
 func (p PatternMatched) AsImage() PatternImageMatched {
-	return PatternImageMatched{File: p["file"].(string)}
+	if _, ok := p["file"]; !ok {
+		return PatternImageMatched{}
+	}
+	return PatternImageMatched{HasValue: true, File: p["file"].(string)}
 }
 func (p PatternMatched) AsReply() PatternReplyMatched {
-	return PatternReplyMatched{MessageID: p["file"].(string)}
+	if _, ok := p["id"]; !ok {
+		return PatternReplyMatched{}
+	}
+	return PatternReplyMatched{HasValue: true, MessageID: p["id"].(string)}
 }
 
+// PatternImageMatched
+// HasValue: false if not matched in optional Pattern
 type PatternImageMatched = struct {
-	File string
+	HasValue bool
+	File     string
 }
+
+// PatternAtMatched
+// HasValue: false if not matched in optional Pattern
 type PatternAtMatched = struct {
-	UID int64
+	HasValue bool
+	UID      int64
 }
+
+// PatternTextMatched
+// HasValue: false if not matched in optional Pattern
 type PatternTextMatched = struct {
-	Groups []string
+	HasValue bool
+	Groups   []string
 }
+
+// PatternReplyMatched
+// HasValue: false if not matched in optional Pattern
 type PatternReplyMatched = struct {
+	HasValue  bool
 	MessageID string
 }
 
@@ -237,12 +273,24 @@ func PatternReply() PatternSegment {
 		},
 	}
 }
+func containsOptional(pattern []PatternSegment) bool {
+	for _, p := range pattern {
+		if p.Optional {
+			return true
+		}
+	}
+	return false
+}
 func patternMatch(ctx *Ctx, pattern []PatternSegment, msgs []message.MessageSegment) bool {
-	if len(pattern) != len(msgs) {
+	if !containsOptional(pattern) && len(pattern) != len(msgs) {
 		return false
 	}
 	for i := 0; i < len(pattern); i++ {
 		if pattern[i].Type != (msgs[i].Type) || !pattern[i].Matcher(ctx, msgs[i]) {
+			if pattern[i].Optional {
+				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched), PatternMatched{})
+				continue
+			}
 			return false
 		}
 	}
