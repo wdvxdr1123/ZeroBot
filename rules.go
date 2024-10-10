@@ -252,7 +252,20 @@ func patternMatch(ctx *Ctx, pattern []PatternSegment, msgs []message.MessageSegm
 // PatternRule check if the message can be matched by the pattern
 func PatternRule(pattern ...PatternSegment) Rule {
 	return func(ctx *Ctx) bool {
-		return patternMatch(ctx, pattern, ctx.Event.Message)
+		// copy messages
+		msgs := make([]message.MessageSegment, 0, len(ctx.Event.Message))
+		msgs = append(msgs, ctx.Event.Message[0])
+		for i := 1; i < len(ctx.Event.Message); i++ {
+			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" { // [reply][at]
+				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
+				if reply.MessageId.String() != ctx.Event.Message[i].Data["id"] { // @ other user in reply
+					msgs = append(msgs, ctx.Event.Message[i])
+				}
+			} else {
+				msgs = append(msgs, ctx.Event.Message[i])
+			}
+		}
+		return patternMatch(ctx, pattern, msgs)
 	}
 }
 
