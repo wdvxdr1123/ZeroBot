@@ -1,5 +1,7 @@
 package extension
 
+import zero "github.com/wdvxdr1123/ZeroBot"
+
 // PrefixModel is model of zero.PrefixRule
 type PrefixModel struct {
 	Prefix string `zero:"prefix"`
@@ -31,4 +33,9 @@ type FullMatchModel struct {
 // RegexModel is model of zero.RegexRule
 type RegexModel struct {
 	Matched []string `zero:"regex_matched"`
+}
+
+// PatternModel is model of zero.PatternRule
+type PatternModel struct {
+	Matched []zero.PatternMatched `zero:"pattern_matched"`
 }
