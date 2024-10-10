@@ -130,9 +130,35 @@ type PatternSegment struct {
 	Type    string
 	Matcher func(ctx *Ctx, msg message.MessageSegment) bool
 }
+
 type Pattern []PatternSegment
 
-// PatternText KEY_PATTERN type []string
+// PatternMatched save PatternRule context
+type PatternMatched map[string]interface{}
+
+func (p PatternMatched) AsText() PatternTextMatched {
+	return PatternTextMatched{
+		Groups: p["groups"].([]string),
+	}
+}
+func (p PatternMatched) AsAt() PatternAtMatched {
+	return PatternAtMatched{UID: p["qq"].(int64)}
+}
+func (p PatternMatched) AsImage() PatternImageMatched {
+	return PatternImageMatched{File: p["file"].(string)}
+}
+
+type PatternImageMatched = struct {
+	File string
+}
+type PatternAtMatched = struct {
+	UID int64
+}
+type PatternTextMatched = struct {
+	Groups []string
+}
+
+// PatternText type zero.PatternTextMatched
 func PatternText(regex string) PatternSegment {
 	re := regexp.MustCompile(regex)
 	return PatternSegment{
@@ -143,39 +169,48 @@ func PatternText(regex string) PatternSegment {
 			matchString := re.MatchString(s)
 			if matchString {
 				if _, ok := ctx.State[KEY_PATTERN]; !ok {
-					ctx.State[KEY_PATTERN] = make([]interface{}, 0)
+					ctx.State[KEY_PATTERN] = make([]PatternMatched, 0, 1)
 				}
 
-				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), re.FindStringSubmatch(s))
+				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched),
+					PatternMatched{
+						"groups": re.FindStringSubmatch(s),
+					})
 			}
 			return matchString
 		},
 	}
 }
 
-// PatternAt KEY_PATTERN type string
+// PatternAt type zero.PatternAtMatched
 func PatternAt() PatternSegment {
 	return PatternSegment{
 		Type: "at",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			if _, ok := ctx.State[KEY_PATTERN]; !ok {
-				ctx.State[KEY_PATTERN] = make([]interface{}, 0)
+				ctx.State[KEY_PATTERN] = make([]PatternMatched, 0, 1)
 			}
-			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data["qq"])
+			qq, _ := strconv.ParseInt(msg.Data["qq"], 10, 64)
+			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched),
+				PatternMatched{
+					"qq": qq,
+				})
 			return true
 		},
 	}
 }
 
-// PatternImage KEY_PATTERN type msg.Data
+// PatternImage type zero.PatternImageMatched
 func PatternImage() PatternSegment {
 	return PatternSegment{
 		Type: "image",
 		Matcher: func(ctx *Ctx, msg message.MessageSegment) bool {
 			if _, ok := ctx.State[KEY_PATTERN]; !ok {
-				ctx.State[KEY_PATTERN] = make([]interface{}, 0)
+				ctx.State[KEY_PATTERN] = make([]PatternMatched, 0, 1)
 			}
-			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]interface{}), msg.Data)
+			ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]PatternMatched), PatternMatched{
+				"file": msg.Data["file"],
+			})
 			return true
 		},
 	}

@@ -1,5 +1,7 @@
 package extension
 
+import zero "github.com/wdvxdr1123/ZeroBot"
+
 // PrefixModel is model of zero.PrefixRule
 type PrefixModel struct {
 	Prefix string `zero:"prefix"`
@@ -35,5 +37,5 @@ type RegexModel struct {
 
 // PatternModel is model of zero.PatternRule
 type PatternModel struct {
-	Matched []interface{} `zero:"pattern_matched"`
+	Matched []zero.PatternMatched `zero:"pattern_matched"`
 }
