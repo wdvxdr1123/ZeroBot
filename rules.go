@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	KEY_REGEX   = "regex_matched"
 	KEY_PATTERN = "pattern_matched"
 )
 
