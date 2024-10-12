@@ -86,7 +86,7 @@ func (ctx *Ctx) CheckSession() Rule {
 }
 
 // Send 快捷发送消息/合并转发
-func (ctx *Ctx) Send(msg interface{}) message.MessageID {
+func (ctx *Ctx) Send(msg interface{}) message.ID {
 	event := ctx.Event
 	m, ok := msg.(message.Message)
 	if !ok {
@@ -112,7 +112,7 @@ func (ctx *Ctx) Send(msg interface{}) message.MessageID {
 }
 
 // SendChain 快捷发送消息/合并转发-消息链
-func (ctx *Ctx) SendChain(msg ...message.MessageSegment) message.MessageID {
+func (ctx *Ctx) SendChain(msg ...message.Segment) message.ID {
 	return ctx.Send((message.Message)(msg))
 }
 
@@ -126,8 +126,8 @@ func (ctx *Ctx) Echo(response []byte) {
 }
 
 // FutureEvent ...
-func (ctx *Ctx) FutureEvent(Type string, rule ...Rule) *FutureEvent {
-	return ctx.ma.FutureEvent(Type, rule...)
+func (ctx *Ctx) FutureEvent(typ string, rule ...Rule) *FutureEvent {
+	return ctx.ma.FutureEvent(typ, rule...)
 }
 
 // Get ..

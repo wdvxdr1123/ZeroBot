@@ -12,7 +12,7 @@ bookComments: true
 
 ### 安装Go
 
-首先需要安装Go(支持版本1.18+), 你可以在
+首先需要安装Go(支持版本1.20+), 你可以在
 {{< button href="https://golang.org/dl" >}} Go官网{{< /button >}}
 或者{{< button href="https://golang.google.cn/dl">}}Go中国镜像站{{< /button >}}
 (国内用户推荐)找到对应的安装包

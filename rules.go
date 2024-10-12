@@ -12,8 +12,8 @@ import (
 )
 
 // Type check the ctx.Event's type
-func Type(type_ string) Rule {
-	t := strings.SplitN(type_, "/", 3)
+func Type(typ string) Rule {
+	t := strings.SplitN(typ, "/", 3)
 	return func(ctx *Ctx) bool {
 		if len(t) > 0 && t[0] != ctx.Event.PostType {
 			return false
@@ -174,9 +174,9 @@ func OnlyToMe(ctx *Ctx) bool {
 }
 
 // CheckUser only triggered by specific person
-func CheckUser(userId ...int64) Rule {
+func CheckUser(userID ...int64) Rule {
 	return func(ctx *Ctx) bool {
-		for _, uid := range userId {
+		for _, uid := range userID {
 			if ctx.Event.UserID == uid {
 				return true
 			}
@@ -186,9 +186,9 @@ func CheckUser(userId ...int64) Rule {
 }
 
 // CheckGroup only triggered in specific group
-func CheckGroup(grpId ...int64) Rule {
+func CheckGroup(grpID ...int64) Rule {
 	return func(ctx *Ctx) bool {
-		for _, gid := range grpId {
+		for _, gid := range grpID {
 			if ctx.Event.GroupID == gid {
 				return true
 			}

@@ -6,7 +6,7 @@ package message
 //
 // CQ字符串转为消息
 func ParseMessageFromString(raw string) (m Message) {
-	var seg MessageSegment
+	var seg Segment
 	var k string
 	m = Message{}
 	for raw != "" {

@@ -9,21 +9,21 @@ import (
 )
 
 type (
-	FilterFunc func(gjson.Result) bool
-	field      struct {
+	Func  func(gjson.Result) bool
+	Field struct {
 		key string
 	}
 )
 
-// Filter return a rule filter the message.
-func Filter[Ctx any](getevent func(Ctx) gjson.Result, filters ...FilterFunc) func(ctx Ctx) bool {
+// New return a rule filter the message.
+func New[Ctx any](getevent func(Ctx) gjson.Result, filters ...Func) func(ctx Ctx) bool {
 	return func(ctx Ctx) bool {
 		return And(filters...)(getevent(ctx))
 	}
 }
 
 // Or ...
-func Or(filters ...FilterFunc) FilterFunc {
+func Or(filters ...Func) Func {
 	return func(result gjson.Result) bool {
 		for _, filter := range filters {
 			if filter(result) {
@@ -35,7 +35,7 @@ func Or(filters ...FilterFunc) FilterFunc {
 }
 
 // And ...
-func And(filters ...FilterFunc) FilterFunc {
+func And(filters ...Func) Func {
 	return func(result gjson.Result) bool {
 		for _, filter := range filters {
 			if !filter(result) {
@@ -47,47 +47,47 @@ func And(filters ...FilterFunc) FilterFunc {
 }
 
 // Not ...
-func Not(filter FilterFunc) FilterFunc {
+func Not(filter Func) Func {
 	return func(result gjson.Result) bool {
 		return !filter(result)
 	}
 }
 
-// Field ...
-func Field(str string) *field {
-	return &field{key: str}
+// NewField ...
+func NewField(str string) *Field {
+	return &Field{key: str}
 }
 
 // Any ...
-func (f *field) Any(filter ...FilterFunc) FilterFunc {
+func (f *Field) Any(filter ...Func) Func {
 	return func(result gjson.Result) bool {
 		return Or(filter...)(result.Get(f.key))
 	}
 }
 
 // All ...
-func (f *field) All(filter ...FilterFunc) FilterFunc {
+func (f *Field) All(filter ...Func) Func {
 	return func(result gjson.Result) bool {
 		return And(filter...)(result.Get(f.key))
 	}
 }
 
 // Equal ...
-func Equal(str string) FilterFunc {
+func Equal(str string) Func {
 	return func(result gjson.Result) bool {
 		return str == result.String()
 	}
 }
 
 // NotEqual ...
-func NotEqual(str string) FilterFunc {
+func NotEqual(str string) Func {
 	return func(result gjson.Result) bool {
 		return str != result.String()
 	}
 }
 
 // In ...
-func In(i ...interface{}) FilterFunc {
+func In(i ...interface{}) Func {
 	ss := make([]string, 0)
 	for _, v := range i {
 		ss = append(ss, fmt.Sprint(v))
@@ -103,14 +103,14 @@ func In(i ...interface{}) FilterFunc {
 }
 
 // Contain ...
-func Contain(str string) FilterFunc {
+func Contain(str string) Func {
 	return func(result gjson.Result) bool {
 		return strings.Contains(result.String(), str)
 	}
 }
 
 // Regex ...
-func Regex(str string) FilterFunc {
+func Regex(str string) Func {
 	pat := regexp.MustCompile(str)
 	return func(result gjson.Result) bool {
 		return pat.MatchString(result.String())
