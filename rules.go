@@ -129,6 +129,9 @@ func RegexRule(regexPattern string) Rule {
 // PatternRule check if the message can be matched by the pattern
 func PatternRule(pattern *Pattern) Rule {
 	return func(ctx *Ctx) bool {
+		if len(ctx.Event.Message) == 0 {
+			return false
+		}
 		// copy messages
 		msgs := make([]message.MessageSegment, 0, len(ctx.Event.Message))
 		msgs = append(msgs, ctx.Event.Message[0])
