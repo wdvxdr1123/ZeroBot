@@ -10,7 +10,7 @@ import (
 type Pattern []PatternSegment
 
 func NewPattern() *Pattern {
-	pattern := make(Pattern, 0)
+	pattern := make(Pattern, 0, 4)
 	return &pattern
 }
 
@@ -43,7 +43,7 @@ type PatternParsed struct {
 
 func (p PatternParsed) GetText() []string {
 	if !p.Valid {
-		return make([]string, 0)
+		return nil
 	}
 	return p.Value.([]string)
 }
