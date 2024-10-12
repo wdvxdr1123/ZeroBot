@@ -16,12 +16,12 @@ import (
 
 // Message impl the array form of message
 // https://github.com/botuniverse/onebot-11/tree/master/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
-type Message []MessageSegment
+type Message []Segment
 
-// MessageSegment impl the single message
-// MessageSegment 消息数组
+// Segment impl the single message
+// Segment 消息数组
 // https://github.com/botuniverse/onebot-11/tree/master/message/array.md#%E6%95%B0%E7%BB%84%E6%A0%BC%E5%BC%8F
-type MessageSegment struct {
+type Segment struct {
 	Type string            `json:"type"`
 	Data map[string]string `json:"data"`
 }
@@ -80,7 +80,7 @@ func UnescapeCQCodeText(str string) string {
 // 与 String 不同之处在于，对于
 // base64 的图片消息会将其哈希
 // 方便 log 打印，不可用作发送
-func (m MessageSegment) CQCode() string {
+func (m Segment) CQCode() string {
 	sb := strings.Builder{}
 	sb.WriteString("[CQ:")
 	sb.WriteString(m.Type)
@@ -115,7 +115,7 @@ func (m MessageSegment) CQCode() string {
 }
 
 // String impls the interface fmt.Stringer
-func (m MessageSegment) String() string {
+func (m Segment) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("[CQ:")
 	sb.WriteString(m.Type)
@@ -165,8 +165,8 @@ func (m Message) String() string {
 
 // Text 纯文本
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
-func Text(text ...interface{}) MessageSegment {
-	return MessageSegment{
+func Text(text ...interface{}) Segment {
+	return Segment{
 		Type: "text",
 		Data: map[string]string{
 			"text": fmt.Sprint(text...),
@@ -176,8 +176,8 @@ func Text(text ...interface{}) MessageSegment {
 
 // Face QQ表情
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#qq-%E8%A1%A8%E6%83%85
-func Face(id int) MessageSegment {
-	return MessageSegment{
+func Face(id int) Segment {
+	return Segment{
 		Type: "face",
 		Data: map[string]string{
 			"id": strconv.Itoa(id),
@@ -187,8 +187,8 @@ func Face(id int) MessageSegment {
 
 // File 文件
 // https://llonebot.github.io/zh-CN/develop/extends_api
-func File(file, name string) MessageSegment {
-	return MessageSegment{
+func File(file, name string) Segment {
+	return Segment{
 		Type: "file",
 		Data: map[string]string{
 			"file": file,
@@ -204,8 +204,8 @@ func File(file, name string) MessageSegment {
 // https://llonebot.github.io/zh-CN/develop/extends_api
 //
 // summary: LLOneBot的扩展字段：图片预览文字
-func Image(file string, summary ...interface{}) MessageSegment {
-	m := MessageSegment{
+func Image(file string, summary ...interface{}) Segment {
+	m := Segment{
 		Type: "image",
 		Data: map[string]string{
 			"file": file,
@@ -219,8 +219,8 @@ func Image(file string, summary ...interface{}) MessageSegment {
 
 // ImageBytes 普通图片
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
-func ImageBytes(data []byte) MessageSegment {
-	return MessageSegment{
+func ImageBytes(data []byte) Segment {
+	return Segment{
 		Type: "image",
 		Data: map[string]string{
 			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
@@ -230,8 +230,8 @@ func ImageBytes(data []byte) MessageSegment {
 
 // Record 语音
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E8%AF%AD%E9%9F%B3
-func Record(file string) MessageSegment {
-	return MessageSegment{
+func Record(file string) Segment {
+	return Segment{
 		Type: "record",
 		Data: map[string]string{
 			"file": file,
@@ -241,8 +241,8 @@ func Record(file string) MessageSegment {
 
 // Video 短视频
 // https://github.com/botuniverse/onebot-11/blob/master/message/segment.md#%E7%9F%AD%E8%A7%86%E9%A2%91
-func Video(file string) MessageSegment {
-	return MessageSegment{
+func Video(file string) Segment {
+	return Segment{
 		Type: "video",
 		Data: map[string]string{
 			"file": file,
@@ -252,11 +252,11 @@ func Video(file string) MessageSegment {
 
 // At @某人
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
-func At(qq int64) MessageSegment {
+func At(qq int64) Segment {
 	if qq == 0 {
 		return AtAll()
 	}
-	return MessageSegment{
+	return Segment{
 		Type: "at",
 		Data: map[string]string{
 			"qq": strconv.FormatInt(qq, 10),
@@ -266,8 +266,8 @@ func At(qq int64) MessageSegment {
 
 // AtAll @全体成员
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E6%9F%90%E4%BA%BA
-func AtAll() MessageSegment {
-	return MessageSegment{
+func AtAll() Segment {
+	return Segment{
 		Type: "at",
 		Data: map[string]string{
 			"qq": "all",
@@ -277,8 +277,8 @@ func AtAll() MessageSegment {
 
 // Music 音乐分享
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E9%9F%B3%E4%B9%90%E5%88%86%E4%BA%AB-
-func Music(mType string, id int64) MessageSegment {
-	return MessageSegment{
+func Music(mType string, id int64) Segment {
+	return Segment{
 		Type: "music",
 		Data: map[string]string{
 			"type": mType,
@@ -289,8 +289,8 @@ func Music(mType string, id int64) MessageSegment {
 
 // CustomMusic 音乐自定义分享
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E9%9F%B3%E4%B9%90%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E4%BA%AB-
-func CustomMusic(url, audio, title string) MessageSegment {
-	return MessageSegment{
+func CustomMusic(url, audio, title string) Segment {
+	return Segment{
 		Type: "music",
 		Data: map[string]string{
 			"type":  "custom",
@@ -301,14 +301,14 @@ func CustomMusic(url, audio, title string) MessageSegment {
 	}
 }
 
-// MessageID 对于 qq 消息, i 与 s 相同
+// ID 对于 qq 消息, i 与 s 相同
 // 对于 guild 消息, i 为 s 的 ISO crc64
-type MessageID struct {
+type ID struct {
 	i int64
 	s string
 }
 
-func NewMessageIDFromString(raw string) (m MessageID) {
+func NewMessageIDFromString(raw string) (m ID) {
 	var err error
 	m.i, err = strconv.ParseInt(raw, 10, 64)
 	if err != nil {
@@ -320,13 +320,13 @@ func NewMessageIDFromString(raw string) (m MessageID) {
 	return
 }
 
-func NewMessageIDFromInteger(raw int64) (m MessageID) {
+func NewMessageIDFromInteger(raw int64) (m ID) {
 	m.s = strconv.FormatInt(raw, 10)
 	m.i = raw
 	return
 }
 
-func (m MessageID) MarshalJSON() ([]byte, error) {
+func (m ID) MarshalJSON() ([]byte, error) {
 	sb := bytes.NewBuffer(make([]byte, 0, len(m.s)+2))
 	_, err := strconv.ParseInt(m.s, 10, 64)
 	if err != nil {
@@ -339,17 +339,17 @@ func (m MessageID) MarshalJSON() ([]byte, error) {
 	return sb.Bytes(), nil
 }
 
-func (m MessageID) String() string {
+func (m ID) String() string {
 	return m.s
 }
 
-func (m MessageID) ID() int64 {
+func (m ID) ID() int64 {
 	return m.i
 }
 
 // Reply 回复
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id interface{}) MessageSegment {
+func Reply(id interface{}) Segment {
 	s := ""
 	switch i := id.(type) {
 	case int64:
@@ -363,7 +363,7 @@ func Reply(id interface{}) MessageSegment {
 	case fmt.Stringer:
 		s = i.String()
 	}
-	return MessageSegment{
+	return Segment{
 		Type: "reply",
 		Data: map[string]string{
 			"id": s,
@@ -373,8 +373,8 @@ func Reply(id interface{}) MessageSegment {
 
 // Forward 合并转发
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91-
-func Forward(id string) MessageSegment {
-	return MessageSegment{
+func Forward(id string) Segment {
+	return Segment{
 		Type: "forward",
 		Data: map[string]string{
 			"id": id,
@@ -384,8 +384,8 @@ func Forward(id string) MessageSegment {
 
 // Node 合并转发节点
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%8A%82%E7%82%B9-
-func Node(id int64) MessageSegment {
-	return MessageSegment{
+func Node(id int64) Segment {
+	return Segment{
 		Type: "node",
 		Data: map[string]string{
 			"id": strconv.FormatInt(id, 10),
@@ -395,20 +395,20 @@ func Node(id int64) MessageSegment {
 
 // CustomNode 自定义合并转发节点
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
-func CustomNode(nickname string, userID int64, content interface{}) MessageSegment {
+func CustomNode(nickname string, userID int64, content interface{}) Segment {
 	var str string
 	switch c := content.(type) {
 	case string:
 		str = c
 	case Message:
 		str = c.String()
-	case []MessageSegment:
+	case []Segment:
 		str = (Message)(c).String()
 	default:
 		b, _ := json.Marshal(content)
 		str = helper.BytesToString(b)
 	}
-	return MessageSegment{
+	return Segment{
 		Type: "node",
 		Data: map[string]string{
 			"uin":     strconv.FormatInt(userID, 10),
@@ -420,8 +420,8 @@ func CustomNode(nickname string, userID int64, content interface{}) MessageSegme
 
 // XML 消息
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#xml-%E6%B6%88%E6%81%AF
-func XML(data string) MessageSegment {
-	return MessageSegment{
+func XML(data string) Segment {
+	return Segment{
 		Type: "xml",
 		Data: map[string]string{
 			"data": data,
@@ -431,8 +431,8 @@ func XML(data string) MessageSegment {
 
 // JSON 消息
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#xml-%E6%B6%88%E6%81%AF
-func JSON(data string) MessageSegment {
-	return MessageSegment{
+func JSON(data string) Segment {
+	return Segment{
 		Type: "json",
 		Data: map[string]string{
 			"data": data,
@@ -446,8 +446,8 @@ func JSON(data string) MessageSegment {
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E7%A4%BC%E7%89%A9
 //
 // Deprecated: 群礼物改版
-func Gift(userID string, giftID string) MessageSegment {
-	return MessageSegment{
+func Gift(userID string, giftID string) Segment {
+	return Segment{
 		Type: "gift",
 		Data: map[string]string{
 			"qq": userID,
@@ -458,8 +458,8 @@ func Gift(userID string, giftID string) MessageSegment {
 
 // Poke 戳一戳
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%88%B3%E4%B8%80%E6%88%B3
-func Poke(userID int64) MessageSegment {
-	return MessageSegment{
+func Poke(userID int64) Segment {
+	return Segment{
 		Type: "poke",
 		Data: map[string]string{
 			"qq": strconv.FormatInt(userID, 10),
@@ -469,8 +469,8 @@ func Poke(userID int64) MessageSegment {
 
 // TTS 文本转语音
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E6%96%87%E6%9C%AC%E8%BD%AC%E8%AF%AD%E9%9F%B3
-func TTS(text string) MessageSegment {
-	return MessageSegment{
+func TTS(text string) Segment {
+	return Segment{
 		Type: "tts",
 		Data: map[string]string{
 			"text": text,
@@ -479,7 +479,7 @@ func TTS(text string) MessageSegment {
 }
 
 // Add 为 MessageSegment 的 Data 增加一个字段
-func (m MessageSegment) Add(key string, val interface{}) MessageSegment {
+func (m Segment) Add(key string, val interface{}) Segment {
 	switch val := val.(type) {
 	case string:
 		m.Data[key] = val
@@ -496,7 +496,7 @@ func (m MessageSegment) Add(key string, val interface{}) MessageSegment {
 }
 
 // Chain 将两个 Data 合并
-func (m MessageSegment) Chain(data map[string]string) MessageSegment {
+func (m Segment) Chain(data map[string]string) Segment {
 	for k, v := range data {
 		m.Data[k] = v
 	}
@@ -504,6 +504,6 @@ func (m MessageSegment) Chain(data map[string]string) MessageSegment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID interface{}, m ...MessageSegment) Message {
+func ReplyWithMessage(messageID interface{}, m ...Segment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }

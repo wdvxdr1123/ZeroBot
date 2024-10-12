@@ -13,42 +13,38 @@ linters:
   fast: false
   enable:
     - bodyclose
-    #- deadcode
     #- depguard
     - dogsled
-    - dupl
     - errcheck
     - exportloopref
     - exhaustive
     #- funlen
     #- goconst
-    #- gocritic
+    - gocritic
     #- gocyclo
-    - gofumpt
+    - gofmt
     - goimports
     - goprintffuncname
     #- gosec
     - gosimple
     - govet
     - ineffassign
-    - misspell
+    #- misspell
     - nolintlint
     - rowserrcheck
     - staticcheck
-    #- structcheck
-    #- stylecheck
+    - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    #- varcheck
     - whitespace
     - prealloc
     - predeclared
     - asciicheck
-    #- revive
+    - revive
+    - forbidigo
     - makezero
-    #- interfacer
 
 
 run:
@@ -57,6 +53,7 @@ run:
   deadline: 5m
   issues-exit-code: 1
   tests: false
+  go: '1.20'
 
 # output configuration options
 output:

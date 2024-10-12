@@ -175,7 +175,7 @@ func init() {
 		Handle(func(ctx *zero.Ctx) {
 			msg := `---服务列表---`
 			i := 0
-			ForEach(func(key string, manager *Manager) bool {
+			ForEach(func(key string, _ *Manager) bool {
 				i++
 				msg += "\n" + strconv.Itoa(i) + `: ` + key
 				return true

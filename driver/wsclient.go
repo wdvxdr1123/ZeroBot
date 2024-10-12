@@ -29,7 +29,7 @@ type WSClient struct {
 	conn        *websocket.Conn
 	mu          sync.Mutex // 写锁
 	seqMap      seqSyncMap
-	Url         string // ws连接地址
+	URL         string // ws连接地址
 	AccessToken string
 	selfID      int64
 }
@@ -37,14 +37,14 @@ type WSClient struct {
 // NewWebSocketClient 默认Driver，使用正向WS通信
 func NewWebSocketClient(url, accessToken string) *WSClient {
 	return &WSClient{
-		Url:         url,
+		URL:         url,
 		AccessToken: accessToken,
 	}
 }
 
 // Connect 连接ws服务端
 func (ws *WSClient) Connect() {
-	log.Infof("[ws] 开始尝试连接到Websocket服务器: %v", ws.Url)
+	log.Infof("[ws] 开始尝试连接到Websocket服务器: %v", ws.URL)
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
 		"User-Agent":    []string{"ZeroBot/1.6.3"},
@@ -53,7 +53,7 @@ func (ws *WSClient) Connect() {
 		header["Authorization"] = []string{"Bearer " + ws.AccessToken}
 	}
 
-	network, address := resolveURI(ws.Url)
+	network, address := resolveURI(ws.URL)
 	dialer := websocket.Dialer{
 		NetDial: func(_, addr string) (net.Conn, error) {
 			if network == "unix" {
@@ -73,7 +73,7 @@ func (ws *WSClient) Connect() {
 	for {
 		conn, res, err := dialer.Dial(address, header)
 		if err != nil {
-			log.Warnf("[ws] 连接到Websocket服务器 %v 时出现错误: %v", ws.Url, err)
+			log.Warnf("[ws] 连接到Websocket服务器 %v 时出现错误: %v", ws.URL, err)
 			time.Sleep(2 * time.Second) // 等待两秒后重新连接
 			continue
 		}
@@ -84,13 +84,13 @@ func (ws *WSClient) Connect() {
 		}
 		err = ws.conn.ReadJSON(&rsp)
 		if err != nil {
-			log.Warnf("[ws] 与Websocket服务器 %v 握手时出现错误: %v", ws.Url, err)
+			log.Warnf("[ws] 与Websocket服务器 %v 握手时出现错误: %v", ws.URL, err)
 			time.Sleep(2 * time.Second) // 等待两秒后重新连接
 			continue
 		}
 		ws.selfID = rsp.SelfID
 		zero.APICallers.Store(ws.selfID, ws) // 添加Caller到 APICaller list...
-		log.Infof("[ws] 连接Websocket服务器: %s 成功, 账号: %d", ws.Url, rsp.SelfID)
+		log.Infof("[ws] 连接Websocket服务器: %s 成功, 账号: %d", ws.URL, rsp.SelfID)
 		break
 	}
 }
@@ -137,8 +137,8 @@ func (ws *WSClient) nextSeq() uint64 {
 	return atomic.AddUint64(&ws.seq, 1)
 }
 
-// CallApi 发送ws请求
-func (ws *WSClient) CallApi(req zero.APIRequest) (zero.APIResponse, error) {
+// CallAPI 发送ws请求
+func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse, 1)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)

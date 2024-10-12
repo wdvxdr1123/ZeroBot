@@ -9,7 +9,7 @@ import (
 
 func TestMessageID(t *testing.T) {
 	id := NewMessageIDFromString("test case")
-	msg := Message([]MessageSegment{Reply(id)})
+	msg := Message([]Segment{Reply(id)})
 	data, err := json.Marshal(&msg)
 	if err != nil {
 		t.Fatal(err)

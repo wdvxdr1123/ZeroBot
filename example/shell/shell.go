@@ -1,7 +1,7 @@
 package shell
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
 
 	zero "github.com/wdvxdr1123/ZeroBot"
 )
@@ -20,11 +20,11 @@ type Ping struct {
 func init() {
 	zero.OnShell("ping", Ping{}).Handle(func(ctx *zero.Ctx) {
 		ping := ctx.State["flag"].(*Ping) // Note: 指针类型
-		fmt.Println("ping host:", ping.Host)
-		fmt.Println("ping timeout:", ping.Timeout)
-		fmt.Println("ping t:", ping.T)
+		logrus.Infoln("ping host:", ping.Host)
+		logrus.Infoln("ping timeout:", ping.Timeout)
+		logrus.Infoln("ping t:", ping.T)
 		for i, v := range ctx.State["args"].([]string) {
-			fmt.Println("args", i, ":", v)
+			logrus.Infoln("args", i, ":", v)
 		}
 	})
 }

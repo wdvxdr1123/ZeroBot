@@ -16,7 +16,7 @@ func TestParseMessageFromString(t *testing.T) {
 		{`123213312312312312[]`, Message{Text("123213312312312312[]")}},
 		{
 			`Gorilla[]   [CQ:text]`,
-			Message{Text("Gorilla[]   "), MessageSegment{Type: "text", Data: map[string]string{}}},
+			Message{Text("Gorilla[]   "), Segment{Type: "text", Data: map[string]string{}}},
 		},
 		{
 			`[CQ:face,id=123][CQ:face,id=1234]  `,
@@ -26,8 +26,8 @@ func TestParseMessageFromString(t *testing.T) {
 			`ȐĉņþƦȻƝƃ[CQ:rcnb][CQ:ɌćƞßɌĆnƅŕĉ,a=b]`,
 			Message{
 				Text("ȐĉņþƦȻƝƃ"),
-				MessageSegment{Type: "rcnb", Data: map[string]string{}},
-				MessageSegment{Type: "ɌćƞßɌĆnƅŕĉ", Data: map[string]string{"a": "b"}},
+				Segment{Type: "rcnb", Data: map[string]string{}},
+				Segment{Type: "ɌćƞßɌĆnƅŕĉ", Data: map[string]string{"a": "b"}},
 			},
 		},
 		{
@@ -36,11 +36,11 @@ func TestParseMessageFromString(t *testing.T) {
 		},
 		{
 			`[CQ:face,id=123,id=123,id=123,id=123][CQ:face,id=1234][]  [CQ:]`,
-			Message{Face(123), Face(1234), Text("[]  "), MessageSegment{Type: "", Data: map[string]string{}}},
+			Message{Face(123), Face(1234), Text("[]  "), Segment{Type: "", Data: map[string]string{}}},
 		},
 		{
 			`[CQ:image,file=file:///C:\path\to\my\img-123\###.png]`, // https://github.com/Mrs4s/go-cqhttp/issues/169
-			Message{MessageSegment{Type: "image", Data: map[string]string{"file": "file:///C:\\path\\to\\my\\img-123\\###.png"}}},
+			Message{Segment{Type: "image", Data: map[string]string{"file": "file:///C:\\path\\to\\my\\img-123\\###.png"}}},
 		},
 	}
 	for i, test := range tests {

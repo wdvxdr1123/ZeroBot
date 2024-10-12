@@ -13,46 +13,46 @@ import (
 var DefaultWorkerNum = runtime.GOMAXPROCS(0) * 2
 
 type (
-	// IAsync interface
-	IAsync[Result any] interface {
-		AddTask(task Task[Result])
-		Result() <-chan AsyncResult[Result]
+	// Executor interface
+	Executor[R any] interface {
+		AddTask(task Task[R])
+		Result() <-chan Result[R]
 	}
 
-	// AsyncResult result struct
-	AsyncResult[Result any] struct {
-		Value Result
+	// Result ...
+	Result[R any] struct {
+		Value R
 		Err   error
 	}
 
-	async[Result any] struct {
-		tasks        []Task[Result]
+	async[R any] struct {
+		tasks        []Task[R]
 		wg           sync.WaitGroup
 		maxWorkerNum int
 	}
 
 	// Task task func
-	Task[Result any] func() (Result, error)
+	Task[R any] func() (R, error)
 )
 
-// NewAsync ...
-func NewAsync[Result any](maxWorkerNum int) IAsync[Result] {
+// NewExec ...
+func NewExec[R any](maxWorkerNum int) Executor[R] {
 	if maxWorkerNum <= 0 {
 		maxWorkerNum = DefaultWorkerNum
 	}
-	return &async[Result]{
+	return &async[R]{
 		maxWorkerNum: maxWorkerNum,
 		wg:           sync.WaitGroup{},
 	}
 }
 
-func (a *async[Result]) AddTask(task Task[Result]) {
+func (a *async[R]) AddTask(task Task[R]) {
 	a.tasks = append(a.tasks, task)
 }
 
-func (a *async[Result]) Result() <-chan AsyncResult[Result] {
-	taskChan := make(chan Task[Result])
-	resultChan := make(chan AsyncResult[Result])
+func (a *async[R]) Result() <-chan Result[R] {
+	taskChan := make(chan Task[R])
+	resultChan := make(chan Result[R])
 	taskNum := len(a.tasks)
 	workerNum := int(math.Min(float64(taskNum), float64(a.maxWorkerNum)))
 	a.wg.Add(taskNum)
@@ -60,7 +60,7 @@ func (a *async[Result]) Result() <-chan AsyncResult[Result] {
 	for i := 0; i < workerNum; i++ {
 		go func() {
 			for task := range taskChan {
-				result := AsyncResult[Result]{}
+				result := Result[R]{}
 				result.Value, result.Err = task()
 				resultChan <- result
 				a.wg.Done()

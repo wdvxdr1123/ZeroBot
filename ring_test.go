@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -44,5 +43,5 @@ func TestRing(t *testing.T) {
 func testProcess(response []byte, _ APICaller, _ time.Duration) {
 	time.Sleep(time.Duration(rand.Intn(100)+1) * time.Microsecond)
 	buf[response[0]] = response[1]
-	fmt.Println(response[0], "processed")
+	// fmt.Println(response[0], "processed")
 }

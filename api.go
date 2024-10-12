@@ -55,7 +55,7 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 		Action: action,
 		Params: params,
 	}
-	rsp, err := ctx.caller.CallApi(req)
+	rsp, err := ctx.caller.CallAPI(req)
 	if err != nil {
 		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}
@@ -113,7 +113,7 @@ func (ctx *Ctx) GetMessage(messageID interface{}) Message {
 	}).Data
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
-		MessageId:   message.NewMessageIDFromInteger(rsp.Get("message_id").Int()),
+		MessageID:   message.NewMessageIDFromInteger(rsp.Get("message_id").Int()),
 		MessageType: rsp.Get("message_type").String(),
 		Sender:      &User{},
 	}
@@ -247,7 +247,7 @@ func (ctx *Ctx) SetGroupName(groupID int64, groupName string) {
 
 // SetThisGroupName 设置本群名
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#set_group_name-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E5%90%8D
-func (ctx *Ctx) SetThisGroupName(groupID int64, groupName string) {
+func (ctx *Ctx) SetThisGroupName(groupName string) {
 	ctx.SetGroupName(ctx.Event.GroupID, groupName)
 }
 
@@ -682,9 +682,9 @@ func (ctx *Ctx) GetThisGroupFilesByFolder(folderID string) gjson.Result {
 	return ctx.GetGroupFilesByFolder(ctx.Event.GroupID, folderID)
 }
 
-// GetGroupFileUrl 获取群文件资源链接
+// GetGroupFileURL 获取群文件资源链接
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E9%93%BE%E6%8E%A5
-func (ctx *Ctx) GetGroupFileUrl(groupID, busid int64, fileID string) string {
+func (ctx *Ctx) GetGroupFileURL(groupID, busid int64, fileID string) string {
 	return ctx.CallAction("get_group_file_url", Params{
 		"group_id": groupID,
 		"file_id":  fileID,
@@ -692,10 +692,10 @@ func (ctx *Ctx) GetGroupFileUrl(groupID, busid int64, fileID string) string {
 	}).Data.Get("url").Str
 }
 
-// GetThisGroupFileUrl 获取本群文件资源链接
+// GetThisGroupFileURL 获取本群文件资源链接
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E9%93%BE%E6%8E%A5
-func (ctx *Ctx) GetThisGroupFileUrl(busid int64, fileID string) string {
-	return ctx.GetGroupFileUrl(ctx.Event.GroupID, busid, fileID)
+func (ctx *Ctx) GetThisGroupFileURL(busid int64, fileID string) string {
+	return ctx.GetGroupFileURL(ctx.Event.GroupID, busid, fileID)
 }
 
 // UploadGroupFile 上传群文件

@@ -33,9 +33,9 @@ type Config struct {
 // APICallers 所有的APICaller列表， 通过self-ID映射
 var APICallers callerMap
 
-// APICaller is the interface of CallApi
+// APICaller is the interface of CallAPI
 type APICaller interface {
-	CallApi(request APIRequest) (APIResponse, error)
+	CallAPI(request APIRequest) (APIResponse, error)
 }
 
 // Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
@@ -125,18 +125,18 @@ func RunAndBlock(op *Config, preblock func()) {
 }
 
 var (
-	triggeredMessages   = ttl.NewCache[int64, []message.MessageID](time.Minute * 5)
+	triggeredMessages   = ttl.NewCache[int64, []message.ID](time.Minute * 5)
 	triggeredMessagesMu = sync.Mutex{}
 )
 
 type messageLogger struct {
-	msgid  message.MessageID
+	msgid  message.ID
 	caller APICaller
 }
 
-// CallApi 记录被触发的回复消息
-func (m *messageLogger) CallApi(request APIRequest) (rsp APIResponse, err error) {
-	rsp, err = m.caller.CallApi(request)
+// CallAPI 记录被触发的回复消息
+func (m *messageLogger) CallAPI(request APIRequest) (rsp APIResponse, err error) {
+	rsp, err = m.caller.CallAPI(request)
 	if err != nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (m *messageLogger) CallApi(request APIRequest) (rsp APIResponse, err error)
 }
 
 // GetTriggeredMessages 获取被 id 消息触发的回复消息 id
-func GetTriggeredMessages(id message.MessageID) []message.MessageID {
+func GetTriggeredMessages(id message.ID) []message.ID {
 	triggeredMessagesMu.Lock()
 	defer triggeredMessagesMu.Unlock()
 	return triggeredMessages.Get(id.ID())
@@ -167,7 +167,7 @@ func processEventAsync(response []byte, caller APICaller, maxwait time.Duration)
 	var event Event
 	_ = json.Unmarshal(response, &event)
 	event.RawEvent = gjson.Parse(helper.BytesToString(response))
-	var msgid message.MessageID
+	var msgid message.ID
 	messageID, err := strconv.ParseInt(helper.BytesToString(event.RawMessageID), 10, 64)
 	if err == nil {
 		event.MessageID = messageID
@@ -397,7 +397,7 @@ func preprocessMessageEvent(e *Event) {
 	msgs := message.ParseMessage(e.NativeMessage)
 
 	if len(msgs) > 0 {
-		filtered := make([]message.MessageSegment, 0, len(msgs))
+		filtered := make([]message.Segment, 0, len(msgs))
 		// trim space after at and remove empty text segment
 		for i := range msgs {
 			if i < len(msgs)-1 && msgs[i].Type == "at" && msgs[i+1].Type == "text" {
@@ -486,12 +486,12 @@ func RangeBot(iter func(id int64, ctx *Ctx) bool) {
 // GetFirstSuperUser 在 qqs 中获得 SuperUsers 列表的首个 qq
 //
 // 找不到返回 -1
-func (c *Config) GetFirstSuperUser(qqs ...int64) int64 {
+func (op *Config) GetFirstSuperUser(qqs ...int64) int64 {
 	m := make(map[int64]struct{}, len(qqs)*4)
 	for _, qq := range qqs {
 		m[qq] = struct{}{}
 	}
-	for _, qq := range c.SuperUsers {
+	for _, qq := range op.SuperUsers {
 		if _, ok := m[qq]; ok {
 			return qq
 		}

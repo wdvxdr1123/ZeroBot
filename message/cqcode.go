@@ -18,9 +18,8 @@ func ParseMessage(msg []byte) Message {
 	x := gjson.Parse(helper.BytesToString(msg))
 	if x.IsArray() {
 		return ParseMessageFromArray(x)
-	} else {
-		return ParseMessageFromString(x.String())
 	}
+	return ParseMessageFromString(x.String())
 }
 
 // ParseMessageFromArray parses msg as type array to a Message.
@@ -38,7 +37,7 @@ func ParseMessageFromArray(msgs gjson.Result) Message {
 		return m
 	}
 	msgs.ForEach(func(_, item gjson.Result) bool {
-		message = append(message, MessageSegment{
+		message = append(message, Segment{
 			Type: item.Get("type").String(),
 			Data: parse2map(item.Get("data")),
 		})

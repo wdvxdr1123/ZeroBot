@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"slices"
 	"strconv"
 	"testing"
 )
@@ -38,10 +37,26 @@ func Test_sortMatcher(t *testing.T) {
 	for i := 0; i < block*batch; i += block {
 		batchRes := result[i : i+block]
 		// 优先级从1开始的matcher先注册后执行，所以结果是逆序的
-		slices.Reverse(batchRes)
-		if !slices.IsSorted(batchRes) {
+		reverse(batchRes)
+		if !isSorted(batchRes) {
 			t.Fatalf("matcherList is not sorted, sort func is not stable: %v", batchRes)
 		}
 	}
+}
 
+// reverse reverses the elements of the slice in place.
+func reverse[S ~[]E, E any](s S) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}
+
+// isSorted reports whether x is sorted in ascending order.
+func isSorted(x []int) bool {
+	for i := len(x) - 1; i > 0; i-- {
+		if x[i] < x[i-1] {
+			return false
+		}
+	}
+	return true
 }
