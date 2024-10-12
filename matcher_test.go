@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"cmp"
 	"strconv"
 	"testing"
 )
@@ -53,9 +52,9 @@ func reverse[S ~[]E, E any](s S) {
 }
 
 // isSorted reports whether x is sorted in ascending order.
-func isSorted[S ~[]E, E cmp.Ordered](x S) bool {
+func isSorted(x []int) bool {
 	for i := len(x) - 1; i > 0; i-- {
-		if cmp.Less(x[i], x[i-1]) {
+		if x[i] < x[i-1] {
 			return false
 		}
 	}
