@@ -318,7 +318,6 @@ loop:
 				}
 				break
 			}
-
 		}
 
 		// mid handler
@@ -395,10 +394,27 @@ loop:
 
 // preprocessMessageEvent 返回信息事件
 func preprocessMessageEvent(e *Event) {
-	e.Message = message.ParseMessage(e.NativeMessage)
+	msgs := message.ParseMessage(e.NativeMessage)
+
+	if len(msgs) > 0 {
+		filtered := make([]message.MessageSegment, 0, len(msgs))
+		// trim space after at and remove empty text segment
+		for i := range msgs {
+			if i < len(msgs)-1 && msgs[i].Type == "at" && msgs[i+1].Type == "text" {
+				msgs[i+1].Data["text"] = strings.TrimLeft(msgs[i+1].Data["text"], " ")
+			}
+			if msgs[i].Type != "text" || msgs[i].Data["text"] != "" {
+				filtered = append(filtered, msgs[i])
+			}
+		}
+		e.Message = filtered
+	}
 
 	processAt := func() { // 处理是否at机器人
 		e.IsToMe = false
+		if len(e.Message) == 0 {
+			return
+		}
 		for i, m := range e.Message {
 			if m.Type == "at" {
 				qq, _ := strconv.ParseInt(m.Data["qq"], 10, 64)
