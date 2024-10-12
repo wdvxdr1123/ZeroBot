@@ -153,6 +153,9 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.MessageSegment) bool
 	if !containsOptional(pattern) && len(pattern) != len(msgs) {
 		return false
 	}
+	if _, ok := ctx.State[KEY_PATTERN]; !ok {
+		ctx.State[KEY_PATTERN] = make([]*PatternParsed, 0, 1)
+	}
 	i := 0
 	j := 0
 	for i < len(pattern) && j < len(msgs) {
@@ -168,15 +171,13 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.MessageSegment) bool
 		}
 		if pattern[i].Type != (msgs[j].Type) || !parsed.Valid {
 			if pattern[i].Optional {
-				if _, ok := ctx.State[KEY_PATTERN]; !ok {
-					ctx.State[KEY_PATTERN] = make([]*PatternParsed, 0, 1)
-				}
 				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]*PatternParsed), parsed)
 				i++
 				continue
 			}
 			return false
 		}
+		ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]*PatternParsed), parsed)
 		i++
 		j++
 	}

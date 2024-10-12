@@ -37,5 +37,5 @@ type RegexModel struct {
 
 // PatternModel is model of zero.PatternRule
 type PatternModel struct {
-	Matched []zero.PatternMatched `zero:"pattern_matched"`
+	Matched []*zero.PatternParsed `zero:"pattern_matched"`
 }
