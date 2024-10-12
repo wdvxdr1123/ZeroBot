@@ -1,9 +1,10 @@
 package zero
 
 import (
-	"github.com/wdvxdr1123/ZeroBot/message"
 	"regexp"
 	"strings"
+
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 type Pattern []PatternSegment
@@ -16,7 +17,7 @@ func NewPattern() *Pattern {
 type PatternSegment struct {
 	Type     string
 	Optional bool
-	Parse    func(msg *message.MessageSegment) *PatternParsed
+	Parse    func(msg *message.Segment) *PatternParsed
 }
 
 // SetOptional set previous segment is optional, is v is empty, Optional will be true
@@ -37,7 +38,7 @@ func (p *Pattern) SetOptional(v ...bool) *Pattern {
 type PatternParsed struct {
 	Valid bool
 	Value any
-	Msg   *message.MessageSegment
+	Msg   *message.Segment
 }
 
 func (p PatternParsed) GetText() []string {
@@ -70,7 +71,7 @@ func (p *Pattern) Text(regex string) *Pattern {
 	re := regexp.MustCompile(regex)
 	pattern := PatternSegment{
 		Type: "text",
-		Parse: func(msg *message.MessageSegment) *PatternParsed {
+		Parse: func(msg *message.Segment) *PatternParsed {
 			s := msg.Data["text"]
 			s = strings.Trim(s, " \n\r\t")
 			matchString := re.MatchString(s)
@@ -80,12 +81,12 @@ func (p *Pattern) Text(regex string) *Pattern {
 					Value: re.FindStringSubmatch(s),
 					Msg:   msg,
 				}
-			} else {
-				return &PatternParsed{
-					Valid: false,
-					Value: nil,
-					Msg:   nil,
-				}
+			}
+
+			return &PatternParsed{
+				Valid: false,
+				Value: nil,
+				Msg:   nil,
 			}
 		},
 	}
@@ -100,19 +101,19 @@ func (p *Pattern) At(id ...string) *Pattern {
 	}
 	pattern := PatternSegment{
 		Type: "at",
-		Parse: func(msg *message.MessageSegment) *PatternParsed {
+		Parse: func(msg *message.Segment) *PatternParsed {
 			if len(id) == 0 || len(id) == 1 && id[0] == msg.Data["qq"] {
 				return &PatternParsed{
 					Valid: true,
 					Value: msg.Data["qq"],
 					Msg:   msg,
 				}
-			} else {
-				return &PatternParsed{
-					Valid: false,
-					Value: nil,
-					Msg:   nil,
-				}
+			}
+
+			return &PatternParsed{
+				Valid: false,
+				Value: nil,
+				Msg:   nil,
 			}
 		},
 	}
@@ -124,7 +125,7 @@ func (p *Pattern) At(id ...string) *Pattern {
 func (p *Pattern) Image() *Pattern {
 	pattern := PatternSegment{
 		Type: "image",
-		Parse: func(msg *message.MessageSegment) *PatternParsed {
+		Parse: func(msg *message.Segment) *PatternParsed {
 			return &PatternParsed{
 				Valid: true,
 				Value: msg.Data["file"],
@@ -140,7 +141,7 @@ func (p *Pattern) Image() *Pattern {
 func (p *Pattern) Reply() *Pattern {
 	pattern := PatternSegment{
 		Type: "reply",
-		Parse: func(msg *message.MessageSegment) *PatternParsed {
+		Parse: func(msg *message.Segment) *PatternParsed {
 			return &PatternParsed{
 				Valid: true,
 				Value: msg.Data["id"],
@@ -159,12 +160,12 @@ func containsOptional(pattern Pattern) bool {
 	}
 	return false
 }
-func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.MessageSegment) bool {
+func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 	if !containsOptional(pattern) && len(pattern) != len(msgs) {
 		return false
 	}
-	if _, ok := ctx.State[KEY_PATTERN]; !ok {
-		ctx.State[KEY_PATTERN] = make([]*PatternParsed, 0, 1)
+	if _, ok := ctx.State[KeyPattern]; !ok {
+		ctx.State[KeyPattern] = make([]*PatternParsed, 0, 1)
 	}
 	i := 0
 	j := 0
@@ -181,13 +182,13 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.MessageSegment) bool
 		}
 		if j >= len(msgs) || pattern[i].Type != (msgs[j].Type) || !parsed.Valid {
 			if pattern[i].Optional {
-				ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]*PatternParsed), parsed)
+				ctx.State[KeyPattern] = append(ctx.State[KeyPattern].([]*PatternParsed), parsed)
 				i++
 				continue
 			}
 			return false
 		}
-		ctx.State[KEY_PATTERN] = append(ctx.State[KEY_PATTERN].([]*PatternParsed), parsed)
+		ctx.State[KeyPattern] = append(ctx.State[KeyPattern].([]*PatternParsed), parsed)
 		i++
 		j++
 	}

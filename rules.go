@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	KEY_PATTERN = "pattern_matched"
+	KeyPattern = "pattern_matched"
 )
 
 // Type check the ctx.Event's type
@@ -133,13 +133,13 @@ func PatternRule(pattern *Pattern) Rule {
 			return false
 		}
 		// copy messages
-		msgs := make([]message.MessageSegment, 0, len(ctx.Event.Message))
+		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
 		msgs = append(msgs, ctx.Event.Message[0])
 		for i := 1; i < len(ctx.Event.Message); i++ {
 			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
-				if reply.MessageId.ID() == 0 || reply.Sender == nil || reply.Sender.ID == 0 {
+				if reply.MessageID.ID() == 0 || reply.Sender == nil || reply.Sender.ID == 0 {
 					// failed to get history message
 					msgs = append(msgs, ctx.Event.Message[i])
 					continue
