@@ -3,7 +3,6 @@ package zero
 import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -102,11 +101,10 @@ func (p *Pattern) At(id ...string) *Pattern {
 	pattern := PatternSegment{
 		Type: "at",
 		Parse: func(msg *message.MessageSegment) *PatternParsed {
-			qq, _ := strconv.ParseInt(msg.Data["qq"], 10, 64)
 			if len(id) == 0 || len(id) == 1 && id[0] == msg.Data["qq"] {
 				return &PatternParsed{
 					Valid: true,
-					Value: qq,
+					Value: msg.Data["qq"],
 					Msg:   msg,
 				}
 			} else {

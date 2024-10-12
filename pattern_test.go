@@ -202,7 +202,7 @@ func TestAllParse(t *testing.T) {
 				Value: []string{"haha", "haha", "ha"},
 			}, {
 				Valid: true,
-				Value: int64(123),
+				Value: "123",
 			},
 		}},
 		{[]message.MessageSegment{message.Text("haha")}, NewPattern().Text("(h)(a)(h)(a)"), []PatternParsed{
@@ -223,11 +223,11 @@ func TestAllParse(t *testing.T) {
 			},
 			{
 				Valid: true,
-				Value: int64(999),
+				Value: "999",
 			},
 			{
 				Valid: true,
-				Value: int64(124),
+				Value: "124",
 			},
 			{
 				Valid: true,
