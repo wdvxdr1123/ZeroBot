@@ -42,15 +42,27 @@ type PatternParsed struct {
 }
 
 func (p PatternParsed) GetText() []string {
+	if !p.Valid {
+		return make([]string, 0)
+	}
 	return p.Value.([]string)
 }
 func (p PatternParsed) GetAt() string {
+	if !p.Valid {
+		return ""
+	}
 	return p.Value.(string)
 }
 func (p PatternParsed) GetImage() string {
+	if !p.Valid {
+		return ""
+	}
 	return p.Value.(string)
 }
 func (p PatternParsed) GetReply() string {
+	if !p.Valid {
+		return ""
+	}
 	return p.Value.(string)
 }
 
