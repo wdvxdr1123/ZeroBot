@@ -43,20 +43,20 @@ func NewPattern() *Pattern {
 
 type PatternSegment struct {
 	typ      string
-	Optional bool
+	optional bool
 	parse    func(msg *message.Segment) *PatternParsed
 }
 
-// SetOptional set previous segment is optional, is v is empty, Optional will be true
+// SetOptional set previous segment is optional, is v is empty, optional will be true
 // if Pattern is empty, panic
 func (p *Pattern) SetOptional(v ...bool) *Pattern {
 	if len(*p) == 0 {
 		panic("pattern is empty")
 	}
 	if len(v) == 1 {
-		(*p)[len(*p)-1].Optional = v[0]
+		(*p)[len(*p)-1].optional = v[0]
 	} else {
-		(*p)[len(*p)-1].Optional = true
+		(*p)[len(*p)-1].optional = true
 	}
 	return p
 }
@@ -174,7 +174,7 @@ func (p *Pattern) Reply() *Pattern {
 }
 func mustMatchAllPatterns(pattern Pattern) bool {
 	for _, p := range pattern {
-		if p.Optional {
+		if p.optional {
 			return false
 		}
 	}
@@ -198,7 +198,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 			}
 		}
 		if j >= len(msgs) || pattern[i].typ != (msgs[j].Type) || parsed.value == nil {
-			if pattern[i].Optional {
+			if pattern[i].optional {
 				patternState = append(patternState, parsed)
 				i++
 				continue
