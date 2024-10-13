@@ -47,7 +47,7 @@ func TestPattern_Text(t *testing.T) {
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			out := rule(ctx)
 			assert.Equal(t, out, v.expected)
 		})
@@ -71,9 +71,9 @@ func TestPattern_Image(t *testing.T) {
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			out := rule(ctx)
-			assert.Equal(t, out, v.expected)
+			assert.Equal(t, v.expected, out)
 		})
 	}
 }
@@ -92,7 +92,7 @@ func TestPattern_At(t *testing.T) {
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			out := rule(ctx)
 			assert.Equal(t, out, v.expected)
 		})
@@ -115,17 +115,17 @@ func TestPattern_Reply(t *testing.T) {
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			out := rule(ctx)
 			assert.Equal(t, out, v.expected)
 		})
 	}
 }
 func TestPatternParsed_Gets(t *testing.T) {
-	assert.Equal(t, []string{"gaga"}, PatternParsed{Valid: true, value: []string{"gaga"}}.Text())
-	assert.Equal(t, "image", PatternParsed{Valid: true, value: "image"}.Image())
-	assert.Equal(t, "reply", PatternParsed{Valid: true, value: "reply"}.Reply())
-	assert.Equal(t, "114514", PatternParsed{Valid: true, value: "114514"}.At())
+	assert.Equal(t, []string{"gaga"}, PatternParsed{value: []string{"gaga"}}.Text())
+	assert.Equal(t, "image", PatternParsed{value: "image"}.Image())
+	assert.Equal(t, "reply", PatternParsed{value: "reply"}.Reply())
+	assert.Equal(t, "114514", PatternParsed{value: "114514"}.At())
 }
 func TestPattern_SetOptional(t *testing.T) {
 	assert.Panics(t, func() {
@@ -138,39 +138,39 @@ func TestPattern_SetOptional(t *testing.T) {
 	}{
 		{[]message.Segment{message.Text("/do it")}, NewPattern().Text("/(do) (.*)").At().SetOptional(true), []PatternParsed{
 			{
-				Valid: true,
+				value: []string{"/do it", "do", "it"},
 			}, {
-				Valid: false,
+				value: nil,
 			},
 		}},
 		{[]message.Segment{message.Text("/do it")}, NewPattern().Text("/(do) (.*)").At().SetOptional(false), []PatternParsed{}},
 		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern().Reply().SetOptional().Text(".+").SetOptional().At().SetOptional(false), []PatternParsed{
 			{
-				Valid: false,
+				value: nil,
 			},
 			{
-				Valid: true,
+				value: "happy bear",
 			},
 			{
-				Valid: true,
+				value: "114514",
 			},
 		}},
 		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern().Image().SetOptional().Image().SetOptional().Image().SetOptional(), []PatternParsed{ // why you do this
 			{
-				Valid: false,
+				value: nil,
 			},
 			{
-				Valid: false,
+				value: nil,
 			},
 			{
-				Valid: false,
+				value: nil,
 			},
 		}},
 	}
 	for i, v := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			matched := rule(ctx)
 			if !matched {
 				assert.Equal(t, 0, len(v.expected))
@@ -183,7 +183,7 @@ func TestPattern_SetOptional(t *testing.T) {
 			}
 			assert.Equal(t, len(v.expected), len(parsed.Matched))
 			for i := range parsed.Matched {
-				assert.Equal(t, v.expected[i].Valid, parsed.Matched[i].Valid)
+				assert.Equal(t, v.expected[i].value != nil, parsed.Matched[i].value != nil)
 			}
 		})
 	}
@@ -198,39 +198,31 @@ func TestAllParse(t *testing.T) {
 	}{
 		{[]message.Segment{message.Text("test haha test"), message.At(123)}, NewPattern().Text("((ha)+)").At(), []PatternParsed{
 			{
-				Valid: true,
 				value: []string{"haha", "haha", "ha"},
 			}, {
-				Valid: true,
 				value: "123",
 			},
 		}},
 		{[]message.Segment{message.Text("haha")}, NewPattern().Text("(h)(a)(h)(a)"), []PatternParsed{
 			{
-				Valid: true,
 				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
 		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern().Reply().Image().At().At("124").Text("(h)(a)(h)(a)"), []PatternParsed{
 
 			{
-				Valid: true,
 				value: "fake reply",
 			},
 			{
-				Valid: true,
 				value: "fake image",
 			},
 			{
-				Valid: true,
 				value: "999",
 			},
 			{
-				Valid: true,
 				value: "124",
 			},
 			{
-				Valid: true,
 				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
@@ -238,7 +230,7 @@ func TestAllParse(t *testing.T) {
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
-			rule := PatternRule(v.pattern)
+			rule := v.pattern.AsRule()
 			matched := rule(ctx)
 			parsed := &PatternModel{}
 			err := ctx.Parse(parsed)
@@ -247,7 +239,6 @@ func TestAllParse(t *testing.T) {
 			}
 			assert.Equal(t, true, matched)
 			for i := range parsed.Matched {
-				assert.Equal(t, v.expected[i].Valid, parsed.Matched[i].Valid)
 				assert.Equal(t, v.expected[i].value, parsed.Matched[i].value)
 				assert.Equal(t, &(v.msg[i]), parsed.Matched[i].msg)
 			}
