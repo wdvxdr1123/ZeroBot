@@ -1,10 +1,11 @@
 package zero
 
 import (
-	"github.com/wdvxdr1123/ZeroBot/message"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
@@ -28,10 +29,7 @@ func (p *Pattern) AsRule() Rule {
 			}
 		}
 		for i := 1; i < len(ctx.Event.Message); i++ {
-			if !shouldClean {
-				continue
-			}
-			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
+			if shouldClean && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
 				if reply.MessageID.ID() != 0 && reply.Sender != nil && reply.Sender.ID != 0 && strconv.FormatInt(reply.Sender.ID, 10) == ctx.Event.Message[i].Data["qq"] {
