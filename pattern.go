@@ -188,6 +188,37 @@ func (p *Pattern) Reply() *Pattern {
 	*p = append(*p, *pattern)
 	return p
 }
+
+// Any match any segment
+func (p *Pattern) Any() *Pattern {
+	pattern := NewPatternSegment(
+		"any", false, func(msg *message.Segment) *PatternParsed {
+			parsed := PatternParsed{
+				value: nil,
+				msg:   msg,
+			}
+			switch {
+			case msg.Data["text"] != "":
+				parsed.value = msg.Data["text"]
+			case msg.Data["qq"] != "":
+				parsed.value = msg.Data["qq"]
+			case msg.Data["file"] != "":
+				parsed.value = msg.Data["file"]
+			case msg.Data["id"] != "":
+				parsed.value = msg.Data["id"]
+			default:
+				parsed.value = msg.Data
+			}
+			return &parsed
+		},
+	)
+	*p = append(*p, *pattern)
+	return p
+}
+
+func (s *PatternSegment) matchType(msg message.Segment) bool {
+	return s.typ == msg.Type || s.typ == "any"
+}
 func mustMatchAllPatterns(pattern Pattern) bool {
 	for _, p := range pattern {
 		if p.optional {
