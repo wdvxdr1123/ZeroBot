@@ -122,10 +122,10 @@ func TestPattern_Reply(t *testing.T) {
 	}
 }
 func TestPatternParsed_Gets(t *testing.T) {
-	assert.Equal(t, []string{"gaga"}, PatternParsed{Valid: true, Value: []string{"gaga"}}.Text())
-	assert.Equal(t, "image", PatternParsed{Valid: true, Value: "image"}.Image())
-	assert.Equal(t, "reply", PatternParsed{Valid: true, Value: "reply"}.Reply())
-	assert.Equal(t, "114514", PatternParsed{Valid: true, Value: "114514"}.At())
+	assert.Equal(t, []string{"gaga"}, PatternParsed{Valid: true, value: []string{"gaga"}}.Text())
+	assert.Equal(t, "image", PatternParsed{Valid: true, value: "image"}.Image())
+	assert.Equal(t, "reply", PatternParsed{Valid: true, value: "reply"}.Reply())
+	assert.Equal(t, "114514", PatternParsed{Valid: true, value: "114514"}.At())
 }
 func TestPattern_SetOptional(t *testing.T) {
 	assert.Panics(t, func() {
@@ -199,39 +199,39 @@ func TestAllParse(t *testing.T) {
 		{[]message.Segment{message.Text("test haha test"), message.At(123)}, NewPattern().Text("((ha)+)").At(), []PatternParsed{
 			{
 				Valid: true,
-				Value: []string{"haha", "haha", "ha"},
+				value: []string{"haha", "haha", "ha"},
 			}, {
 				Valid: true,
-				Value: "123",
+				value: "123",
 			},
 		}},
 		{[]message.Segment{message.Text("haha")}, NewPattern().Text("(h)(a)(h)(a)"), []PatternParsed{
 			{
 				Valid: true,
-				Value: []string{"haha", "h", "a", "h", "a"},
+				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
 		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern().Reply().Image().At().At("124").Text("(h)(a)(h)(a)"), []PatternParsed{
 
 			{
 				Valid: true,
-				Value: "fake reply",
+				value: "fake reply",
 			},
 			{
 				Valid: true,
-				Value: "fake image",
+				value: "fake image",
 			},
 			{
 				Valid: true,
-				Value: "999",
+				value: "999",
 			},
 			{
 				Valid: true,
-				Value: "124",
+				value: "124",
 			},
 			{
 				Valid: true,
-				Value: []string{"haha", "h", "a", "h", "a"},
+				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
 	}
@@ -248,8 +248,8 @@ func TestAllParse(t *testing.T) {
 			assert.Equal(t, true, matched)
 			for i := range parsed.Matched {
 				assert.Equal(t, v.expected[i].Valid, parsed.Matched[i].Valid)
-				assert.Equal(t, v.expected[i].Value, parsed.Matched[i].Value)
-				assert.Equal(t, &(v.msg[i]), parsed.Matched[i].Msg)
+				assert.Equal(t, v.expected[i].value, parsed.Matched[i].value)
+				assert.Equal(t, &(v.msg[i]), parsed.Matched[i].msg)
 			}
 		})
 	}
