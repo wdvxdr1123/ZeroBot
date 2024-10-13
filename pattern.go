@@ -67,24 +67,31 @@ type PatternParsed struct {
 	msg   *message.Segment
 }
 
+// Text 获取正则表达式匹配到的文本数组
 func (p PatternParsed) Text() []string {
 	if p.value == nil {
 		return nil
 	}
 	return p.value.([]string)
 }
+
+// At 获取被@者ID
 func (p PatternParsed) At() string {
 	if p.value == nil {
 		return ""
 	}
 	return p.value.(string)
 }
+
+// Image 获取图片URL
 func (p PatternParsed) Image() string {
 	if p.value == nil {
 		return ""
 	}
 	return p.value.(string)
 }
+
+// Reply 获取被回复的消息ID
 func (p PatternParsed) Reply() string {
 	if p.value == nil {
 		return ""
@@ -97,12 +104,19 @@ func (p PatternParsed) Raw() *message.Segment {
 	return p.msg
 }
 
+func NewPatternSegment(typ string, optional bool, parse func(msg *message.Segment) *PatternParsed) *PatternSegment {
+	return &PatternSegment{
+		typ:      typ,
+		optional: optional,
+		parse:    parse,
+	}
+}
+
 // Text use regex to search a 'text' segment
 func (p *Pattern) Text(regex string) *Pattern {
 	re := regexp.MustCompile(regex)
-	pattern := PatternSegment{
-		typ: "text",
-		parse: func(msg *message.Segment) *PatternParsed {
+	pattern := NewPatternSegment(
+		"text", false, func(msg *message.Segment) *PatternParsed {
 			s := msg.Data["text"]
 			s = strings.Trim(s, " \n\r\t")
 			matchString := re.MatchString(s)
@@ -118,8 +132,8 @@ func (p *Pattern) Text(regex string) *Pattern {
 				msg:   nil,
 			}
 		},
-	}
-	*p = append(*p, pattern)
+	)
+	*p = append(*p, *pattern)
 	return p
 }
 
@@ -128,9 +142,8 @@ func (p *Pattern) At(id ...message.ID) *Pattern {
 	if len(id) > 1 {
 		panic("at pattern only support one id")
 	}
-	pattern := PatternSegment{
-		typ: "at",
-		parse: func(msg *message.Segment) *PatternParsed {
+	pattern := NewPatternSegment(
+		"at", false, func(msg *message.Segment) *PatternParsed {
 			if len(id) == 0 || len(id) == 1 && id[0].String() == msg.Data["qq"] {
 				return &PatternParsed{
 					value: msg.Data["qq"],
@@ -143,38 +156,36 @@ func (p *Pattern) At(id ...message.ID) *Pattern {
 				msg:   nil,
 			}
 		},
-	}
-	*p = append(*p, pattern)
+	)
+	*p = append(*p, *pattern)
 	return p
 }
 
 // Image use regex to match an 'at' segment, if id is not empty, only match specific target
 func (p *Pattern) Image() *Pattern {
-	pattern := PatternSegment{
-		typ: "image",
-		parse: func(msg *message.Segment) *PatternParsed {
+	pattern := NewPatternSegment(
+		"image", false, func(msg *message.Segment) *PatternParsed {
 			return &PatternParsed{
 				value: msg.Data["file"],
 				msg:   msg,
 			}
 		},
-	}
-	*p = append(*p, pattern)
+	)
+	*p = append(*p, *pattern)
 	return p
 }
 
 // Reply type zero.PatternReplyMatched
 func (p *Pattern) Reply() *Pattern {
-	pattern := PatternSegment{
-		typ: "reply",
-		parse: func(msg *message.Segment) *PatternParsed {
+	pattern := NewPatternSegment(
+		"reply", false, func(msg *message.Segment) *PatternParsed {
 			return &PatternParsed{
 				value: msg.Data["id"],
 				msg:   msg,
 			}
 		},
-	}
-	*p = append(*p, pattern)
+	)
+	*p = append(*p, *pattern)
 	return p
 }
 func mustMatchAllPatterns(pattern Pattern) bool {
@@ -194,7 +205,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 	j := 0
 	for i < len(pattern) {
 		var parsed *PatternParsed
-		if j < len(msgs) && pattern[i].typ == (msgs[j].Type) {
+		if j < len(msgs) && pattern[i].matchType(msgs[j]) {
 			parsed = pattern[i].parse(&msgs[j])
 		} else {
 			parsed = &PatternParsed{
@@ -202,7 +213,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 				msg:   nil,
 			}
 		}
-		if j >= len(msgs) || pattern[i].typ != (msgs[j].Type) || parsed.value == nil {
+		if j >= len(msgs) || !pattern[i].matchType(msgs[j]) || parsed.value == nil {
 			if pattern[i].optional {
 				patternState = append(patternState, parsed)
 				i++
