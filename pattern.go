@@ -12,8 +12,8 @@ const (
 	KeyPattern = "pattern_matched"
 )
 
-// PatternRule check if the message can be matched by the pattern
-func PatternRule(pattern *Pattern) Rule {
+// AsRule build PatternRule
+func (p *Pattern) AsRule() Rule {
 	return func(ctx *Ctx) bool {
 		if len(ctx.Event.Message) == 0 {
 			return false
@@ -38,7 +38,7 @@ func PatternRule(pattern *Pattern) Rule {
 				msgs = append(msgs, ctx.Event.Message[i])
 			}
 		}
-		return patternMatch(ctx, *pattern, msgs)
+		return patternMatch(ctx, *p, msgs)
 	}
 }
 
