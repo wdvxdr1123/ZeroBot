@@ -76,25 +76,25 @@ type PatternParsed struct {
 	Msg   *message.Segment
 }
 
-func (p PatternParsed) GetText() []string {
+func (p PatternParsed) Text() []string {
 	if !p.Valid {
 		return nil
 	}
 	return p.Value.([]string)
 }
-func (p PatternParsed) GetAt() string {
+func (p PatternParsed) At() string {
 	if !p.Valid {
 		return ""
 	}
 	return p.Value.(string)
 }
-func (p PatternParsed) GetImage() string {
+func (p PatternParsed) Image() string {
 	if !p.Valid {
 		return ""
 	}
 	return p.Value.(string)
 }
-func (p PatternParsed) GetReply() string {
+func (p PatternParsed) Reply() string {
 	if !p.Valid {
 		return ""
 	}

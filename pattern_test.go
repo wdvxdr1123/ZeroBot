@@ -122,10 +122,10 @@ func TestPattern_Reply(t *testing.T) {
 	}
 }
 func TestPatternParsed_Gets(t *testing.T) {
-	assert.Equal(t, []string{"gaga"}, PatternParsed{Valid: true, Value: []string{"gaga"}}.GetText())
-	assert.Equal(t, "image", PatternParsed{Valid: true, Value: "image"}.GetImage())
-	assert.Equal(t, "reply", PatternParsed{Valid: true, Value: "reply"}.GetReply())
-	assert.Equal(t, "114514", PatternParsed{Valid: true, Value: "114514"}.GetAt())
+	assert.Equal(t, []string{"gaga"}, PatternParsed{Valid: true, Value: []string{"gaga"}}.Text())
+	assert.Equal(t, "image", PatternParsed{Valid: true, Value: "image"}.Image())
+	assert.Equal(t, "reply", PatternParsed{Valid: true, Value: "reply"}.Reply())
+	assert.Equal(t, "114514", PatternParsed{Valid: true, Value: "114514"}.At())
 }
 func TestPattern_SetOptional(t *testing.T) {
 	assert.Panics(t, func() {
