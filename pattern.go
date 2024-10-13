@@ -187,16 +187,16 @@ func (p *Pattern) Reply() *Pattern {
 	*p = append(*p, pattern)
 	return p
 }
-func containsOptional(pattern Pattern) bool {
+func mustMatchAllPatterns(pattern Pattern) bool {
 	for _, p := range pattern {
-		if p.Optional {
-			return true
+		if !p.Optional {
+			return false
 		}
 	}
-	return false
+	return true
 }
 func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
-	if !containsOptional(pattern) && len(pattern) != len(msgs) {
+	if mustMatchAllPatterns(pattern) && len(pattern) != len(msgs) {
 		return false
 	}
 	if _, ok := ctx.State[KeyPattern]; !ok {
