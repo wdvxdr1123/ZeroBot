@@ -200,7 +200,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 		return false
 	}
 	if _, ok := ctx.State[KeyPattern]; !ok {
-		ctx.State[KeyPattern] = make([]*PatternParsed, 0, 1)
+		ctx.State[KeyPattern] = make([]*PatternParsed, 0, 4)
 	}
 	i := 0
 	j := 0
