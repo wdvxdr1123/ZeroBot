@@ -20,7 +20,17 @@ func (p *Pattern) AsRule() Rule {
 		// copy messages
 		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
 		msgs = append(msgs, ctx.Event.Message[0])
+		shouldClean := false
+		for _, segment := range *p {
+			if segment.cleanRedundantAt {
+				shouldClean = true
+				break
+			}
+		}
 		for i := 1; i < len(ctx.Event.Message); i++ {
+			if !shouldClean {
+				continue
+			}
 			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
@@ -42,9 +52,10 @@ func NewPattern() *Pattern {
 }
 
 type PatternSegment struct {
-	typ      string
-	optional bool
-	parse    func(msg *message.Segment) *PatternParsed
+	typ              string
+	optional         bool
+	parse            func(msg *message.Segment) *PatternParsed
+	cleanRedundantAt bool // only for Reply
 }
 
 // SetOptional set previous segment is optional, is v is empty, optional will be true
@@ -104,11 +115,16 @@ func (p PatternParsed) Raw() *message.Segment {
 	return p.msg
 }
 
-func NewPatternSegment(typ string, optional bool, parse func(msg *message.Segment) *PatternParsed) *PatternSegment {
+func NewPatternSegment(typ string, optional bool, parse func(msg *message.Segment) *PatternParsed, cleanRedundantAt ...bool) *PatternSegment {
+	clean := false
+	if len(cleanRedundantAt) > 0 {
+		clean = cleanRedundantAt[0]
+	}
 	return &PatternSegment{
-		typ:      typ,
-		optional: optional,
-		parse:    parse,
+		typ:              typ,
+		optional:         optional,
+		parse:            parse,
+		cleanRedundantAt: clean,
 	}
 }
 
@@ -176,14 +192,18 @@ func (p *Pattern) Image() *Pattern {
 }
 
 // Reply type zero.PatternReplyMatched
-func (p *Pattern) Reply() *Pattern {
+func (p *Pattern) Reply(noCleanRedundantAt ...bool) *Pattern {
+	noClean := false
+	if len(noCleanRedundantAt) > 0 {
+		noClean = noCleanRedundantAt[0]
+	}
 	pattern := NewPatternSegment(
 		"reply", false, func(msg *message.Segment) *PatternParsed {
 			return &PatternParsed{
 				value: msg.Data["id"],
 				msg:   msg,
 			}
-		},
+		}, !noClean,
 	)
 	*p = append(*p, *pattern)
 	return p

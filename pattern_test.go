@@ -13,7 +13,7 @@ type mockAPICaller struct{}
 func (m mockAPICaller) CallAPI(_ APIRequest) (APIResponse, error) {
 	return APIResponse{
 		Status:  "",
-		Data:    gjson.Result{},
+		Data:    gjson.Parse(`{"message_id":"12345","sender":{"user_id":12345}}`), // just for reply cleaner
 		Msg:     "",
 		Wording: "",
 		RetCode: 0,
@@ -118,6 +118,24 @@ func TestPattern_Reply(t *testing.T) {
 			rule := v.pattern.AsRule()
 			out := rule(ctx)
 			assert.Equal(t, out, v.expected)
+		})
+	}
+}
+func TestPattern_ReplyFilter(t *testing.T) {
+	textTests := [...]struct {
+		msg      message.Message
+		pattern  *Pattern
+		expected bool
+	}{
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply().Text("1234"), true},
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply(true).Text("1234"), false},
+	}
+	for i, v := range textTests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			ctx := fakeCtx(v.msg)
+			rule := v.pattern.AsRule()
+			out := rule(ctx)
+			assert.Equal(t, v.expected, out)
 		})
 	}
 }
