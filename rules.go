@@ -11,10 +11,6 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-const (
-	KeyPattern = "pattern_matched"
-)
-
 // Type check the ctx.Event's type
 func Type(typ string) Rule {
 	t := strings.SplitN(typ, "/", 3)

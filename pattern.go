@@ -8,6 +8,10 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
+const (
+	KeyPattern = "pattern_matched"
+)
+
 // PatternRule check if the message can be matched by the pattern
 func PatternRule(pattern *Pattern) Rule {
 	return func(ctx *Ctx) bool {
