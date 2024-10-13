@@ -24,18 +24,11 @@ func (p *Pattern) AsRule() Rule {
 			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
-				if reply.MessageID.ID() == 0 || reply.Sender == nil || reply.Sender.ID == 0 {
-					// failed to get history message
-					msgs = append(msgs, ctx.Event.Message[i])
+				if reply.MessageID.ID() != 0 && reply.Sender != nil && reply.Sender.ID != 0 &&  strconv.FormatInt(reply.Sender.ID, 10) == ctx.Event.Message[i].Data["qq"] {
 					continue
 				}
-				if strconv.FormatInt(reply.Sender.ID, 10) != ctx.Event.Message[i].Data["qq"] {
-					// @ other user in reply
-					msgs = append(msgs, ctx.Event.Message[i])
-				}
-			} else {
-				msgs = append(msgs, ctx.Event.Message[i])
 			}
+			msgs = append(msgs, ctx.Event.Message[i])
 		}
 		return patternMatch(ctx, *p, msgs)
 	}
