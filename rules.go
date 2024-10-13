@@ -126,36 +126,6 @@ func RegexRule(regexPattern string) Rule {
 	}
 }
 
-// PatternRule check if the message can be matched by the pattern
-func PatternRule(pattern *Pattern) Rule {
-	return func(ctx *Ctx) bool {
-		if len(ctx.Event.Message) == 0 {
-			return false
-		}
-		// copy messages
-		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
-		msgs = append(msgs, ctx.Event.Message[0])
-		for i := 1; i < len(ctx.Event.Message); i++ {
-			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
-				// [reply][at]
-				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
-				if reply.MessageID.ID() == 0 || reply.Sender == nil || reply.Sender.ID == 0 {
-					// failed to get history message
-					msgs = append(msgs, ctx.Event.Message[i])
-					continue
-				}
-				if strconv.FormatInt(reply.Sender.ID, 10) != ctx.Event.Message[i].Data["qq"] {
-					// @ other user in reply
-					msgs = append(msgs, ctx.Event.Message[i])
-				}
-			} else {
-				msgs = append(msgs, ctx.Event.Message[i])
-			}
-		}
-		return patternMatch(ctx, *pattern, msgs)
-	}
-}
-
 // ReplyRule check if the message is replying some message
 func ReplyRule(messageID int64) Rule {
 	return func(ctx *Ctx) bool {
