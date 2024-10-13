@@ -87,7 +87,7 @@ func TestPattern_At(t *testing.T) {
 		{[]message.Segment{message.Text("haha")}, NewPattern().At(), false},
 		{[]message.Segment{message.Image("not a image")}, NewPattern().At(), false},
 		{[]message.Segment{message.At(114514)}, NewPattern().At(), true},
-		{[]message.Segment{message.At(114514)}, NewPattern().At("1919810"), false},
+		{[]message.Segment{message.At(114514)}, NewPattern().At(message.NewMessageIDFromString("1919810")), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -208,7 +208,7 @@ func TestAllParse(t *testing.T) {
 				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
-		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern().Reply().Image().At().At("124").Text("(h)(a)(h)(a)"), []PatternParsed{
+		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern().Reply().Image().At().At(message.NewMessageIDFromInteger(124)).Text("(h)(a)(h)(a)"), []PatternParsed{
 
 			{
 				value: "fake reply",

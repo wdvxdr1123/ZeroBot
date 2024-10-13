@@ -119,14 +119,14 @@ func (p *Pattern) Text(regex string) *Pattern {
 }
 
 // At use regex to match an 'at' segment, if id is not empty, only match specific target
-func (p *Pattern) At(id ...string) *Pattern {
+func (p *Pattern) At(id ...message.ID) *Pattern {
 	if len(id) > 1 {
 		panic("at pattern only support one id")
 	}
 	pattern := PatternSegment{
 		typ: "at",
 		parse: func(msg *message.Segment) *PatternParsed {
-			if len(id) == 0 || len(id) == 1 && id[0] == msg.Data["qq"] {
+			if len(id) == 0 || len(id) == 1 && id[0].String() == msg.Data["qq"] {
 				return &PatternParsed{
 					value: msg.Data["qq"],
 					msg:   msg,
