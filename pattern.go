@@ -92,6 +92,11 @@ func (p PatternParsed) Reply() string {
 	return p.value.(string)
 }
 
+// Raw 获取原始消息
+func (p PatternParsed) Raw() *message.Segment {
+	return p.msg
+}
+
 // Text use regex to search a 'text' segment
 func (p *Pattern) Text(regex string) *Pattern {
 	re := regexp.MustCompile(regex)
