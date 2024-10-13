@@ -121,11 +121,44 @@ func TestPattern_Reply(t *testing.T) {
 		})
 	}
 }
+func TestPattern_Any(t *testing.T) {
+	textTests := [...]struct {
+		msg      message.Message
+		pattern  *Pattern
+		expected bool
+	}{
+		{[]message.Segment{message.Text("haha")}, NewPattern().Any(), true},
+		{[]message.Segment{message.Image("not a image")}, NewPattern().Any(), true},
+		{[]message.Segment{message.At(1919810), message.Reply(12345)}, NewPattern().Any().Reply(), true},
+		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern().Any().At(), true},
+	}
+	for i, v := range textTests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			ctx := fakeCtx(v.msg)
+			rule := v.pattern.AsRule()
+			out := rule(ctx)
+			assert.Equal(t, out, v.expected)
+		})
+	}
+	t.Run("get", func(t *testing.T) {
+		ctx := fakeCtx([]message.Segment{message.Reply("just for test")})
+		rule := NewPattern().Any().AsRule()
+		_ = rule(ctx)
+		model := PatternModel{}
+		err := ctx.Parse(&model)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "just for test", model.Matched[0].Reply())
+	})
+}
 func TestPatternParsed_Gets(t *testing.T) {
 	assert.Equal(t, []string{"gaga"}, PatternParsed{value: []string{"gaga"}}.Text())
 	assert.Equal(t, "image", PatternParsed{value: "image"}.Image())
 	assert.Equal(t, "reply", PatternParsed{value: "reply"}.Reply())
 	assert.Equal(t, "114514", PatternParsed{value: "114514"}.At())
+	text := message.Text("1234")
+	assert.Equal(t, &text, PatternParsed{msg: &text}.Raw())
 }
 func TestPattern_SetOptional(t *testing.T) {
 	assert.Panics(t, func() {
