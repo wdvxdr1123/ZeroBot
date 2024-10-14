@@ -56,6 +56,8 @@ type PatternSegment struct {
 	cleanRedundantAt bool // only for Reply
 }
 
+type Parser func(msg *message.Segment) *PatternParsed
+
 // SetOptional set previous segment is optional, is v is empty, optional will be true
 // if Pattern is empty, panic
 func (p *Pattern) SetOptional(v ...bool) *Pattern {
@@ -113,42 +115,45 @@ func (p PatternParsed) Raw() *message.Segment {
 	return p.msg
 }
 
-func NewPatternSegment(typ string, optional bool, parse func(msg *message.Segment) *PatternParsed, cleanRedundantAt ...bool) *PatternSegment {
+func (p *Pattern) Add(typ string, optional bool, parse Parser, cleanRedundantAt ...bool) *Pattern {
 	clean := false
 	if len(cleanRedundantAt) > 0 {
 		clean = cleanRedundantAt[0]
 	}
-	return &PatternSegment{
+	pattern := &PatternSegment{
 		typ:              typ,
 		optional:         optional,
 		parse:            parse,
 		cleanRedundantAt: clean,
 	}
+	*p = append(*p, *pattern)
+	return p
 }
 
 // Text use regex to search a 'text' segment
 func (p *Pattern) Text(regex string) *Pattern {
-	re := regexp.MustCompile(regex)
-	pattern := NewPatternSegment(
-		"text", false, func(msg *message.Segment) *PatternParsed {
-			s := msg.Data["text"]
-			s = strings.Trim(s, " \n\r\t")
-			matchString := re.MatchString(s)
-			if matchString {
-				return &PatternParsed{
-					value: re.FindStringSubmatch(s),
-					msg:   msg,
-				}
-			}
-
-			return &PatternParsed{
-				value: nil,
-				msg:   nil,
-			}
-		},
-	)
-	*p = append(*p, *pattern)
+	p.Add("text", false, NewTextParser(regex))
 	return p
+}
+
+func NewTextParser(regex string) Parser {
+	re := regexp.MustCompile(regex)
+	return func(msg *message.Segment) *PatternParsed {
+		s := msg.Data["text"]
+		s = strings.Trim(s, " \n\r\t")
+		matchString := re.MatchString(s)
+		if matchString {
+			return &PatternParsed{
+				value: re.FindStringSubmatch(s),
+				msg:   msg,
+			}
+		}
+
+		return &PatternParsed{
+			value: nil,
+			msg:   nil,
+		}
+	}
 }
 
 // At use regex to match an 'at' segment, if id is not empty, only match specific target
@@ -156,37 +161,39 @@ func (p *Pattern) At(id ...message.ID) *Pattern {
 	if len(id) > 1 {
 		panic("at pattern only support one id")
 	}
-	pattern := NewPatternSegment(
-		"at", false, func(msg *message.Segment) *PatternParsed {
-			if len(id) == 0 || len(id) == 1 && id[0].String() == msg.Data["qq"] {
-				return &PatternParsed{
-					value: msg.Data["qq"],
-					msg:   msg,
-				}
-			}
-
-			return &PatternParsed{
-				value: nil,
-				msg:   nil,
-			}
-		},
-	)
-	*p = append(*p, *pattern)
+	p.Add("at", false, NewAtParser(id...))
 	return p
+}
+
+func NewAtParser(id ...message.ID) Parser {
+	return func(msg *message.Segment) *PatternParsed {
+		if len(id) == 0 || len(id) == 1 && id[0].String() == msg.Data["qq"] {
+			return &PatternParsed{
+				value: msg.Data["qq"],
+				msg:   msg,
+			}
+		}
+
+		return &PatternParsed{
+			value: nil,
+			msg:   nil,
+		}
+	}
 }
 
 // Image use regex to match an 'at' segment, if id is not empty, only match specific target
 func (p *Pattern) Image() *Pattern {
-	pattern := NewPatternSegment(
-		"image", false, func(msg *message.Segment) *PatternParsed {
-			return &PatternParsed{
-				value: msg.Data["file"],
-				msg:   msg,
-			}
-		},
-	)
-	*p = append(*p, *pattern)
+	p.Add("image", false, NewImageParser())
 	return p
+}
+
+func NewImageParser() Parser {
+	return func(msg *message.Segment) *PatternParsed {
+		return &PatternParsed{
+			value: msg.Data["file"],
+			msg:   msg,
+		}
+	}
 }
 
 // Reply type zero.PatternReplyMatched
@@ -195,43 +202,45 @@ func (p *Pattern) Reply(noCleanRedundantAt ...bool) *Pattern {
 	if len(noCleanRedundantAt) > 0 {
 		noClean = noCleanRedundantAt[0]
 	}
-	pattern := NewPatternSegment(
-		"reply", false, func(msg *message.Segment) *PatternParsed {
-			return &PatternParsed{
-				value: msg.Data["id"],
-				msg:   msg,
-			}
-		}, !noClean,
-	)
-	*p = append(*p, *pattern)
+	p.Add("reply", false, NewReplyParser(), !noClean)
 	return p
+}
+
+func NewReplyParser() Parser {
+	return func(msg *message.Segment) *PatternParsed {
+		return &PatternParsed{
+			value: msg.Data["id"],
+			msg:   msg,
+		}
+	}
 }
 
 // Any match any segment
 func (p *Pattern) Any() *Pattern {
-	pattern := NewPatternSegment(
-		"any", false, func(msg *message.Segment) *PatternParsed {
-			parsed := PatternParsed{
-				value: nil,
-				msg:   msg,
-			}
-			switch {
-			case msg.Data["text"] != "":
-				parsed.value = msg.Data["text"]
-			case msg.Data["qq"] != "":
-				parsed.value = msg.Data["qq"]
-			case msg.Data["file"] != "":
-				parsed.value = msg.Data["file"]
-			case msg.Data["id"] != "":
-				parsed.value = msg.Data["id"]
-			default:
-				parsed.value = msg.Data
-			}
-			return &parsed
-		},
-	)
-	*p = append(*p, *pattern)
+	p.Add("any", false, NewAnyParser())
 	return p
+}
+
+func NewAnyParser() Parser {
+	return func(msg *message.Segment) *PatternParsed {
+		parsed := PatternParsed{
+			value: nil,
+			msg:   msg,
+		}
+		switch {
+		case msg.Data["text"] != "":
+			parsed.value = msg.Data["text"]
+		case msg.Data["qq"] != "":
+			parsed.value = msg.Data["qq"]
+		case msg.Data["file"] != "":
+			parsed.value = msg.Data["file"]
+		case msg.Data["id"] != "":
+			parsed.value = msg.Data["id"]
+		default:
+			parsed.value = msg.Data
+		}
+		return &parsed
+	}
 }
 
 func (s *PatternSegment) matchType(msg message.Segment) bool {
