@@ -251,7 +251,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 	patternState := make([]PatternParsed, len(pattern.segments))
 
 	j := 0
-	for i := 0; i < len(pattern.segments); i++ {
+	for i := range pattern.segments {
 		if j < len(msgs) && pattern.segments[i].matchType(msgs[j]) {
 			patternState[i] = pattern.segments[i].parse(&msgs[j])
 		}
