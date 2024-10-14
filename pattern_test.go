@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -27,7 +28,7 @@ func fakeCtx(msg message.Message) *Ctx {
 
 // copy from extension.PatternModel
 type PatternModel struct {
-	Matched []*PatternParsed `zero:"pattern_matched"`
+	Matched []PatternParsed `zero:"pattern_matched"`
 }
 
 // Test Match
@@ -128,7 +129,7 @@ func TestPattern_ReplyFilter(t *testing.T) {
 		expected bool
 	}{
 		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply().Text("1234"), true},
-		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply(true).Text("1234"), false},
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(false).Reply().Text("1234"), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -234,7 +235,10 @@ func TestPattern_SetOptional(t *testing.T) {
 			}
 			assert.Equal(t, len(v.expected), len(parsed.Matched))
 			for i := range parsed.Matched {
-				assert.Equal(t, v.expected[i].value != nil, parsed.Matched[i].value != nil)
+				t.Run(strconv.Itoa(i), func(t *testing.T) {
+					fmt.Println((parsed.Matched[i].value))
+					assert.Equal(t, v.expected[i].value != nil, parsed.Matched[i].value != nil)
+				})
 			}
 		})
 	}
