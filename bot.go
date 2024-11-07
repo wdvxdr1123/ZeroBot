@@ -20,14 +20,15 @@ import (
 
 // Config is config of zero bot
 type Config struct {
-	NickName       []string      `json:"nickname"`         // 机器人名称
-	CommandPrefix  string        `json:"command_prefix"`   // 触发命令
-	SuperUsers     []int64       `json:"super_users"`      // 超级用户
-	RingLen        uint          `json:"ring_len"`         // 事件环长度 (默认关闭)
-	Latency        time.Duration `json:"latency"`          // 事件处理延迟 (延迟 latency 再处理事件，在 ring 模式下不可低于 1ms)
-	MaxProcessTime time.Duration `json:"max_process_time"` // 事件最大处理时间 (默认4min)
-	MarkMessage    bool          `json:"mark_message"`     // 自动标记消息为已读
-	Driver         []Driver      `json:"-"`                // 通信驱动
+	NickName        []string      `json:"nickname"`           // 机器人名称
+	CommandPrefix   string        `json:"command_prefix"`     // 触发命令
+	SuperUsers      []int64       `json:"super_users"`        // 超级用户
+	RingLen         uint          `json:"ring_len"`           // 事件环长度 (默认关闭)
+	Latency         time.Duration `json:"latency"`            // 事件处理延迟 (延迟 latency 再处理事件，在 ring 模式下不可低于 1ms)
+	MaxProcessTime  time.Duration `json:"max_process_time"`   // 事件最大处理时间 (默认4min)
+	MarkMessage     bool          `json:"mark_message"`       // 自动标记消息为已读
+	KeepAtMeMessage bool          `json:"keep_at_me_message"` // 是否保留at me的原始消息
+	Driver          []Driver      `json:"-"`                  // 通信驱动
 }
 
 // APICallers 所有的APICaller列表， 通过self-ID映射
@@ -420,7 +421,9 @@ func preprocessMessageEvent(e *Event) {
 				qq, _ := strconv.ParseInt(m.Data["qq"], 10, 64)
 				if qq == e.SelfID {
 					e.IsToMe = true
-					e.Message = append(e.Message[:i], e.Message[i+1:]...)
+					if !BotConfig.KeepAtMeMessage {
+						e.Message = append(e.Message[:i], e.Message[i+1:]...)
+					}
 					return
 				}
 			}
