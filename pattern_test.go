@@ -86,18 +86,18 @@ func TestPattern_FuzzyAt(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		//{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
-		//	cleanRedundantAt: true,
-		//	fuzzyAt:          true,
-		//}).Text("haha").At(), true},
-		//{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
-		//	cleanRedundantAt: true,
-		//	fuzzyAt:          true,
-		//}).Text("haha").At(), false},
-		//{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
-		//	cleanRedundantAt: true,
-		//	fuzzyAt:          true,
-		//}).Text("haha").At(), true},
+		{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), true},
+		{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), false},
+		{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), true},
 		{[]message.Segment{message.Text("haha @")}, NewPattern(PatternOption{
 			cleanRedundantAt: true,
 			fuzzyAt:          true,
