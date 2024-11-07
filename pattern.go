@@ -24,7 +24,6 @@ func (p *Pattern) AsRule() Rule {
 
 		// copy messages
 		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
-		atRegexp := regexp.MustCompile(`@([\d\S]*)`)
 		for i := 0; i < len(ctx.Event.Message); i++ {
 			if i > 0 && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
@@ -35,38 +34,45 @@ func (p *Pattern) AsRule() Rule {
 			}
 			if ctx.Event.Message[i].Type == "text" && atRegexp.MatchString(ctx.Event.Message[i].Data["text"]) {
 				// xxxx @11232123 xxxxx
-				splited := atRegexp.Split(ctx.Event.Message[i].Data["text"], -1)
-				ats := atRegexp.FindAllStringSubmatch(ctx.Event.Message[i].Data["text"], -1)
-				var tmp = make([]message.Segment, 0, len(splited)+len(ats))
-				for i, s := range splited {
-					if strings.TrimSpace(s) == "" {
-						continue
-					}
-					tmp = append(tmp, message.Text(s))
-					// append at
-					if i > len(ats)-1 {
-						continue
-					}
-					uid, err := strconv.ParseInt(ats[i][1], 10, 64)
-					if err != nil {
-						// assume is user name
-						list := ctx.GetThisGroupMemberList().Array()
-						for _, member := range list {
-							if member.Get("card").Str == ats[i][1] || member.Get("nickname").Str == ats[i][1] {
-								uid = member.Get("user_id").Int()
-								break
-							}
-						}
-					}
-					tmp = append(tmp, message.At(uid))
-				}
-				msgs = append(msgs, tmp...)
+				msgs = append(msgs, extractStringAt(ctx, ctx.Event.Message[i].Data["text"])...)
 				continue
 			}
 			msgs = append(msgs, ctx.Event.Message[i])
 		}
 		return patternMatch(ctx, *p, msgs)
 	}
+}
+
+var atRegexp = regexp.MustCompile(`@([\d\S]*)`)
+
+func extractStringAt(ctx *Ctx, msg string) []message.Segment {
+	splited := atRegexp.Split(msg, -1)
+	ats := atRegexp.FindAllStringSubmatch(msg, -1)
+	var tmp = make([]message.Segment, 0, len(splited)+len(ats))
+	for i, s := range splited {
+		if strings.TrimSpace(s) == "" {
+			continue
+		}
+		tmp = append(tmp, message.Text(s))
+		// append at
+		if i > len(ats)-1 {
+			continue
+		}
+		uid, err := strconv.ParseInt(ats[i][1], 10, 64)
+		// TODO numeric username
+		if err != nil {
+			// assume is username
+			list := ctx.GetThisGroupMemberList().Array()
+			for _, member := range list {
+				if member.Get("card").Str != ats[i][1] && member.Get("nickname").Str != ats[i][1] {
+					continue
+				}
+				uid = member.Get("user_id").Int()
+			}
+		}
+		tmp = append(tmp, message.At(uid))
+	}
+	return tmp
 }
 
 type Pattern struct {
