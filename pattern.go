@@ -1,7 +1,6 @@
 package zero
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -107,7 +106,6 @@ type PatternSegment struct {
 	typ      string
 	optional bool
 	parse    Parser
-	DebugStr func() string
 }
 
 type Parser func(msg *message.Segment) PatternParsed
@@ -169,12 +167,11 @@ func (p PatternParsed) Raw() *message.Segment {
 	return p.msg
 }
 
-func (p *Pattern) Add(typ string, optional bool, parse Parser, debug func() string) *Pattern {
+func (p *Pattern) Add(typ string, optional bool, parse Parser) *Pattern {
 	pattern := &PatternSegment{
 		typ:      typ,
 		optional: optional,
 		parse:    parse,
-		DebugStr: debug,
 	}
 	p.segments = append(p.segments, *pattern)
 	return p
@@ -182,9 +179,7 @@ func (p *Pattern) Add(typ string, optional bool, parse Parser, debug func() stri
 
 // Text use regex to search a 'text' segment
 func (p *Pattern) Text(regex string) *Pattern {
-	p.Add("text", false, NewTextParser(regex), func() string {
-		return fmt.Sprintf("regex(%s)", regex)
-	})
+	p.Add("text", false, NewTextParser(regex))
 	return p
 }
 
@@ -210,9 +205,7 @@ func (p *Pattern) At(id ...message.ID) *Pattern {
 	if len(id) > 1 {
 		panic("at pattern only support one id")
 	}
-	p.Add("at", false, NewAtParser(id...), func() string {
-		return fmt.Sprintf("at(%v)", id)
-	})
+	p.Add("at", false, NewAtParser(id...))
 	return p
 }
 
@@ -230,9 +223,7 @@ func NewAtParser(id ...message.ID) Parser {
 
 // Image use regex to match an 'at' segment, if id is not empty, only match specific target
 func (p *Pattern) Image() *Pattern {
-	p.Add("image", false, NewImageParser(), func() string {
-		return "image"
-	})
+	p.Add("image", false, NewImageParser())
 	return p
 }
 
@@ -247,9 +238,7 @@ func NewImageParser() Parser {
 
 // Reply type zero.PatternReplyMatched
 func (p *Pattern) Reply() *Pattern {
-	p.Add("reply", false, NewReplyParser(), func() string {
-		return "reply"
-	})
+	p.Add("reply", false, NewReplyParser())
 	return p
 }
 
@@ -264,9 +253,7 @@ func NewReplyParser() Parser {
 
 // Any match any segment
 func (p *Pattern) Any() *Pattern {
-	p.Add("any", false, NewAnyParser(), func() string {
-		return "any"
-	})
+	p.Add("any", false, NewAnyParser())
 	return p
 }
 
@@ -308,6 +295,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 		return false
 	}
 	patternState := make([]PatternParsed, len(pattern.segments))
+
 	j := 0
 	for i := range pattern.segments {
 		if j < len(msgs) && pattern.segments[i].matchType(msgs[j]) {
