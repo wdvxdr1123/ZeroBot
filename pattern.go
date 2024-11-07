@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"github.com/tidwall/gjson"
 	"regexp"
 	"strconv"
 	"strings"
@@ -49,6 +50,7 @@ func extractStringAt(ctx *Ctx, msg string) []message.Segment {
 	splited := atRegexp.Split(msg, -1)
 	ats := atRegexp.FindAllStringSubmatch(msg, -1)
 	var tmp = make([]message.Segment, 0, len(splited)+len(ats))
+	var list []gjson.Result = nil
 	for i, s := range splited {
 		if strings.TrimSpace(s) == "" {
 			continue
@@ -62,7 +64,9 @@ func extractStringAt(ctx *Ctx, msg string) []message.Segment {
 		// TODO numeric username
 		if err != nil {
 			// assume is username
-			list := ctx.GetThisGroupMemberList().Array()
+			if list == nil {
+				list = ctx.GetThisGroupMemberList().Array()
+			}
 			for _, member := range list {
 				if member.Get("card").Str != ats[i][1] && member.Get("nickname").Str != ats[i][1] {
 					continue
