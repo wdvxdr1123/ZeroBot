@@ -1,11 +1,12 @@
 package zero
 
 import (
+	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/wdvxdr1123/ZeroBot/message"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
@@ -18,20 +19,45 @@ func (p *Pattern) AsRule() Rule {
 		if len(ctx.Event.Message) == 0 {
 			return false
 		}
-		if !p.cleanRedundantAt {
+		if !p.cleanRedundantAt && !p.fuzzyAt {
 			return patternMatch(ctx, *p, ctx.Event.Message)
 		}
 
 		// copy messages
 		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
-		msgs = append(msgs, ctx.Event.Message[0])
-		for i := 1; i < len(ctx.Event.Message); i++ {
-			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
+		atRegexp := regexp.MustCompile(`@([\d\S]+)`)
+		for i := 0; i < len(ctx.Event.Message); i++ {
+			if i > 0 && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
 				if reply.MessageID.ID() != 0 && reply.Sender != nil && reply.Sender.ID != 0 && strconv.FormatInt(reply.Sender.ID, 10) == ctx.Event.Message[i].Data["qq"] {
 					continue
 				}
+			}
+			if ctx.Event.Message[i].Type == "text" && atRegexp.MatchString(ctx.Event.Message[i].Data["text"]) {
+				// xxxx @11232123 xxxxx
+				splited := atRegexp.Split(ctx.Event.Message[i].Data["text"], -1)
+				ats := atRegexp.FindAllStringSubmatch(ctx.Event.Message[i].Data["text"], -1)
+				var tmp = make([]message.Segment, 0, len(splited)+len(ats))
+				for i, s := range splited {
+					if strings.TrimSpace(s) == "" {
+						continue
+					}
+					tmp = append(tmp, message.Text(s))
+					// append at
+					if i > len(ats)-1 {
+						continue
+					}
+					uid, err := strconv.ParseInt(ats[i][1], 10, 64)
+					if err != nil {
+						// assume is user name
+						uid = 0
+
+					}
+					tmp = append(tmp, message.At(uid))
+				}
+				msgs = append(msgs, tmp...)
+				continue
 			}
 			msgs = append(msgs, ctx.Event.Message[i])
 		}
@@ -41,16 +67,32 @@ func (p *Pattern) AsRule() Rule {
 
 type Pattern struct {
 	cleanRedundantAt bool
+	fuzzyAt          bool
 	segments         []PatternSegment
 }
 
-func NewPattern(cleanRedundantAt ...bool) *Pattern {
-	clean := true
+// PatternOption pattern option
+type PatternOption struct {
+	cleanRedundantAt bool
+	fuzzyAt          bool
+}
+
+// NewPattern new pattern
+// defaults:
+//
+//	cleanRedundantAt: true
+//	fuzzyAt: false
+func NewPattern(cleanRedundantAt ...PatternOption) *Pattern {
+	option := PatternOption{
+		cleanRedundantAt: true,
+		fuzzyAt:          false,
+	}
 	if len(cleanRedundantAt) > 0 {
-		clean = cleanRedundantAt[0]
+		option = cleanRedundantAt[0]
 	}
 	pattern := Pattern{
-		cleanRedundantAt: clean,
+		cleanRedundantAt: option.cleanRedundantAt,
+		fuzzyAt:          option.fuzzyAt,
 		segments:         make([]PatternSegment, 0, 4),
 	}
 	return &pattern
@@ -60,6 +102,7 @@ type PatternSegment struct {
 	typ      string
 	optional bool
 	parse    Parser
+	DebugStr func() string
 }
 
 type Parser func(msg *message.Segment) PatternParsed
@@ -121,11 +164,12 @@ func (p PatternParsed) Raw() *message.Segment {
 	return p.msg
 }
 
-func (p *Pattern) Add(typ string, optional bool, parse Parser) *Pattern {
+func (p *Pattern) Add(typ string, optional bool, parse Parser, debug func() string) *Pattern {
 	pattern := &PatternSegment{
 		typ:      typ,
 		optional: optional,
 		parse:    parse,
+		DebugStr: debug,
 	}
 	p.segments = append(p.segments, *pattern)
 	return p
@@ -133,7 +177,9 @@ func (p *Pattern) Add(typ string, optional bool, parse Parser) *Pattern {
 
 // Text use regex to search a 'text' segment
 func (p *Pattern) Text(regex string) *Pattern {
-	p.Add("text", false, NewTextParser(regex))
+	p.Add("text", false, NewTextParser(regex), func() string {
+		return fmt.Sprintf("regex(%s)", regex)
+	})
 	return p
 }
 
@@ -142,6 +188,7 @@ func NewTextParser(regex string) Parser {
 	return func(msg *message.Segment) PatternParsed {
 		s := msg.Data["text"]
 		s = strings.Trim(s, " \n\r\t")
+		println("testing", s, regex, re.MatchString(s))
 		matchString := re.MatchString(s)
 		if matchString {
 			return PatternParsed{
@@ -159,7 +206,9 @@ func (p *Pattern) At(id ...message.ID) *Pattern {
 	if len(id) > 1 {
 		panic("at pattern only support one id")
 	}
-	p.Add("at", false, NewAtParser(id...))
+	p.Add("at", false, NewAtParser(id...), func() string {
+		return fmt.Sprintf("at(%v)", id)
+	})
 	return p
 }
 
@@ -177,7 +226,9 @@ func NewAtParser(id ...message.ID) Parser {
 
 // Image use regex to match an 'at' segment, if id is not empty, only match specific target
 func (p *Pattern) Image() *Pattern {
-	p.Add("image", false, NewImageParser())
+	p.Add("image", false, NewImageParser(), func() string {
+		return "image"
+	})
 	return p
 }
 
@@ -192,7 +243,9 @@ func NewImageParser() Parser {
 
 // Reply type zero.PatternReplyMatched
 func (p *Pattern) Reply() *Pattern {
-	p.Add("reply", false, NewReplyParser())
+	p.Add("reply", false, NewReplyParser(), func() string {
+		return "reply"
+	})
 	return p
 }
 
@@ -207,7 +260,9 @@ func NewReplyParser() Parser {
 
 // Any match any segment
 func (p *Pattern) Any() *Pattern {
-	p.Add("any", false, NewAnyParser())
+	p.Add("any", false, NewAnyParser(), func() string {
+		return "any"
+	})
 	return p
 }
 
@@ -249,7 +304,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 		return false
 	}
 	patternState := make([]PatternParsed, len(pattern.segments))
-
+	logrus.Debugf("[pattern test] '%s' %v", message.Message(msgs).String(), pattern.segments)
 	j := 0
 	for i := range pattern.segments {
 		if j < len(msgs) && pattern.segments[i].matchType(msgs[j]) {
@@ -259,6 +314,7 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 			if pattern.segments[i].optional {
 				continue
 			}
+			logrus.Debugf("[pattern test] failed: '%s' %v", msgs[j], pattern.segments[i].DebugStr())
 			return false
 		}
 		j++

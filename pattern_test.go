@@ -38,6 +38,7 @@ func TestPattern_Text(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
+		{[]message.Segment{message.Text("/haha")}, NewPattern().Text(`/(\S+)`), true},
 		{[]message.Segment{message.Text("haha")}, NewPattern().Text("haha"), true},
 		{[]message.Segment{message.Text("aaa")}, NewPattern().Text("not match"), false},
 		{[]message.Segment{message.Image("not a image")}, NewPattern().Text("not match"), false},
@@ -79,6 +80,38 @@ func TestPattern_Image(t *testing.T) {
 	}
 }
 
+func TestPattern_FuzzyAt(t *testing.T) {
+	textTests := [...]struct {
+		msg      message.Message
+		pattern  *Pattern
+		expected bool
+	}{
+		{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), true},
+		{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), false},
+		{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), true},
+		{[]message.Segment{message.Text("haha 你好")}, NewPattern(PatternOption{
+			cleanRedundantAt: true,
+			fuzzyAt:          true,
+		}).Text("haha").At(), false},
+	}
+	for i, v := range textTests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			ctx := fakeCtx(v.msg)
+			rule := v.pattern.AsRule()
+			out := rule(ctx)
+			assert.Equal(t, out, v.expected)
+		})
+	}
+}
 func TestPattern_At(t *testing.T) {
 	textTests := [...]struct {
 		msg      message.Message
@@ -129,7 +162,10 @@ func TestPattern_ReplyFilter(t *testing.T) {
 		expected bool
 	}{
 		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply().Text("1234"), true},
-		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(false).Reply().Text("1234"), false},
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(PatternOption{
+			cleanRedundantAt: false,
+			fuzzyAt:          false,
+		}).Reply().Text("1234"), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
