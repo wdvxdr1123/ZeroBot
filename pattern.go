@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
@@ -310,7 +308,6 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 		return false
 	}
 	patternState := make([]PatternParsed, len(pattern.segments))
-	logrus.Debugf("[pattern test] '%s' %v", message.Message(msgs).String(), pattern.segments)
 	j := 0
 	for i := range pattern.segments {
 		if j < len(msgs) && pattern.segments[i].matchType(msgs[j]) {
@@ -320,7 +317,6 @@ func patternMatch(ctx *Ctx, pattern Pattern, msgs []message.Segment) bool {
 			if pattern.segments[i].optional {
 				continue
 			}
-			logrus.Debugf("[pattern test] failed: '%s' %v", msgs[j], pattern.segments[i].DebugStr())
 			return false
 		}
 		j++
