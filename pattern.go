@@ -2,11 +2,13 @@ package zero
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/wdvxdr1123/ZeroBot/message"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
@@ -25,7 +27,7 @@ func (p *Pattern) AsRule() Rule {
 
 		// copy messages
 		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
-		atRegexp := regexp.MustCompile(`@([\d\S]+)`)
+		atRegexp := regexp.MustCompile(`@([\d\S]*)`)
 		for i := 0; i < len(ctx.Event.Message); i++ {
 			if i > 0 && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
@@ -51,8 +53,13 @@ func (p *Pattern) AsRule() Rule {
 					uid, err := strconv.ParseInt(ats[i][1], 10, 64)
 					if err != nil {
 						// assume is user name
-						uid = 0
-
+						list := ctx.GetThisGroupMemberList().Array()
+						for _, member := range list {
+							if member.Get("card").Str == ats[i][1] || member.Get("nickname").Str == ats[i][1] {
+								uid = member.Get("user_id").Int()
+								break
+							}
+						}
 					}
 					tmp = append(tmp, message.At(uid))
 				}
@@ -188,7 +195,6 @@ func NewTextParser(regex string) Parser {
 	return func(msg *message.Segment) PatternParsed {
 		s := msg.Data["text"]
 		s = strings.Trim(s, " \n\r\t")
-		println("testing", s, regex, re.MatchString(s))
 		matchString := re.MatchString(s)
 		if matchString {
 			return PatternParsed{

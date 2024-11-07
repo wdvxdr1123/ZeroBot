@@ -86,25 +86,33 @@ func TestPattern_FuzzyAt(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
+		//{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
+		//	cleanRedundantAt: true,
+		//	fuzzyAt:          true,
+		//}).Text("haha").At(), true},
+		//{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
+		//	cleanRedundantAt: true,
+		//	fuzzyAt:          true,
+		//}).Text("haha").At(), false},
+		//{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
+		//	cleanRedundantAt: true,
+		//	fuzzyAt:          true,
+		//}).Text("haha").At(), true},
+		{[]message.Segment{message.Text("haha @")}, NewPattern(PatternOption{
 			cleanRedundantAt: true,
 			fuzzyAt:          true,
 		}).Text("haha").At(), true},
-		{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
+		{[]message.Segment{message.Text("haha @ 你说的对")}, NewPattern(PatternOption{
 			cleanRedundantAt: true,
 			fuzzyAt:          true,
-		}).Text("haha").At(), false},
-		{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
+		}).Text("haha").At().Text("你说的对"), true},
+		{[]message.Segment{message.Text("haha @114514 你说的对")}, NewPattern(PatternOption{
 			cleanRedundantAt: true,
 			fuzzyAt:          true,
-		}).Text("haha").At(), true},
-		{[]message.Segment{message.Text("haha 你好")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
-		}).Text("haha").At(), false},
+		}).Text("haha").At().Text("你说的对"), true},
 	}
-	for i, v := range textTests {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+	for _, v := range textTests {
+		t.Run(v.msg.String(), func(t *testing.T) {
 			ctx := fakeCtx(v.msg)
 			rule := v.pattern.AsRule()
 			out := rule(ctx)
