@@ -1,10 +1,11 @@
 package zero
 
 import (
-	"github.com/tidwall/gjson"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/tidwall/gjson"
 
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
@@ -50,7 +51,7 @@ func extractStringAt(ctx *Ctx, msg string) []message.Segment {
 	splited := atRegexp.Split(msg, -1)
 	ats := atRegexp.FindAllStringSubmatch(msg, -1)
 	var tmp = make([]message.Segment, 0, len(splited)+len(ats))
-	var list []gjson.Result = nil
+	var list []gjson.Result
 	for i, s := range splited {
 		if strings.TrimSpace(s) == "" {
 			continue
