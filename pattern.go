@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tidwall/gjson"
+
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
@@ -18,20 +20,24 @@ func (p *Pattern) AsRule() Rule {
 		if len(ctx.Event.Message) == 0 {
 			return false
 		}
-		if !p.cleanRedundantAt {
+		if !p.cleanRedundantAt && !p.fuzzyAt {
 			return patternMatch(ctx, *p, ctx.Event.Message)
 		}
 
 		// copy messages
 		msgs := make([]message.Segment, 0, len(ctx.Event.Message))
-		msgs = append(msgs, ctx.Event.Message[0])
-		for i := 1; i < len(ctx.Event.Message); i++ {
-			if ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
+		for i := 0; i < len(ctx.Event.Message); i++ {
+			if i > 0 && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
 				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
 				if reply.MessageID.ID() != 0 && reply.Sender != nil && reply.Sender.ID != 0 && strconv.FormatInt(reply.Sender.ID, 10) == ctx.Event.Message[i].Data["qq"] {
 					continue
 				}
+			}
+			if ctx.Event.Message[i].Type == "text" && atRegexp.MatchString(ctx.Event.Message[i].Data["text"]) {
+				// xxxx @11232123 xxxxx
+				msgs = append(msgs, ctx.splitAtInText(i)...)
+				continue
 			}
 			msgs = append(msgs, ctx.Event.Message[i])
 		}
@@ -39,18 +45,69 @@ func (p *Pattern) AsRule() Rule {
 	}
 }
 
+var atRegexp = regexp.MustCompile(`@([\d\S]*)`)
+
+func (ctx *Ctx) splitAtInText(index int) []message.Segment {
+	msg := ctx.Event.Message[index].String()
+	splited := atRegexp.Split(msg, -1)
+	ats := atRegexp.FindAllStringSubmatch(msg, -1)
+	var tmp = make([]message.Segment, 0, len(splited)+len(ats))
+	var list []gjson.Result
+	for i, s := range splited {
+		if strings.TrimSpace(s) == "" {
+			continue
+		}
+		tmp = append(tmp, message.Text(s))
+		// append at
+		if i > len(ats)-1 {
+			continue
+		}
+		uid, err := strconv.ParseInt(ats[i][1], 10, 64)
+		// TODO numeric username
+		if err != nil {
+			// assume is username
+			if list == nil {
+				list = ctx.GetThisGroupMemberList().Array()
+			}
+			for _, member := range list {
+				if member.Get("card").Str != ats[i][1] && member.Get("nickname").Str != ats[i][1] {
+					continue
+				}
+				uid = member.Get("user_id").Int()
+			}
+		}
+		tmp = append(tmp, message.At(uid))
+	}
+	return tmp
+}
+
 type Pattern struct {
 	cleanRedundantAt bool
+	fuzzyAt          bool
 	segments         []PatternSegment
 }
 
-func NewPattern(cleanRedundantAt ...bool) *Pattern {
-	clean := true
-	if len(cleanRedundantAt) > 0 {
-		clean = cleanRedundantAt[0]
+// PatternOption pattern option
+type PatternOption struct {
+	CleanRedundantAt bool
+	FuzzyAt          bool
+}
+
+// NewPattern new pattern
+// defaults:
+//
+//	CleanRedundantAt: true
+//	FuzzyAt: false
+func NewPattern(option *PatternOption) *Pattern {
+	if option == nil {
+		option = &PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          false,
+		}
 	}
 	pattern := Pattern{
-		cleanRedundantAt: clean,
+		cleanRedundantAt: option.CleanRedundantAt,
+		fuzzyAt:          option.FuzzyAt,
 		segments:         make([]PatternSegment, 0, 4),
 	}
 	return &pattern
