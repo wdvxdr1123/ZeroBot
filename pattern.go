@@ -36,7 +36,7 @@ func (p *Pattern) AsRule() Rule {
 			}
 			if ctx.Event.Message[i].Type == "text" && atRegexp.MatchString(ctx.Event.Message[i].Data["text"]) {
 				// xxxx @11232123 xxxxx
-				msgs = append(msgs, extractStringAt(ctx, ctx.Event.Message[i].Data["text"])...)
+				msgs = append(msgs, ctx.splitAtInText(i)...)
 				continue
 			}
 			msgs = append(msgs, ctx.Event.Message[i])
@@ -47,7 +47,8 @@ func (p *Pattern) AsRule() Rule {
 
 var atRegexp = regexp.MustCompile(`@([\d\S]*)`)
 
-func extractStringAt(ctx *Ctx, msg string) []message.Segment {
+func (ctx *Ctx) splitAtInText(index int) []message.Segment {
+	msg := ctx.Event.Message[index].String()
 	splited := atRegexp.Split(msg, -1)
 	ats := atRegexp.FindAllStringSubmatch(msg, -1)
 	var tmp = make([]message.Segment, 0, len(splited)+len(ats))
@@ -88,26 +89,25 @@ type Pattern struct {
 
 // PatternOption pattern option
 type PatternOption struct {
-	cleanRedundantAt bool
-	fuzzyAt          bool
+	CleanRedundantAt bool
+	FuzzyAt          bool
 }
 
 // NewPattern new pattern
 // defaults:
 //
-//	cleanRedundantAt: true
-//	fuzzyAt: false
-func NewPattern(cleanRedundantAt ...PatternOption) *Pattern {
-	option := PatternOption{
-		cleanRedundantAt: true,
-		fuzzyAt:          false,
-	}
-	if len(cleanRedundantAt) > 0 {
-		option = cleanRedundantAt[0]
+//	CleanRedundantAt: true
+//	FuzzyAt: false
+func NewPattern(option *PatternOption) *Pattern {
+	if option == nil {
+		option = &PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          false,
+		}
 	}
 	pattern := Pattern{
-		cleanRedundantAt: option.cleanRedundantAt,
-		fuzzyAt:          option.fuzzyAt,
+		cleanRedundantAt: option.CleanRedundantAt,
+		fuzzyAt:          option.FuzzyAt,
 		segments:         make([]PatternSegment, 0, 4),
 	}
 	return &pattern

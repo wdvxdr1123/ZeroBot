@@ -38,13 +38,13 @@ func TestPattern_Text(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("/haha")}, NewPattern().Text(`/(\S+)`), true},
-		{[]message.Segment{message.Text("haha")}, NewPattern().Text("haha"), true},
-		{[]message.Segment{message.Text("aaa")}, NewPattern().Text("not match"), false},
-		{[]message.Segment{message.Image("not a image")}, NewPattern().Text("not match"), false},
-		{[]message.Segment{message.At(114514)}, NewPattern().Text("not match"), false},
-		{[]message.Segment{message.Text("你说的对但是ZeroBot-Plugin 是 ZeroBot 的 实用插件合集")}, NewPattern().Text("实用插件合集"), true},
-		{[]message.Segment{message.Text("你说的对但是ZeroBot-Plugin 是 ZeroBot 的 实用插件合集")}, NewPattern().Text("nonono"), false},
+		{[]message.Segment{message.Text("/haha")}, NewPattern(nil).Text(`/(\S+)`), true},
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).Text("haha"), true},
+		{[]message.Segment{message.Text("aaa")}, NewPattern(nil).Text("not match"), false},
+		{[]message.Segment{message.Image("not a image")}, NewPattern(nil).Text("not match"), false},
+		{[]message.Segment{message.At(114514)}, NewPattern(nil).Text("not match"), false},
+		{[]message.Segment{message.Text("你说的对但是ZeroBot-Plugin 是 ZeroBot 的 实用插件合集")}, NewPattern(nil).Text("实用插件合集"), true},
+		{[]message.Segment{message.Text("你说的对但是ZeroBot-Plugin 是 ZeroBot 的 实用插件合集")}, NewPattern(nil).Text("nonono"), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -62,13 +62,13 @@ func TestPattern_Image(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha")}, NewPattern().Image(), false},
-		{[]message.Segment{message.Text("haha"), message.Image("not a image")}, NewPattern().Image().Image(), false},
-		{[]message.Segment{message.Text("haha"), message.Image("not a image")}, NewPattern().Text("haha").Image(), true},
-		{[]message.Segment{message.Image("not a image")}, NewPattern().Image(), true},
-		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern().Image(), false},
-		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern().Image().Image(), true},
-		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern().Image().Image().Image(), false},
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).Image(), false},
+		{[]message.Segment{message.Text("haha"), message.Image("not a image")}, NewPattern(nil).Image().Image(), false},
+		{[]message.Segment{message.Text("haha"), message.Image("not a image")}, NewPattern(nil).Text("haha").Image(), true},
+		{[]message.Segment{message.Image("not a image")}, NewPattern(nil).Image(), true},
+		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern(nil).Image(), false},
+		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern(nil).Image().Image(), true},
+		{[]message.Segment{message.Image("not a image"), message.Image("not a image")}, NewPattern(nil).Image().Image().Image(), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -86,29 +86,29 @@ func TestPattern_FuzzyAt(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha @114514")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha @114514")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At(), true},
-		{[]message.Segment{message.Text("haha 114514")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha 114514")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At(), false},
-		{[]message.Segment{message.Text("haha @你好")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha @你好")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At(), true},
-		{[]message.Segment{message.Text("haha @")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha @")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At(), true},
-		{[]message.Segment{message.Text("haha @ 你说的对")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha @ 你说的对")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At().Text("你说的对"), true},
-		{[]message.Segment{message.Text("haha @114514 你说的对")}, NewPattern(PatternOption{
-			cleanRedundantAt: true,
-			fuzzyAt:          true,
+		{[]message.Segment{message.Text("haha @114514 你说的对")}, NewPattern(&PatternOption{
+			CleanRedundantAt: true,
+			FuzzyAt:          true,
 		}).Text("haha").At().Text("你说的对"), true},
 	}
 	for _, v := range textTests {
@@ -126,10 +126,10 @@ func TestPattern_At(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha")}, NewPattern().At(), false},
-		{[]message.Segment{message.Image("not a image")}, NewPattern().At(), false},
-		{[]message.Segment{message.At(114514)}, NewPattern().At(), true},
-		{[]message.Segment{message.At(114514)}, NewPattern().At(message.NewMessageIDFromString("1919810")), false},
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).At(), false},
+		{[]message.Segment{message.Image("not a image")}, NewPattern(nil).At(), false},
+		{[]message.Segment{message.At(114514)}, NewPattern(nil).At(), true},
+		{[]message.Segment{message.At(114514)}, NewPattern(nil).At(message.NewMessageIDFromString("1919810")), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -147,12 +147,12 @@ func TestPattern_Reply(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha")}, NewPattern().Reply(), false},
-		{[]message.Segment{message.Image("not a image")}, NewPattern().Reply(), false},
-		{[]message.Segment{message.At(1919810), message.Reply(12345)}, NewPattern().Reply().At(), false},
-		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern().Reply().At(), true},
-		{[]message.Segment{message.Reply(12345)}, NewPattern().Reply(), true},
-		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern().Reply(), false},
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).Reply(), false},
+		{[]message.Segment{message.Image("not a image")}, NewPattern(nil).Reply(), false},
+		{[]message.Segment{message.At(1919810), message.Reply(12345)}, NewPattern(nil).Reply().At(), false},
+		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern(nil).Reply().At(), true},
+		{[]message.Segment{message.Reply(12345)}, NewPattern(nil).Reply(), true},
+		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern(nil).Reply(), false},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -169,10 +169,10 @@ func TestPattern_ReplyFilter(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern().Reply().Text("1234"), true},
-		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(PatternOption{
-			cleanRedundantAt: false,
-			fuzzyAt:          false,
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(nil).Reply().Text("1234"), true},
+		{[]message.Segment{message.Reply(12345), message.At(12345), message.Text("1234")}, NewPattern(&PatternOption{
+			CleanRedundantAt: false,
+			FuzzyAt:          false,
 		}).Reply().Text("1234"), false},
 	}
 	for i, v := range textTests {
@@ -190,10 +190,10 @@ func TestPattern_Any(t *testing.T) {
 		pattern  *Pattern
 		expected bool
 	}{
-		{[]message.Segment{message.Text("haha")}, NewPattern().Any(), true},
-		{[]message.Segment{message.Image("not a image")}, NewPattern().Any(), true},
-		{[]message.Segment{message.At(1919810), message.Reply(12345)}, NewPattern().Any().Reply(), true},
-		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern().Any().At(), true},
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).Any(), true},
+		{[]message.Segment{message.Image("not a image")}, NewPattern(nil).Any(), true},
+		{[]message.Segment{message.At(1919810), message.Reply(12345)}, NewPattern(nil).Any().Reply(), true},
+		{[]message.Segment{message.Reply(12345), message.At(1919810)}, NewPattern(nil).Any().At(), true},
 	}
 	for i, v := range textTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -205,7 +205,7 @@ func TestPattern_Any(t *testing.T) {
 	}
 	t.Run("get", func(t *testing.T) {
 		ctx := fakeCtx([]message.Segment{message.Reply("just for test")})
-		rule := NewPattern().Any().AsRule()
+		rule := NewPattern(nil).Any().AsRule()
 		_ = rule(ctx)
 		model := PatternModel{}
 		err := ctx.Parse(&model)
@@ -225,22 +225,22 @@ func TestPatternParsed_Gets(t *testing.T) {
 }
 func TestPattern_SetOptional(t *testing.T) {
 	assert.Panics(t, func() {
-		NewPattern().SetOptional()
+		NewPattern(nil).SetOptional()
 	})
 	tests := [...]struct {
 		msg      message.Message
 		pattern  *Pattern
 		expected []PatternParsed
 	}{
-		{[]message.Segment{message.Text("/do it")}, NewPattern().Text("/(do) (.*)").At().SetOptional(true), []PatternParsed{
+		{[]message.Segment{message.Text("/do it")}, NewPattern(nil).Text("/(do) (.*)").At().SetOptional(true), []PatternParsed{
 			{
 				value: []string{"/do it", "do", "it"},
 			}, {
 				value: nil,
 			},
 		}},
-		{[]message.Segment{message.Text("/do it")}, NewPattern().Text("/(do) (.*)").At().SetOptional(false), []PatternParsed{}},
-		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern().Reply().SetOptional().Text(".+").SetOptional().At().SetOptional(false), []PatternParsed{
+		{[]message.Segment{message.Text("/do it")}, NewPattern(nil).Text("/(do) (.*)").At().SetOptional(false), []PatternParsed{}},
+		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern(nil).Reply().SetOptional().Text(".+").SetOptional().At().SetOptional(false), []PatternParsed{
 			{
 				value: nil,
 			},
@@ -251,7 +251,7 @@ func TestPattern_SetOptional(t *testing.T) {
 				value: "114514",
 			},
 		}},
-		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern().Image().SetOptional().Image().SetOptional().Image().SetOptional(), []PatternParsed{ // why you do this
+		{[]message.Segment{message.Text("happy bear"), message.At(114514)}, NewPattern(nil).Image().SetOptional().Image().SetOptional().Image().SetOptional(), []PatternParsed{ // why you do this
 			{
 				value: nil,
 			},
@@ -295,19 +295,19 @@ func TestAllParse(t *testing.T) {
 		pattern  *Pattern
 		expected []PatternParsed
 	}{
-		{[]message.Segment{message.Text("test haha test"), message.At(123)}, NewPattern().Text("((ha)+)").At(), []PatternParsed{
+		{[]message.Segment{message.Text("test haha test"), message.At(123)}, NewPattern(nil).Text("((ha)+)").At(), []PatternParsed{
 			{
 				value: []string{"haha", "haha", "ha"},
 			}, {
 				value: "123",
 			},
 		}},
-		{[]message.Segment{message.Text("haha")}, NewPattern().Text("(h)(a)(h)(a)"), []PatternParsed{
+		{[]message.Segment{message.Text("haha")}, NewPattern(nil).Text("(h)(a)(h)(a)"), []PatternParsed{
 			{
 				value: []string{"haha", "h", "a", "h", "a"},
 			},
 		}},
-		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern().Reply().Image().At().At(message.NewMessageIDFromInteger(124)).Text("(h)(a)(h)(a)"), []PatternParsed{
+		{[]message.Segment{message.Reply("fake reply"), message.Image("fake image"), message.At(999), message.At(124), message.Text("haha")}, NewPattern(nil).Reply().Image().At().At(message.NewMessageIDFromInteger(124)).Text("(h)(a)(h)(a)"), []PatternParsed{
 
 			{
 				value: "fake reply",
