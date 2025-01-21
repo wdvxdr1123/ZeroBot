@@ -1,6 +1,9 @@
 package zero
 
 import (
+	"encoding/json"
+	log "github.com/sirupsen/logrus"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,7 +32,25 @@ func (p *Pattern) AsRule() Rule {
 		for i := 0; i < len(ctx.Event.Message); i++ {
 			if i > 0 && ctx.Event.Message[i-1].Type == "reply" && ctx.Event.Message[i].Type == "at" {
 				// [reply][at]
-				reply := ctx.GetMessage(ctx.Event.Message[i-1].Data["id"])
+				// use internal API to avoid recording wrong triggered message
+				reply := Message{}
+				msgID := ctx.Event.Message[i-1].Data["id"]
+				rsp, err := ctx.caller.(*messageLogger).caller.CallAPI(APIRequest{
+					Action: "get_msg", Params: Params{
+						"message_id": msgID,
+					},
+				})
+				if err != nil {
+					log.Debugf("[PatternRule] failed to get_msg, message_id %s", msgID)
+					continue
+				}
+				reply = Message{
+					Elements:    message.ParseMessage(helper.StringToBytes(rsp.Data.Get("message").Raw)),
+					MessageID:   message.NewMessageIDFromInteger(rsp.Data.Get("message_id").Int()),
+					MessageType: rsp.Data.Get("message_type").String(),
+					Sender:      &User{},
+				}
+				_ = json.Unmarshal(helper.StringToBytes(rsp.Data.Get("sender").Raw), reply.Sender)
 				if reply.MessageID.ID() != 0 && reply.Sender != nil && reply.Sender.ID != 0 && strconv.FormatInt(reply.Sender.ID, 10) == ctx.Event.Message[i].Data["qq"] {
 					continue
 				}
