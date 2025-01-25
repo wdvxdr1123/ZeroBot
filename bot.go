@@ -142,7 +142,7 @@ func (m *messageLogger) CallAPI(request APIRequest) (rsp APIResponse, err error)
 		return
 	}
 	id := rsp.Data.Get("message_id")
-	if id.Exists() {
+	if id.Exists() && request.Params["nologreply"] != true {
 		mid := m.msgid.ID()
 		triggeredMessagesMu.Lock()
 		defer triggeredMessagesMu.Unlock()
