@@ -19,10 +19,12 @@ func NewFutureEvent(typ string, priority int, block bool, rule ...Rule) *FutureE
 }
 
 // FutureEvent 返回一个 FutureEvent 实例指针，用于获取满足 Rule 的 未来事件
+//
+// 此 FutureEvent 必然比 Matcher 之优先级少 1
 func (m *Matcher) FutureEvent(typ string, rule ...Rule) *FutureEvent {
 	return &FutureEvent{
 		Type:     typ,
-		Priority: m.Priority,
+		Priority: m.Priority - 1,
 		Block:    m.Block,
 		Rule:     rule,
 	}
