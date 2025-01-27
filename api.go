@@ -112,7 +112,7 @@ func (ctx *Ctx) GetMessage(messageID interface{}, nologreply ...bool) Message {
 		"message_id": messageID,
 	}
 	if len(nologreply) > 0 && nologreply[0] {
-		params["nologreply"] = true
+		params["__zerobot_no_log_mseeage_id__"] = true
 	}
 	rsp := ctx.CallAction("get_msg", params).Data
 	m := Message{
