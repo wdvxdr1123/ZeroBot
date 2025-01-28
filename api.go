@@ -107,10 +107,14 @@ func (ctx *Ctx) DeleteMessage(messageID interface{}) {
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_msg-%E8%8E%B7%E5%8F%96%E6%B6%88%E6%81%AF
 //
 //nolint:interfacer
-func (ctx *Ctx) GetMessage(messageID interface{}) Message {
-	rsp := ctx.CallAction("get_msg", Params{
+func (ctx *Ctx) GetMessage(messageID interface{}, nologreply ...bool) Message {
+	params := Params{
 		"message_id": messageID,
-	}).Data
+	}
+	if len(nologreply) > 0 && nologreply[0] {
+		params["__zerobot_no_log_mseeage_id__"] = true
+	}
+	rsp := ctx.CallAction("get_msg", params).Data
 	m := Message{
 		Elements:    message.ParseMessage(helper.StringToBytes(rsp.Get("message").Raw)),
 		MessageID:   message.NewMessageIDFromInteger(rsp.Get("message_id").Int()),

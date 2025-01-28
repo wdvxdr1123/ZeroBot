@@ -137,12 +137,18 @@ type messageLogger struct {
 
 // CallAPI 记录被触发的回复消息
 func (m *messageLogger) CallAPI(request APIRequest) (rsp APIResponse, err error) {
+	noLog := false
+	b, ok := request.Params["__zerobot_no_log_mseeage_id__"].(bool)
+	if ok {
+		noLog = b
+		delete(request.Params, "__zerobot_no_log_mseeage_id__")
+	}
 	rsp, err = m.caller.CallAPI(request)
 	if err != nil {
 		return
 	}
 	id := rsp.Data.Get("message_id")
-	if id.Exists() {
+	if id.Exists() && !noLog {
 		mid := m.msgid.ID()
 		triggeredMessagesMu.Lock()
 		defer triggeredMessagesMu.Unlock()
