@@ -132,24 +132,23 @@ func (h *Http) Listen(handler func([]byte, zero.APICaller)) {
 		Handler: mux,
 	}
 
-	go func() {
-		for {
-			if h.lst == nil {
-				time.Sleep(2 * time.Second)
-				h.Serve()
-				continue
-			}
-			log.Infof("[httpserver] 服务器开始处理: %v", h.lst.Addr())
-			err := server.Serve(h.lst)
-			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Warningf("[httpserver] 服务器在端点 %s 失败: %s", h.lst.Addr(), err)
-				h.lst = nil
-			} else if errors.Is(err, http.ErrServerClosed) {
-				log.Info("[httpserver] 服务器已关闭")
-				return
-			}
+	for {
+		if h.lst == nil {
+			time.Sleep(2 * time.Second)
+			h.Serve()
+			continue
 		}
-	}()
+		log.Infof("[httpserver] 服务器开始处理: %v", h.lst.Addr())
+		err := server.Serve(h.lst)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Warningf("[httpserver] 服务器在端点 %s 失败: %s", h.lst.Addr(), err)
+			h.lst = nil
+		} else if errors.Is(err, http.ErrServerClosed) {
+			log.Info("[httpserver] 服务器已关闭")
+			return
+		}
+	}
+
 }
 
 func (c *HttpCaller) HttpCaller(action string, payload []byte) (*http.Response, error) {
