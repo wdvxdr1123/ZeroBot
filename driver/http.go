@@ -16,7 +16,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -30,18 +29,18 @@ type HTTP struct {
 
 func (h *HTTP) Connect() {
 	log.Infof("[httpcaller] 正在尝试与Caller握手: %s", h.caller.URL)
-	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_status", Params: nil})
+	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_login_info", Params: nil})
 	if err != nil {
 		log.Warningf("[httpcaller] 与Caller握手失败: %s\n%v", h.caller.URL, err)
 		return
 	}
 	if rsp.RetCode == 0 {
+		h.caller.selfID = rsp.Data.Get("user_id").Int()
 		zero.APICallers.Store(h.caller.selfID, h.caller) // 添加Caller到 APICaller list...
 		log.Infof("[httpcaller] 与Caller %s 握手成功, 账号: %d", h.caller.URL, h.caller.selfID)
 	} else {
 		log.Warningf("[httpcaller] 与Caller握手失败: %s", h.caller.URL)
-		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Msg, rsp.Wording)
-		return
+		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Message, rsp.Wording)
 	}
 }
 
@@ -114,10 +113,6 @@ func (h *HTTP) apiHandler(w http.ResponseWriter, r *http.Request, handler func([
 			return
 		}
 	}
-
-	h.caller.once.Do(func() {
-		h.caller.selfID, _ = strconv.ParseInt(r.Header.Get("X-Self-Id"), 10, 64)
-	})
 
 	handler(content, h.caller)
 }
@@ -204,7 +199,7 @@ func (c *HTTPCaller) CallAPI(request zero.APIRequest) (zero.APIResponse, error) 
 	return zero.APIResponse{
 		Status:  rsp.Get("status").Str,
 		Data:    rsp.Get("data"),
-		Msg:     msg,
+		Message: msg,
 		Wording: rsp.Get("wording").Str,
 		RetCode: rsp.Get("retcode").Int(),
 		Echo:    rsp.Get("echo").Uint(),
