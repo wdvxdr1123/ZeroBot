@@ -16,7 +16,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"sync"
 	"time"
 )
 
@@ -48,7 +47,6 @@ type HTTPCaller struct {
 	URL         string
 	AccessToken string
 	selfID      int64
-	once        sync.Once
 }
 
 func NewHTTPClient(url, accessToken, callerURL, callerToken string) *HTTP {
