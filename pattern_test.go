@@ -15,7 +15,7 @@ func (m mockAPICaller) CallAPI(_ APIRequest) (APIResponse, error) {
 	return APIResponse{
 		Status:  "",
 		Data:    gjson.Parse(`{"message_id":"12345","sender":{"user_id":12345}}`), // just for reply cleaner
-		Msg:     "",
+		Message: "",
 		Wording: "",
 		RetCode: 0,
 		Echo:    0,

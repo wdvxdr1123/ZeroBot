@@ -116,7 +116,7 @@ func (ws *WSClient) Listen(handler func([]byte, zero.APICaller)) {
 				c <- zero.APIResponse{ // 发送api调用响应
 					Status:  rsp.Get("status").String(),
 					Data:    rsp.Get("data"),
-					Msg:     rsp.Get("msg").Str,
+					Message: rsp.Get("msg").Str,
 					Wording: rsp.Get("wording").Str,
 					RetCode: rsp.Get("retcode").Int(),
 					Echo:    rsp.Get("echo").Uint(),

@@ -19,7 +19,7 @@ type Params map[string]interface{}
 type APIResponse struct {
 	Status  string       `json:"status"`
 	Data    gjson.Result `json:"data"`
-	Msg     string       `json:"msg"`
+	Message string       `json:"message"`
 	Wording string       `json:"wording"`
 	RetCode int64        `json:"retcode"`
 	Echo    uint64       `json:"echo"`
