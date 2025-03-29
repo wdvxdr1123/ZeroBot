@@ -36,7 +36,8 @@ func (h *HTTP) Connect() {
 		return
 	}
 	if rsp.RetCode == 0 {
-		log.Infof("[httpcaller] 与Caller握手成功: %s", h.caller.URL)
+		zero.APICallers.Store(h.caller.selfID, h.caller) // 添加Caller到 APICaller list...
+		log.Infof("[httpcaller] 与Caller %s 握手成功, 账号: %d", h.caller.URL, h.caller.selfID)
 	} else {
 		log.Warningf("[httpcaller] 与Caller握手失败: %s", h.caller.URL)
 		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Msg, rsp.Wording)
