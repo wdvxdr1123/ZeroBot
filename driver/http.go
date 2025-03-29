@@ -29,16 +29,16 @@ type HTTP struct {
 }
 
 func (h *HTTP) Connect() {
-	log.Infof("[httpcaller] 正在尝试与HTTPCaller握手: %s", h.caller.URL)
+	log.Infof("[httpcaller] 正在尝试与Caller握手: %s", h.caller.URL)
 	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_status", Params: nil})
 	if err != nil {
-		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s\n%v", h.caller.URL, err)
+		log.Warningf("[httpcaller] 与Caller握手失败: %s\n%v", h.caller.URL, err)
 		return
 	}
 	if rsp.RetCode == 0 {
-		log.Infof("[httpcaller] 与HttpCaller握手成功: %s", h.caller.URL)
+		log.Infof("[httpcaller] 与Caller握手成功: %s", h.caller.URL)
 	} else {
-		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s", h.caller.URL)
+		log.Warningf("[httpcaller] 与Caller握手失败: %s", h.caller.URL)
 		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Msg, rsp.Wording)
 		return
 	}
