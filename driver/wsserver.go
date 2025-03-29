@@ -184,10 +184,14 @@ func (wssc *WSSCaller) listen(handler func([]byte, zero.APICaller)) {
 		if rsp.Get("echo").Exists() { // 存在echo字段，是api调用的返回
 			log.Debug("[wss] 接收到API调用返回: ", strings.TrimSpace(helper.BytesToString(payload)))
 			if c, ok := wssc.seqMap.LoadAndDelete(rsp.Get("echo").Uint()); ok {
+				msg := rsp.Get("message").Str
+				if msg == "" {
+					msg = rsp.Get("msg").Str
+				}
 				c <- zero.APIResponse{ // 发送api调用响应
 					Status:  rsp.Get("status").String(),
 					Data:    rsp.Get("data"),
-					Msg:     rsp.Get("msg").Str,
+					Message: msg,
 					Wording: rsp.Get("wording").Str,
 					RetCode: rsp.Get("retcode").Int(),
 					Echo:    rsp.Get("echo").Uint(),

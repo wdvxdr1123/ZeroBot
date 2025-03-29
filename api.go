@@ -60,7 +60,7 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}
 	if err == nil && rsp.RetCode != 0 {
-		log.Errorln("[api] 调用", action, "时出现错误, 返回值:", rsp.RetCode, ", 信息:", rsp.Msg, "解释:", rsp.Wording)
+		log.Errorln("[api] 调用", action, "时出现错误, 返回值:", rsp.RetCode, ", 信息:", rsp.Message, "解释:", rsp.Wording)
 	}
 	return rsp
 }
