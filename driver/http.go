@@ -21,46 +21,46 @@ import (
 	"time"
 )
 
-type Http struct {
+type HTTP struct {
 	URL         string
 	AccessToken string
 	lst         net.Listener
-	Caller      *HttpCaller
+	caller      *HTTPCaller
 }
 
-func (h *Http) Connect() {
-	log.Infof("[httpcaller] 正在尝试与HttpCaller握手: %s", h.Caller.URL)
-	rsp, err := h.Caller.CallAPI(zero.APIRequest{Action: "get_status", Params: nil})
+func (h *HTTP) Connect() {
+	log.Infof("[httpcaller] 正在尝试与HTTPCaller握手: %s", h.caller.URL)
+	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_status", Params: nil})
 	if err != nil {
-		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s\n%v", h.Caller.URL, err)
+		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s\n%v", h.caller.URL, err)
 		return
 	}
 	if rsp.RetCode == 0 {
-		log.Infof("[httpcaller] 与HttpCaller握手成功: %s", h.Caller.URL)
+		log.Infof("[httpcaller] 与HttpCaller握手成功: %s", h.caller.URL)
 	} else {
-		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s", h.Caller.URL)
+		log.Warningf("[httpcaller] 与HttpCaller握手失败: %s", h.caller.URL)
 		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Msg, rsp.Wording)
 		return
 	}
 }
 
-type HttpCaller struct {
+type HTTPCaller struct {
 	URL         string
 	AccessToken string
-	SelfID      int64
+	selfID      int64
 	once        sync.Once
 }
 
-func NewHttpClient(url, accessToken, callerURL, callerToken string) *Http {
-	return &Http{
+func NewHTTPClient(url, accessToken, callerURL, callerToken string) *HTTP {
+	return &HTTP{
 		URL:         url,
 		AccessToken: accessToken,
-		Caller:      &HttpCaller{URL: callerURL, AccessToken: callerToken},
+		caller:      &HTTPCaller{URL: callerURL, AccessToken: callerToken},
 	}
 }
 
-// Serve 启动 HTTP 服务器监听
-func (h *Http) Serve() {
+// serve 启动 HTTP 服务器监听
+func (h *HTTP) serve() {
 	network, address := resolveURI(h.URL)
 	uri, err := url.Parse(address)
 	if err == nil && uri.Scheme != "" {
@@ -79,7 +79,7 @@ func (h *Http) Serve() {
 }
 
 // apiHandler 处理所有 API 请求
-func (h *Http) apiHandler(w http.ResponseWriter, r *http.Request, handler func([]byte, zero.APICaller)) {
+func (h *HTTP) apiHandler(w http.ResponseWriter, r *http.Request, handler func([]byte, zero.APICaller)) {
 	if r.Method != http.MethodPost {
 		log.Warningf("[httpserver] 已拒绝 %s 请求: 不支持的请求方法 %s", r.RemoteAddr, r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -103,26 +103,26 @@ func (h *Http) apiHandler(w http.ResponseWriter, r *http.Request, handler func([
 			log.Warningf("[httpserver] 已拒绝 %s 请求: 缺少签名", r.RemoteAddr)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
-		} else {
-			mac := hmac.New(sha1.New, helper.StringToBytes(h.AccessToken))
-			mac.Write(content)
-			if signatureHeader != "sha1="+hex.EncodeToString(mac.Sum(nil)) {
-				log.Warningf("[httpserver] 已拒绝 %s 请求: 签名错误", r.RemoteAddr)
-				w.WriteHeader(http.StatusForbidden)
-				return
-			}
+		}
+
+		mac := hmac.New(sha1.New, helper.StringToBytes(h.AccessToken))
+		mac.Write(content)
+		if signatureHeader != "sha1="+hex.EncodeToString(mac.Sum(nil)) {
+			log.Warningf("[httpserver] 已拒绝 %s 请求: 签名错误", r.RemoteAddr)
+			w.WriteHeader(http.StatusForbidden)
+			return
 		}
 	}
 
-	h.Caller.once.Do(func() {
-		h.Caller.SelfID, _ = strconv.ParseInt(r.Header.Get("X-Self-Id"), 10, 64)
+	h.caller.once.Do(func() {
+		h.caller.selfID, _ = strconv.ParseInt(r.Header.Get("X-Self-Id"), 10, 64)
 	})
 
-	handler(content, h.Caller)
+	handler(content, h.caller)
 }
 
 // Listen 监听 HTTP 请求
-func (h *Http) Listen(handler func([]byte, zero.APICaller)) {
+func (h *HTTP) Listen(handler func([]byte, zero.APICaller)) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		h.apiHandler(w, r, handler)
@@ -135,7 +135,7 @@ func (h *Http) Listen(handler func([]byte, zero.APICaller)) {
 	for {
 		if h.lst == nil {
 			time.Sleep(2 * time.Second)
-			h.Serve()
+			h.serve()
 			continue
 		}
 		log.Infof("[httpserver] 服务器开始处理: %v", h.lst.Addr())
@@ -151,7 +151,9 @@ func (h *Http) Listen(handler func([]byte, zero.APICaller)) {
 
 }
 
-func (c *HttpCaller) HttpCaller(action string, payload []byte) (*http.Response, error) {
+// httpCaller 对 api 进行调用
+// 不关闭body会导致资源泄漏!
+func (c *HTTPCaller) httpCaller(action string, payload []byte) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, c.URL+"/"+action, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
@@ -167,21 +169,23 @@ func (c *HttpCaller) HttpCaller(action string, payload []byte) (*http.Response, 
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return resp, nil
+		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *HttpCaller) CallAPI(request zero.APIRequest) (zero.APIResponse, error) {
+func (c *HTTPCaller) CallAPI(request zero.APIRequest) (zero.APIResponse, error) {
 	p, err := json.Marshal(request.Params)
 	if err != nil {
 		return nullResponse, err
 	}
 
-	resp, err := c.HttpCaller(request.Action, p)
+	resp, err := c.httpCaller(request.Action, p)
 	if err != nil {
 		return nullResponse, err
 	}
+
+	defer resp.Body.Close()
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -192,10 +196,14 @@ func (c *HttpCaller) CallAPI(request zero.APIRequest) (zero.APIResponse, error) 
 		return zero.APIResponse{Status: payload, RetCode: int64(1000 + resp.StatusCode)}, fmt.Errorf("caller返回错误: %d", resp.StatusCode)
 	}
 	rsp := gjson.Parse(payload)
+	msg := rsp.Get("message").Str
+	if msg != "" {
+		msg = rsp.Get("msg").Str
+	}
 	return zero.APIResponse{
 		Status:  rsp.Get("status").Str,
 		Data:    rsp.Get("data"),
-		Msg:     rsp.Get("msg").Str,
+		Msg:     msg,
 		Wording: rsp.Get("wording").Str,
 		RetCode: rsp.Get("retcode").Int(),
 		Echo:    rsp.Get("echo").Uint(),
