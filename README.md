@@ -34,6 +34,8 @@ func main() {
 			driver.NewWebSocketClient("ws://127.0.0.1:6700", ""),
 			// 反向 WS
 			driver.NewWebSocketServer(16, "ws://127.0.0.1:6701", ""),
+			// HTTP
+			driver.NewHTTPClient("http://127.0.0.1:6701", "", "http://127.0.0.1:6700", ""),
 		},
 	}, nil)
 }
