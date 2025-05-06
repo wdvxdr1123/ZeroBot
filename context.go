@@ -120,7 +120,8 @@ func (ctx *Ctx) SendChain(msg ...message.Segment) message.ID {
 			if msg[i].Type != "at" {
 				continue
 			}
-			if msg[i+1].Type != "text" || len(msg[i+1].Data["text"]) > 0 && msg[i+1].Data["text"][0] != ' ' {
+			if msg[i+1].Type != "text" ||
+				(len(msg[i+1].Data["text"]) > 0 && msg[i+1].Data["text"][0] != ' ') {
 				newMsg = append(newMsg, message.Text(" "))
 			}
 		}
