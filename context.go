@@ -113,11 +113,11 @@ func (ctx *Ctx) Send(msg interface{}) message.ID {
 
 // SendChain 快捷发送消息/合并转发-消息链
 func (ctx *Ctx) SendChain(msg ...message.Segment) message.ID {
-	if BotConfig.AtSpace && msg != nil {
+	if BotConfig.AddSpaceAfterAt && len(msg) > 0 {
 		newMsg := make(message.Message, 0, len(msg)+1)
-		for i, segment := range msg {
-			newMsg = append(newMsg, segment)
-			if i+1 < len(msg) && segment.Type == "at" {
+		for i := 0; i < len(msg)-1; i++ {
+			newMsg = append(newMsg, msg[i])
+			if msg[i].Type == "at" {
 				if msg[i+1].Type == "text" {
 					if len(msg[i+1].Data["text"]) > 0 && msg[i+1].Data["text"] != " " && msg[i+1].Data["text"][0] != ' ' {
 						newMsg = append(newMsg, message.Text(" "))
@@ -127,6 +127,7 @@ func (ctx *Ctx) SendChain(msg ...message.Segment) message.ID {
 				}
 			}
 		}
+		newMsg = append(newMsg, msg[len(msg)-1])
 		msg = newMsg
 	}
 	return ctx.Send((message.Message)(msg))
