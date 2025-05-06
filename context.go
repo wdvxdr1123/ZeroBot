@@ -118,9 +118,10 @@ func (ctx *Ctx) SendChain(msg ...message.Segment) message.ID {
 		for i, segment := range msg {
 			newMsg = append(newMsg, segment)
 			if i+1 < len(msg) && segment.Type == "at" {
-				if nextSegment, text := msg[i+1], msg[i+1].Data["text"]; nextSegment.Type == "text" &&
-					len(text) > 0 && text != " " && text[0] != ' ' {
-					newMsg = append(newMsg, message.Text(" "))
+				if msg[i+1].Type == "text" {
+					if len(msg[i+1].Data["text"]) > 0 && msg[i+1].Data["text"] != " " && msg[i+1].Data["text"][0] != ' ' {
+						newMsg = append(newMsg, message.Text(" "))
+					}
 				} else {
 					newMsg = append(newMsg, message.Text(" "))
 				}
