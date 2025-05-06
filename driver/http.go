@@ -8,15 +8,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
-	zero "github.com/wdvxdr1123/ZeroBot"
-	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
+
+	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 type HTTP struct {
@@ -27,18 +29,18 @@ type HTTP struct {
 }
 
 func (h *HTTP) Connect() {
-	log.Infof("[httpcaller] 正在尝试与Caller握手: %s", h.caller.URL)
+	log.Infof("[httpcaller] 正在尝试与服务器握手: %s", h.caller.URL)
 	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_login_info", Params: nil})
 	if err != nil {
-		log.Warningf("[httpcaller] 与Caller握手失败: %s\n%v", h.caller.URL, err)
+		log.Warningf("[httpcaller] 与服务器握手失败: %s\n%v", h.caller.URL, err)
 		return
 	}
 	if rsp.RetCode == 0 {
 		h.caller.selfID = rsp.Data.Get("user_id").Int()
 		zero.APICallers.Store(h.caller.selfID, h.caller) // 添加Caller到 APICaller list...
-		log.Infof("[httpcaller] 与Caller %s 握手成功, 账号: %d", h.caller.URL, h.caller.selfID)
+		log.Infof("[httpcaller] 与服务器 %s 握手成功, 账号: %d", h.caller.URL, h.caller.selfID)
 	} else {
-		log.Warningf("[httpcaller] 与Caller握手失败: %s", h.caller.URL)
+		log.Warningf("[httpcaller] 与服务器握手失败: %s", h.caller.URL)
 		log.Warningf("[httpcaller] status:%s, retcode:%d, msg:%s, wording:%s", rsp.Status, rsp.RetCode, rsp.Message, rsp.Wording)
 	}
 }
@@ -57,8 +59,8 @@ func NewHTTPClient(url, accessToken, callerURL, callerToken string) *HTTP {
 	}
 }
 
-// serve 启动 HTTP 服务器监听
-func (h *HTTP) serve() {
+// listen 启动 HTTP 服务器监听
+func (h *HTTP) listen() {
 	network, address := resolveURI(h.URL)
 	uri, err := url.Parse(address)
 	if err == nil && uri.Scheme != "" {
@@ -76,8 +78,8 @@ func (h *HTTP) serve() {
 	log.Infof("[httpserver] 服务器开始监听: %v", listener.Addr())
 }
 
-// apiHandler 处理所有 API 请求
-func (h *HTTP) apiHandler(w http.ResponseWriter, r *http.Request, handler func([]byte, zero.APICaller)) {
+// any 处理所有 API 请求
+func (h *HTTP) any(w http.ResponseWriter, r *http.Request, apiHandler func([]byte, zero.APICaller)) {
 	if r.Method != http.MethodPost {
 		log.Warningf("[httpserver] 已拒绝 %s 请求: 不支持的请求方法 %s", r.RemoteAddr, r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -112,14 +114,14 @@ func (h *HTTP) apiHandler(w http.ResponseWriter, r *http.Request, handler func([
 		}
 	}
 
-	handler(content, h.caller)
+	apiHandler(content, h.caller)
 }
 
 // Listen 监听 HTTP 请求
 func (h *HTTP) Listen(handler func([]byte, zero.APICaller)) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.apiHandler(w, r, handler)
+		h.any(w, r, handler)
 	})
 
 	server := &http.Server{
@@ -129,7 +131,7 @@ func (h *HTTP) Listen(handler func([]byte, zero.APICaller)) {
 	for {
 		if h.lst == nil {
 			time.Sleep(2 * time.Second)
-			h.serve()
+			h.listen()
 			continue
 		}
 		log.Infof("[httpserver] 服务器开始处理: %v", h.lst.Addr())
@@ -142,7 +144,6 @@ func (h *HTTP) Listen(handler func([]byte, zero.APICaller)) {
 			return
 		}
 	}
-
 }
 
 // httpCaller 对 api 进行调用
