@@ -67,13 +67,40 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 
 // SendGroupMessage 发送群消息
 // https://github.com/botuniverse/onebot-11/blob/master/api/public.md#send_group_msg-%E5%8F%91%E9%80%81%E7%BE%A4%E6%B6%88%E6%81%AF
-func (ctx *Ctx) SendGroupMessage(groupID int64, message interface{}) int64 {
+func (ctx *Ctx) SendGroupMessage(groupID int64, msg interface{}) int64 {
+	if BotConfig.AtSpace {
+		var m message.Message
+		switch v := msg.(type) {
+		case message.Message:
+			m = v
+		case []message.Segment:
+			m = v
+		}
+
+		if m != nil {
+			var newMsg message.Message
+			for i, segment := range m {
+				newMsg = append(newMsg, segment)
+				if i+1 < len(m) && segment.Type == "at" {
+					nextSegment := m[i+1]
+					if nextSegment.Type == "text" {
+						if text := nextSegment.Data["text"]; text != "" && text[0] != ' ' {
+							newMsg = append(newMsg, message.Text(" "))
+						}
+					} else {
+						newMsg = append(newMsg, message.Text(" "))
+					}
+				}
+			}
+			msg = newMsg
+		}
+	}
 	rsp := ctx.CallAction("send_group_msg", Params{ // 调用并保存返回值
 		"group_id": groupID,
-		"message":  message,
+		"message":  msg,
 	}).Data.Get("message_id")
 	if rsp.Exists() {
-		log.Infof("[api] 发送群消息(%v): %v (id=%v)", groupID, formatMessage(message), rsp.Int())
+		log.Infof("[api] 发送群消息(%v): %v (id=%v)", groupID, formatMessage(msg), rsp.Int())
 		return rsp.Int()
 	}
 	return 0 // 无法获取返回值
