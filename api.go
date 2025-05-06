@@ -84,7 +84,7 @@ func (ctx *Ctx) SendGroupMessage(groupID int64, msg interface{}) int64 {
 				if i+1 < len(m) && segment.Type == "at" {
 					nextSegment := m[i+1]
 					if nextSegment.Type == "text" {
-						if text := nextSegment.Data["text"]; text != " " && text[0] != ' ' {
+						if text := nextSegment.Data["text"]; len(text) > 0 && text != " " && text[0] != ' ' {
 							newMsg = append(newMsg, message.Text(" "))
 						}
 					} else {
