@@ -28,6 +28,7 @@ type Config struct {
 	MaxProcessTime  time.Duration `json:"max_process_time"`   // 事件最大处理时间 (默认4min)
 	MarkMessage     bool          `json:"mark_message"`       // 自动标记消息为已读
 	KeepAtMeMessage bool          `json:"keep_at_me_message"` // 是否保留at me的原始消息
+	AddSpaceAfterAt bool          `json:"at_space"`           // 是否在At消息后没有空格时自动添加空格
 	Driver          []Driver      `json:"-"`                  // 通信驱动
 }
 
