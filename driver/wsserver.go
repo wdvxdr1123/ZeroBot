@@ -174,7 +174,7 @@ func (wssc *WSSCaller) listen(handler func([]byte, zero.APICaller)) {
 		t, payload, err := wssc.conn.ReadMessage()
 		if err != nil { // reconnect
 			zero.APICallers.Delete(wssc.selfID) // 断开从apicaller中删除
-			log.Warn("[wss] Websocket服务器连接断开...")
+			log.Warnf("[wss] Websocket服务器连接断开, 账号: %d", wssc.selfID)
 			return
 		}
 		if t != websocket.TextMessage {
