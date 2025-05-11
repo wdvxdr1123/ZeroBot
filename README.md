@@ -44,7 +44,7 @@ func main() {
 ## 🎯 特性
 
 - 通过 `init` 函数实现插件式
-- 底层与 Onebot 通信驱动可换，目前支持正向/反向WS，且支持基于 `unix socket` 的通信（使用 `ws+unix://`）
+- 底层与 Onebot 通信驱动可换，目前支持正向/反向WS和HTTP以及POST反向上报，且支持基于 `unix socket` 的通信（使用 `ws+unix://`）
 - 通过添加多个 driver 实现多Q机器人支持
 
 ## 关联项目
