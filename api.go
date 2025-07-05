@@ -787,28 +787,34 @@ func (ctx *Ctx) FriendPoke(userID int64) {
 
 // ArkSharePeer 获取推荐好友/群聊卡片
 //
-// https://napneko.github.io/develop/api/doc#arksharepeer-%E8%8E%B7%E5%8F%96%E6%8E%A8%E8%8D%90%E5%A5%BD%E5%8F%8B-%E7%BE%A4%E8%81%8A%E5%8D%A1%E7%89%87
-func (ctx *Ctx) ArkSharePeer(userID, groupID string) gjson.Result {
+// c
+func (ctx *Ctx) ArkSharePeer(userID, groupID string) string {
 	return ctx.CallAction("ArkSharePeer", Params{
 		"user_id":  userID,
 		"group_id": groupID,
-	}).Data
+	}).Data.Get("arkJson").String()
 }
 
 // ArkShareGroup 获取推荐群聊卡片
 //
 // https://napneko.github.io/develop/api/doc#arksharegroup-%E8%8E%B7%E5%8F%96%E6%8E%A8%E8%8D%90%E7%BE%A4%E8%81%8A%E5%8D%A1%E7%89%87
-func (ctx *Ctx) ArkShareGroup(groupID string) gjson.Result {
+func (ctx *Ctx) ArkShareGroup(groupID string) string {
 	return ctx.CallAction("ArkShareGroup", Params{
 		"group_id": groupID,
-	}).Data
+	}).Data.String()
 }
 
 // GetRobotUinRange 获取机器人账号范围
 //
 // https://napneko.github.io/develop/api/doc#get-robot-uin-range-%E8%8E%B7%E5%8F%96%E6%9C%BA%E5%99%A8%E4%BA%BA%E8%B4%A6%E5%8F%B7%E8%8C%83%E5%9B%B4
-func (ctx *Ctx) GetRobotUinRange() gjson.Result {
-	return ctx.CallAction("get_robot_uin_range", Params{}).Data
+func (ctx *Ctx) GetRobotUinRange() (start, end int64) {
+	arr := ctx.CallAction("get_robot_uin_range", Params{}).Data.Array()
+	if len(arr) != 2 {
+		return
+	}
+	start = arr[0].Int()
+	end = arr[1].Int()
+	return
 }
 
 // SetOnlineStatus 设置在线状态
@@ -832,22 +838,28 @@ func (ctx *Ctx) GetFriendsWithCategory() gjson.Result {
 // TranslateEn2Zh 英译中
 //
 // https://napneko.github.io/develop/api/doc#translate-en2zh-%E8%8B%B1%E8%AF%91%E4%B8%AD
-func (ctx *Ctx) TranslateEn2Zh(words []string) gjson.Result {
-	return ctx.CallAction("translate_en2zh", Params{
+func (ctx *Ctx) TranslateEn2Zh(words []string) []string {
+	arr := ctx.CallAction("translate_en2zh", Params{
 		"words": words,
-	}).Data
+	}).Data.Array()
+	var result []string
+	for _, v := range arr {
+		result = append(result, v.String())
+	}
+	return result
 }
 
 // SendForwardMessage 发送合并转发
 //
 // https://napneko.github.io/develop/api/doc#send-forward-msg-%E5%8F%91%E9%80%81%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91
-func (ctx *Ctx) SendForwardMessage(messageType string, userID, groupID int64, messages message.Message) gjson.Result {
-	return ctx.CallAction("send_forward_msg", Params{
+func (ctx *Ctx) SendForwardMessage(messageType string, userID, groupID int64, messages message.Message) (messageID int64, resID string) {
+	data := ctx.CallAction("send_forward_msg", Params{
 		"message_type": messageType,
 		"user_id":      userID,
 		"group_id":     groupID,
 		"messages":     messages,
 	}).Data
+	return data.Get("message_id").Int(), data.Get("res_id").String()
 }
 
 // MarkPrivateMessageAsRead 设置私聊已读
@@ -938,12 +950,12 @@ func (ctx *Ctx) FetchCustomFace(count int) gjson.Result {
 // GetAIRecord AI文字转语音
 //
 // https://napneko.github.io/develop/api/doc#get-ai-record-ai%E6%96%87%E5%AD%97%E8%BD%AC%E8%AF%AD%E9%9F%B3
-func (ctx *Ctx) GetAIRecord(character string, groupID int64, text string) gjson.Result {
+func (ctx *Ctx) GetAIRecord(character string, groupID int64, text string) string {
 	return ctx.CallAction("get_ai_record", Params{
 		"character": character,
 		"group_id":  groupID,
 		"text":      text,
-	}).Data
+	}).Data.Get("data").String()
 }
 
 // GetAICharacters 获取AI语音角色列表
@@ -959,12 +971,12 @@ func (ctx *Ctx) GetAICharacters(groupID int64, chatType int) gjson.Result {
 // SendGroupAIRecord 群聊发送AI语音
 //
 // https://napneko.github.io/develop/api/doc#send-group-ai-record-%E7%BE%A4%E8%81%8A%E5%8F%91%E9%80%81ai%E8%AF%AD%E9%9F%B3
-func (ctx *Ctx) SendGroupAIRecord(character string, groupID int64, text string) gjson.Result {
+func (ctx *Ctx) SendGroupAIRecord(character string, groupID int64, text string) string {
 	return ctx.CallAction("send_group_ai_record", Params{
 		"character": character,
 		"group_id":  groupID,
 		"text":      text,
-	}).Data
+	}).Data.Get("message_id").String()
 }
 
 // SendPoke 群聊/私聊戳一戳

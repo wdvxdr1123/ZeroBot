@@ -8,6 +8,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/driver"
 	_ "github.com/wdvxdr1123/ZeroBot/example/command"
 	_ "github.com/wdvxdr1123/ZeroBot/example/music"
+	_ "github.com/wdvxdr1123/ZeroBot/example/napcat"
 	_ "github.com/wdvxdr1123/ZeroBot/example/repeat"
 )
 
