@@ -955,7 +955,7 @@ func (ctx *Ctx) GetAIRecord(character string, groupID int64, text string) string
 		"character": character,
 		"group_id":  groupID,
 		"text":      text,
-	}).Data.Get("data").String()
+	}).Data.String()
 }
 
 // GetAICharacters 获取AI语音角色列表
