@@ -842,9 +842,9 @@ func (ctx *Ctx) TranslateEn2Zh(words []string) []string {
 	arr := ctx.CallAction("translate_en2zh", Params{
 		"words": words,
 	}).Data.Array()
-	result := make([]string, 0, 10)
-	for _, v := range arr {
-		result = append(result, v.String())
+	result := make([]string, len(arr))
+	for i, v := range arr {
+		result[i] = v.String()
 	}
 	return result
 }
