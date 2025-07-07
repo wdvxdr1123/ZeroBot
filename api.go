@@ -756,3 +756,235 @@ func (ctx *Ctx) SetMessageEmojiLike(messageID interface{}, emojiID rune) error {
 	}
 	return nil
 }
+
+// SetGroupSign 群签到
+//
+// https://napneko.github.io/develop/api/doc#set-group-sign-%E7%BE%A4%E7%AD%BE%E5%88%B0
+func (ctx *Ctx) SetGroupSign(groupID int64) {
+	ctx.CallAction("set_group_sign", Params{
+		"group_id": groupID,
+	})
+}
+
+// GroupPoke 群聊戳一戳
+//
+// https://napneko.github.io/develop/api/doc#group-poke-%E7%BE%A4%E8%81%8A%E6%88%B3%E4%B8%80%E6%88%B3
+func (ctx *Ctx) GroupPoke(groupID, userID int64) {
+	ctx.CallAction("group_poke", Params{
+		"group_id": groupID,
+		"user_id":  userID,
+	})
+}
+
+// FriendPoke 私聊戳一戳
+//
+// https://napneko.github.io/develop/api/doc#friend-poke-%E7%A7%81%E8%81%8A%E6%88%B3%E4%B8%80%E6%88%B3
+func (ctx *Ctx) FriendPoke(userID int64) {
+	ctx.CallAction("friend_poke", Params{
+		"user_id": userID,
+	})
+}
+
+// ArkSharePeer 获取推荐好友/群聊卡片
+//
+// c
+func (ctx *Ctx) ArkSharePeer(userID, groupID string) string {
+	return ctx.CallAction("ArkSharePeer", Params{
+		"user_id":  userID,
+		"group_id": groupID,
+	}).Data.Get("arkJson").String()
+}
+
+// ArkShareGroup 获取推荐群聊卡片
+//
+// https://napneko.github.io/develop/api/doc#arksharegroup-%E8%8E%B7%E5%8F%96%E6%8E%A8%E8%8D%90%E7%BE%A4%E8%81%8A%E5%8D%A1%E7%89%87
+func (ctx *Ctx) ArkShareGroup(groupID string) string {
+	return ctx.CallAction("ArkShareGroup", Params{
+		"group_id": groupID,
+	}).Data.String()
+}
+
+// GetRobotUinRange 获取机器人账号范围
+//
+// https://napneko.github.io/develop/api/doc#get-robot-uin-range-%E8%8E%B7%E5%8F%96%E6%9C%BA%E5%99%A8%E4%BA%BA%E8%B4%A6%E5%8F%B7%E8%8C%83%E5%9B%B4
+func (ctx *Ctx) GetRobotUinRange() (start, end int64) {
+	arr := ctx.CallAction("get_robot_uin_range", Params{}).Data.Array()
+	if len(arr) != 2 {
+		return
+	}
+	start = arr[0].Int()
+	end = arr[1].Int()
+	return
+}
+
+// SetOnlineStatus 设置在线状态
+//
+// https://napneko.github.io/develop/api/doc#set-online-status-%E8%AE%BE%E7%BD%AE%E5%9C%A8%E7%BA%BF%E7%8A%B6%E6%80%81
+func (ctx *Ctx) SetOnlineStatus(status, extStatus, batteryStatus int) {
+	ctx.CallAction("set_online_status", Params{
+		"status":         status,
+		"ext_status":     extStatus,
+		"battery_status": batteryStatus,
+	})
+}
+
+// GetFriendsWithCategory 获取分类的好友列表
+//
+// https://napneko.github.io/develop/api/doc#get-friends-with-category-%E8%8E%B7%E5%8F%96%E5%88%86%E7%B1%BB%E7%9A%84%E5%A5%BD%E5%8F%8B%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetFriendsWithCategory() gjson.Result {
+	return ctx.CallAction("get_friends_with_category", Params{}).Data
+}
+
+// TranslateEn2Zh 英译中
+//
+// https://napneko.github.io/develop/api/doc#translate-en2zh-%E8%8B%B1%E8%AF%91%E4%B8%AD
+func (ctx *Ctx) TranslateEn2Zh(words []string) []string {
+	arr := ctx.CallAction("translate_en2zh", Params{
+		"words": words,
+	}).Data.Array()
+	result := make([]string, len(arr))
+	for i, v := range arr {
+		result[i] = v.String()
+	}
+	return result
+}
+
+// SendForwardMessage 发送合并转发
+//
+// https://napneko.github.io/develop/api/doc#send-forward-msg-%E5%8F%91%E9%80%81%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91
+func (ctx *Ctx) SendForwardMessage(messageType string, userID, groupID int64, messages message.Message) (messageID int64, resID string) {
+	data := ctx.CallAction("send_forward_msg", Params{
+		"message_type": messageType,
+		"user_id":      userID,
+		"group_id":     groupID,
+		"messages":     messages,
+	}).Data
+	return data.Get("message_id").Int(), data.Get("res_id").String()
+}
+
+// MarkPrivateMessageAsRead 设置私聊已读
+//
+// https://napneko.github.io/develop/api/doc#mark-private-msg-as-read-%E8%AE%BE%E7%BD%AE%E7%A7%81%E8%81%8A%E5%B7%B2%E8%AF%BB
+func (ctx *Ctx) MarkPrivateMessageAsRead(userID int64) {
+	ctx.CallAction("mark_private_msg_as_read", Params{
+		"user_id": userID,
+	})
+}
+
+// MarkGroupMessageAsRead 设置群聊已读
+//
+// https://napneko.github.io/develop/api/doc#mark-group-msg-as-read-%E8%AE%BE%E7%BD%AE%E7%BE%A4%E8%81%8A%E5%B7%B2%E8%AF%BB
+func (ctx *Ctx) MarkGroupMessageAsRead(groupID int64) {
+	ctx.CallAction("mark_group_msg_as_read", Params{
+		"group_id": groupID,
+	})
+}
+
+// GetFriendMessageHistory 获取私聊历史记录
+//
+// https://napneko.github.io/develop/api/doc#get-friend-msg-history-%E8%8E%B7%E5%8F%96%E7%A7%81%E8%81%8A%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95
+func (ctx *Ctx) GetFriendMessageHistory(userID, messageSeq string, count int, reverseOrder bool) gjson.Result {
+	return ctx.CallAction("get_friend_msg_history", Params{
+		"user_id":      userID,
+		"message_seq":  messageSeq,
+		"count":        count,
+		"reverseOrder": reverseOrder,
+	}).Data
+}
+
+// CreateCollection 创建收藏
+//
+// https://napneko.github.io/develop/api/doc#create-collection-%E5%88%9B%E5%BB%BA%E6%94%B6%E8%97%8F
+func (ctx *Ctx) CreateCollection() gjson.Result {
+	return ctx.CallAction("create_collection", Params{}).Data
+}
+
+// GetCollectionList 获取收藏
+//
+// https://napneko.github.io/develop/api/doc#get-collection-list-%E8%8E%B7%E5%8F%96%E6%94%B6%E8%97%8F
+func (ctx *Ctx) GetCollectionList() gjson.Result {
+	return ctx.CallAction("get_collection_list", Params{}).Data
+}
+
+// SetSelfLongNick 设置签名
+//
+// https://napneko.github.io/develop/api/doc#set-self-longnick-%E8%AE%BE%E7%BD%AE%E7%AD%BE%E5%90%8D
+func (ctx *Ctx) SetSelfLongNick(longNick string) gjson.Result {
+	return ctx.CallAction("set_self_longnick", Params{
+		"longNick": longNick,
+	}).Data
+}
+
+// GetRecentContact 获取私聊历史记录
+//
+// https://napneko.github.io/develop/api/doc#get-recent-contact-%E8%8E%B7%E5%8F%96%E7%A7%81%E8%81%8A%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95
+func (ctx *Ctx) GetRecentContact(count int) gjson.Result {
+	return ctx.CallAction("get_recent_contact", Params{
+		"count": count,
+	}).Data
+}
+
+// MarkAllAsRead 标记所有已读
+//
+// https://napneko.github.io/develop/api/doc#_mark-all-as-read-%E6%A0%87%E8%AE%B0%E6%89%80%E6%9C%89%E5%B7%B2%E8%AF%BB
+func (ctx *Ctx) MarkAllAsRead() {
+	ctx.CallAction("_mark_all_as_read", Params{})
+}
+
+// GetProfileLike 获取自身点赞列表
+//
+// https://napneko.github.io/develop/api/doc#get-profile-like-%E8%8E%B7%E5%8F%96%E8%87%AA%E8%BA%AB%E7%82%B9%E8%B5%9E%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetProfileLike() gjson.Result {
+	return ctx.CallAction("get_profile_like", Params{}).Data
+}
+
+// FetchCustomFace 获取自定义表情
+//
+// https://napneko.github.io/develop/api/doc#fetch-custom-face-%E8%8E%B7%E5%8F%96%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A1%A8%E6%83%85
+func (ctx *Ctx) FetchCustomFace(count int) gjson.Result {
+	return ctx.CallAction("fetch_custom_face", Params{
+		"count": count,
+	}).Data
+}
+
+// GetAIRecord AI文字转语音
+//
+// https://napneko.github.io/develop/api/doc#get-ai-record-ai%E6%96%87%E5%AD%97%E8%BD%AC%E8%AF%AD%E9%9F%B3
+func (ctx *Ctx) GetAIRecord(character string, groupID int64, text string) string {
+	return ctx.CallAction("get_ai_record", Params{
+		"character": character,
+		"group_id":  groupID,
+		"text":      text,
+	}).Data.String()
+}
+
+// GetAICharacters 获取AI语音角色列表
+//
+// https://napneko.github.io/develop/api/doc#get-ai-characters-%E8%8E%B7%E5%8F%96ai%E8%AF%AD%E9%9F%B3%E8%A7%92%E8%89%B2%E5%88%97%E8%A1%A8
+func (ctx *Ctx) GetAICharacters(groupID int64, chatType int) gjson.Result {
+	return ctx.CallAction("get_ai_characters", Params{
+		"group_id":  groupID,
+		"chat_type": chatType,
+	}).Data
+}
+
+// SendGroupAIRecord 群聊发送AI语音
+//
+// https://napneko.github.io/develop/api/doc#send-group-ai-record-%E7%BE%A4%E8%81%8A%E5%8F%91%E9%80%81ai%E8%AF%AD%E9%9F%B3
+func (ctx *Ctx) SendGroupAIRecord(character string, groupID int64, text string) string {
+	return ctx.CallAction("send_group_ai_record", Params{
+		"character": character,
+		"group_id":  groupID,
+		"text":      text,
+	}).Data.Get("message_id").String()
+}
+
+// SendPoke 群聊/私聊戳一戳
+//
+// https://napneko.github.io/develop/api/doc#send-poke-%E7%BE%A4%E8%81%8A-%E7%A7%81%E8%81%8A%E6%88%B3%E4%B8%80%E6%88%B3
+func (ctx *Ctx) SendPoke(groupID, userID int64) {
+	ctx.CallAction("send_poke", Params{
+		"group_id": groupID,
+		"user_id":  userID,
+	})
+}
