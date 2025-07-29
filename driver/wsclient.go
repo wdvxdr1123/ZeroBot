@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"encoding/base64"
 	"io"
 	"net"
@@ -143,6 +144,14 @@ func (ws *WSClient) nextSeq() uint64 {
 
 // CallAPI 发送ws请求
 func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
+	var ctx context.Context
+	if c, ok := req.Params["__context__"]; ok {
+		ctx, ok = c.(context.Context)
+		if ok {
+			delete(req.Params, "__context__")
+		}
+	}
+
 	ch := make(chan zero.APIResponse, 1)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)
@@ -157,13 +166,17 @@ func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 	}
 	log.Debug("[ws] 向服务器发送请求: ", &req)
 
+	if ctx == nil {
+		ctx, _ = context.WithTimeout(context.Background(), time.Minute)
+	}
+
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-time.After(time.Minute):
+	case <-ctx.Done():
 		return nullResponse, os.ErrDeadlineExceeded
 	}
 }
