@@ -145,6 +145,7 @@ func (ws *WSClient) nextSeq() uint64 {
 // CallAPI 发送ws请求
 func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 	var ctx context.Context
+	var cancel context.CancelFunc
 	if c, ok := req.Params["__context__"]; ok {
 		ctx, ok = c.(context.Context)
 		if ok {
@@ -167,7 +168,8 @@ func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 	log.Debug("[ws] 向服务器发送请求: ", &req)
 
 	if ctx == nil {
-		ctx, _ = context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel = context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
 	}
 
 	select { // 等待数据返回
