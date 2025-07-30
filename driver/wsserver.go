@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -234,7 +233,7 @@ func (wssc *WSSCaller) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-time.After(time.Minute):
-		return nullResponse, os.ErrDeadlineExceeded
+	case <-req.Context().Done():
+		return nullResponse, req.Context().Err()
 	}
 }

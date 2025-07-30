@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -28,9 +29,10 @@ type APIResponse struct {
 // APIRequest is the request sending to the cqhttp
 // https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md
 type APIRequest struct {
-	Action string `json:"action"`
-	Params Params `json:"params"`
-	Echo   uint64 `json:"echo"` // 该项不用填写，由Driver生成
+	ctx    context.Context // 请求超时控制
+	Action string          `json:"action"`
+	Params Params          `json:"params"`
+	Echo   uint64          `json:"echo"` // 该项不用填写，由Driver生成
 }
 
 // User is a user on QQ.
@@ -135,6 +137,18 @@ func (u *User) String() string {
 		p = "[" + u.Title + "]"
 	}
 	return p + u.Name()
+}
+
+func (r APIRequest) Context() context.Context {
+	if r.ctx == nil {
+		return context.Background()
+	}
+	return r.ctx
+}
+
+func (r APIRequest) WithContext(ctx context.Context) APIRequest {
+	r.ctx = ctx
+	return r
 }
 
 // H 是 Params 的简称

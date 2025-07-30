@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -163,7 +162,7 @@ func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-time.After(time.Minute):
-		return nullResponse, os.ErrDeadlineExceeded
+	case <-req.Context().Done():
+		return nullResponse, req.Context().Err()
 	}
 }
