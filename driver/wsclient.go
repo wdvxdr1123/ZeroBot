@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -179,6 +178,6 @@ func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 		}
 		return rsp, nil
 	case <-ctx.Done():
-		return nullResponse, os.ErrDeadlineExceeded
+		return nullResponse, ctx.Err()
 	}
 }
