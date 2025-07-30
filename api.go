@@ -542,13 +542,16 @@ func (ctx *Ctx) GetThisGroupAtAllRemain() gjson.Result {
 
 // GetGroupMessageHistory 获取群消息历史记录
 // https://github.com/Mrs4s/go-cqhttp/blob/master/docs/cqhttp.md#%E8%8E%B7%E5%8F%96%E7%BE%A4%E6%B6%88%E6%81%AF%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95
+// https://napcat.apifox.cn/226657401e0
 //
-//	messageID: 起始消息序号, 可通过 get_msg 获得
-func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID int64) gjson.Result {
+//	messageID: 起始消息序号, 可通过 get_msg 获得, 添加count和reverseOrder参数
+func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID, count int64, reverseOrder bool) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
-		"group_id":    groupID,
-		"message_seq": messageID, // 兼容旧版本
-		"message_id":  messageID,
+		"group_id":     groupID,
+		"message_seq":  messageID, // 兼容旧版本
+		"message_id":   messageID,
+		"count":        count,        // 兼容napcat
+		"reverseOrder": reverseOrder, // 兼容napcat
 	}).Data
 }
 
@@ -562,8 +565,8 @@ func (ctx *Ctx) GetLatestGroupMessageHistory(groupID int64) gjson.Result {
 // GetThisGroupMessageHistory 获取本群消息历史记录
 //
 //	messageID: 起始消息序号, 可通过 get_msg 获得
-func (ctx *Ctx) GetThisGroupMessageHistory(messageID int64) gjson.Result {
-	return ctx.GetGroupMessageHistory(ctx.Event.GroupID, messageID)
+func (ctx *Ctx) GetThisGroupMessageHistory(messageID, count int64, reverseOrder bool) gjson.Result {
+	return ctx.GetGroupMessageHistory(ctx.Event.GroupID, messageID, count, reverseOrder)
 }
 
 // GettLatestThisGroupMessageHistory 获取最新本群消息历史记录
