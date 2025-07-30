@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -54,7 +53,7 @@ func formatMessage(msg interface{}) string {
 
 // CallAction 调用 cqhttp API
 func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
-	c, cancel := context.WithTimeoutCause(context.Background(), time.Minute, os.ErrDeadlineExceeded)
+	c, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	return ctx.CallActionCtx(c, action, params)
 }
