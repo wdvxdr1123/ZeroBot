@@ -556,9 +556,11 @@ func (ctx *Ctx) GetGroupMessageHistory(groupID, messageID, count int64, reverseO
 }
 
 // GettLatestGroupMessageHistory 获取最新群消息历史记录
-func (ctx *Ctx) GetLatestGroupMessageHistory(groupID int64) gjson.Result {
+func (ctx *Ctx) GetLatestGroupMessageHistory(groupID, count int64, reverseOrder bool) gjson.Result {
 	return ctx.CallAction("get_group_msg_history", Params{
-		"group_id": groupID,
+		"group_id":     groupID,
+		"count":        count,        // 兼容napcat
+		"reverseOrder": reverseOrder, // 兼容napcat
 	}).Data
 }
 
@@ -570,8 +572,8 @@ func (ctx *Ctx) GetThisGroupMessageHistory(messageID, count int64, reverseOrder 
 }
 
 // GettLatestThisGroupMessageHistory 获取最新本群消息历史记录
-func (ctx *Ctx) GetLatestThisGroupMessageHistory() gjson.Result {
-	return ctx.GetLatestGroupMessageHistory(ctx.Event.GroupID)
+func (ctx *Ctx) GetLatestThisGroupMessageHistory(count int64, reverseOrder bool) gjson.Result {
+	return ctx.GetLatestGroupMessageHistory(ctx.Event.GroupID, count, reverseOrder)
 }
 
 // GetGroupEssenceMessageList 获取群精华消息列表
