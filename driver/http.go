@@ -2,6 +2,7 @@ package driver
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
@@ -30,7 +31,9 @@ type HTTP struct {
 
 func (h *HTTP) Connect() {
 	log.Infof("[httpcaller] 正在尝试与服务器握手: %s", h.caller.URL)
-	rsp, err := h.caller.CallAPI(zero.APIRequest{Action: "get_login_info", Params: nil})
+	c, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	rsp, err := h.caller.CallAPI(c, zero.APIRequest{Action: "get_login_info", Params: nil})
 	if err != nil {
 		log.Warningf("[httpcaller] 与服务器握手失败: %s\n%v", h.caller.URL, err)
 		return
@@ -148,8 +151,8 @@ func (h *HTTP) Listen(handler func([]byte, zero.APICaller)) {
 
 // httpCaller 对 api 进行调用
 // 不关闭body会导致资源泄漏!
-func (c *HTTPCaller) httpCaller(action string, payload []byte) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, c.URL+"/"+action, bytes.NewBuffer(payload))
+func (c *HTTPCaller) httpCaller(ctx context.Context, action string, payload []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.URL+"/"+action, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
 	}
@@ -169,13 +172,13 @@ func (c *HTTPCaller) httpCaller(action string, payload []byte) (*http.Response, 
 	return resp, nil
 }
 
-func (c *HTTPCaller) CallAPI(request zero.APIRequest) (zero.APIResponse, error) {
-	p, err := json.Marshal(request.Params)
+func (c *HTTPCaller) CallAPI(ctx context.Context, req zero.APIRequest) (zero.APIResponse, error) {
+	p, err := json.Marshal(req.Params)
 	if err != nil {
 		return nullResponse, err
 	}
 
-	resp, err := c.httpCaller(request.Action, p)
+	resp, err := c.httpCaller(ctx, req.Action, p)
 	if err != nil {
 		return nullResponse, err
 	}

@@ -213,16 +213,7 @@ func (wssc *WSSCaller) nextSeq() uint64 {
 }
 
 // CallAPI 发送ws请求
-func (wssc *WSSCaller) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
-	var ctx context.Context
-	var cancel context.CancelFunc
-	if c, ok := req.Params["__context__"]; ok {
-		ctx, ok = c.(context.Context)
-		if ok {
-			delete(req.Params, "__context__")
-		}
-	}
-
+func (wssc *WSSCaller) CallAPI(c context.Context, req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse, 1)
 	req.Echo = wssc.nextSeq()
 	wssc.seqMap.Store(req.Echo, ch)
@@ -237,18 +228,13 @@ func (wssc *WSSCaller) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 	}
 	log.Debug("[wss] 向服务器发送请求: ", &req)
 
-	if ctx == nil {
-		ctx, cancel = context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-	}
-
 	select { // 等待数据返回
 	case rsp, ok := <-ch:
 		if !ok {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-ctx.Done():
-		return nullResponse, ctx.Err()
+	case <-c.Done():
+		return nullResponse, c.Err()
 	}
 }

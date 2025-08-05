@@ -1,6 +1,7 @@
 package zero
 
 import (
+	"context"
 	"encoding/json"
 	"hash/crc64"
 	"runtime/debug"
@@ -37,7 +38,7 @@ var APICallers callerMap
 
 // APICaller is the interface of CallAPI
 type APICaller interface {
-	CallAPI(request APIRequest) (APIResponse, error)
+	CallAPI(c context.Context, request APIRequest) (APIResponse, error)
 }
 
 // Driver 与OneBot通信的驱动，使用driver.DefaultWebSocketDriver
@@ -137,14 +138,14 @@ type messageLogger struct {
 }
 
 // CallAPI 记录被触发的回复消息
-func (m *messageLogger) CallAPI(request APIRequest) (rsp APIResponse, err error) {
+func (m *messageLogger) CallAPI(ctx context.Context, request APIRequest) (rsp APIResponse, err error) {
 	noLog := false
 	b, ok := request.Params["__zerobot_no_log_mseeage_id__"].(bool)
 	if ok {
 		noLog = b
 		delete(request.Params, "__zerobot_no_log_mseeage_id__")
 	}
-	rsp, err = m.caller.CallAPI(request)
+	rsp, err = m.caller.CallAPI(ctx, request)
 	if err != nil {
 		return
 	}

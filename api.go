@@ -2,6 +2,7 @@ package zero
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
@@ -10,6 +11,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -55,7 +57,25 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 		Action: action,
 		Params: params,
 	}
-	rsp, err := ctx.caller.CallAPI(req)
+	c, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	rsp, err := ctx.caller.CallAPI(c, req)
+	if err != nil {
+		log.Errorln("[api] 调用", action, "时出现错误: ", err)
+	}
+	if err == nil && rsp.RetCode != 0 {
+		log.Errorln("[api] 调用", action, "时出现错误, 返回值:", rsp.RetCode, ", 信息:", rsp.Message, "解释:", rsp.Wording)
+	}
+	return rsp
+}
+
+// CallActionWithContext 使用context 调用 cqhttp API
+func (ctx *Ctx) CallActionWithContext(c context.Context, action string, params Params) APIResponse {
+	req := APIRequest{
+		Action: action,
+		Params: params,
+	}
+	rsp, err := ctx.caller.CallAPI(c, req)
 	if err != nil {
 		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}
