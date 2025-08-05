@@ -69,7 +69,7 @@ func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
 	return rsp
 }
 
-// CallActionWithContext 使用context 调用 cqhttp API
+// CallActionWithContext 使用 context 调用 cqhttp API
 func (ctx *Ctx) CallActionWithContext(c context.Context, action string, params Params) APIResponse {
 	req := APIRequest{
 		Action: action,
