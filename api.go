@@ -53,29 +53,17 @@ func formatMessage(msg interface{}) string {
 
 // CallAction 调用 cqhttp API
 func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
-	req := APIRequest{
-		Action: action,
-		Params: params,
-	}
 	c, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	rsp, err := ctx.caller.CallAPI(c, req)
-	if err != nil {
-		log.Errorln("[api] 调用", action, "时出现错误: ", err)
-	}
-	if err == nil && rsp.RetCode != 0 {
-		log.Errorln("[api] 调用", action, "时出现错误, 返回值:", rsp.RetCode, ", 信息:", rsp.Message, "解释:", rsp.Wording)
-	}
-	return rsp
+	return ctx.CallActionWithContext(c, action, params)
 }
 
 // CallActionWithContext 使用 context 调用 cqhttp API
 func (ctx *Ctx) CallActionWithContext(c context.Context, action string, params Params) APIResponse {
-	req := APIRequest{
+	rsp, err := ctx.caller.CallAPI(c, APIRequest{
 		Action: action,
 		Params: params,
-	}
-	rsp, err := ctx.caller.CallAPI(c, req)
+	})
 	if err != nil {
 		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}
