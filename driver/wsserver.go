@@ -1,12 +1,12 @@
 package driver
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -213,7 +213,7 @@ func (wssc *WSSCaller) nextSeq() uint64 {
 }
 
 // CallAPI 发送ws请求
-func (wssc *WSSCaller) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
+func (wssc *WSSCaller) CallAPI(c context.Context, req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse, 1)
 	req.Echo = wssc.nextSeq()
 	wssc.seqMap.Store(req.Echo, ch)
@@ -234,7 +234,7 @@ func (wssc *WSSCaller) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-time.After(time.Minute):
-		return nullResponse, os.ErrDeadlineExceeded
+	case <-c.Done():
+		return nullResponse, c.Err()
 	}
 }

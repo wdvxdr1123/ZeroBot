@@ -2,6 +2,7 @@ package zero
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
@@ -10,6 +11,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -51,11 +53,17 @@ func formatMessage(msg interface{}) string {
 
 // CallAction 调用 cqhttp API
 func (ctx *Ctx) CallAction(action string, params Params) APIResponse {
-	req := APIRequest{
+	c, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	return ctx.CallActionWithContext(c, action, params)
+}
+
+// CallActionWithContext 使用 context 调用 cqhttp API
+func (ctx *Ctx) CallActionWithContext(c context.Context, action string, params Params) APIResponse {
+	rsp, err := ctx.caller.CallAPI(c, APIRequest{
 		Action: action,
 		Params: params,
-	}
-	rsp, err := ctx.caller.CallAPI(req)
+	})
 	if err != nil {
 		log.Errorln("[api] 调用", action, "时出现错误: ", err)
 	}

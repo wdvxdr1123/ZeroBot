@@ -1,17 +1,19 @@
 package zero
 
 import (
+	"context"
 	"fmt"
+	"strconv"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"strconv"
-	"testing"
 )
 
 type mockAPICaller struct{}
 
-func (m mockAPICaller) CallAPI(_ APIRequest) (APIResponse, error) {
+func (m mockAPICaller) CallAPI(_ context.Context, _ APIRequest) (APIResponse, error) {
 	return APIResponse{
 		Status:  "",
 		Data:    gjson.Parse(`{"message_id":"12345","sender":{"user_id":12345}}`), // just for reply cleaner

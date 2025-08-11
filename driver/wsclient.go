@@ -1,11 +1,11 @@
 package driver
 
 import (
+	"context"
 	"encoding/base64"
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -142,7 +142,7 @@ func (ws *WSClient) nextSeq() uint64 {
 }
 
 // CallAPI 发送ws请求
-func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
+func (ws *WSClient) CallAPI(c context.Context, req zero.APIRequest) (zero.APIResponse, error) {
 	ch := make(chan zero.APIResponse, 1)
 	req.Echo = ws.nextSeq()
 	ws.seqMap.Store(req.Echo, ch)
@@ -163,7 +163,7 @@ func (ws *WSClient) CallAPI(req zero.APIRequest) (zero.APIResponse, error) {
 			return nullResponse, io.ErrClosedPipe
 		}
 		return rsp, nil
-	case <-time.After(time.Minute):
-		return nullResponse, os.ErrDeadlineExceeded
+	case <-c.Done():
+		return nullResponse, c.Err()
 	}
 }
