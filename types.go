@@ -38,21 +38,21 @@ type User struct {
 	// Private sender
 	// https://github.com/botuniverse/onebot-11/blob/master/event/message.md#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
 	ID       int64  `json:"user_id"`
-	TinyID   string `json:"tiny_id"` // TinyID 在 guild 下为 ID 的 string
-	NickName string `json:"nickname"`
-	Sex      string `json:"sex"` // "male"、"female"、"unknown"
+	TinyID   string `json:"tiny_id,omitempty"` // TinyID 在 guild 下为 ID 的 string
+	NickName string `json:"nickname,omitempty"`
+	Sex      string `json:"sex,omitempty"` // "male"、"female"、"unknown"
 	Age      int    `json:"age"`
-	Area     string `json:"area"`
+	Area     string `json:"area,omitempty"`
 	// Group member
 	// https://github.com/botuniverse/onebot-11/blob/master/event/message.md#%E7%BE%A4%E6%B6%88%E6%81%AF
-	Card  string `json:"card"`
-	Title string `json:"title"`
-	Level string `json:"level"`
-	Role  string `json:"role"` // "owner"、"admin"、"member"
+	Card  string `json:"card,omitempty"`
+	Title string `json:"title,omitempty"`
+	Level string `json:"level,omitempty"`
+	Role  string `json:"role,omitempty"` // "owner"、"admin"、"member"
 	// Group anonymous
-	AnonymousID   int64  `json:"anonymous_id" anonymous:"id"`
-	AnonymousName string `json:"anonymous_name" anonymous:"name"`
-	AnonymousFlag string `json:"anonymous_flag" anonymous:"flag"`
+	AnonymousID   int64  `json:"anonymous_id,omitempty" anonymous:"id"`
+	AnonymousName string `json:"anonymous_name,omitempty" anonymous:"name"`
+	AnonymousFlag string `json:"anonymous_flag,omitempty" anonymous:"flag"`
 }
 
 // Event is the event emitted form cqhttp
@@ -102,7 +102,7 @@ type File struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Size  int64  `json:"size"`
-	BusID int64  `json:"busid"`
+	BusID int64  `json:"busid,omitempty"`
 }
 
 // Group 群
