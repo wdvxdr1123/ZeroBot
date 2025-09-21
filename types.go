@@ -3,6 +3,7 @@ package zero
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/tidwall/gjson"
 
@@ -30,7 +31,16 @@ type APIResponse struct {
 type APIRequest struct {
 	Action string `json:"action"`
 	Params Params `json:"params"`
-	Echo   uint64 `json:"echo"` // 该项不用填写，由Driver生成
+	Echo   uint64 `json:"echo,omitempty"` // 该项不用填写，由Driver生成
+}
+
+func (ar *APIRequest) String() string {
+	sb := strings.Builder{}
+	err := json.NewEncoder(&sb).Encode(ar)
+	if err != nil {
+		panic(err)
+	}
+	return strings.TrimSpace(sb.String())
 }
 
 // User is a user on QQ.
