@@ -67,6 +67,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(_ *http.Request) bool {
 		return true
 	},
+	WriteBufferPool: &wspool,
 }
 
 // Connect 监听ws服务

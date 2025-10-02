@@ -68,6 +68,7 @@ func (ws *WSClient) Connect() {
 			}
 			return net.Dial(network, addr) // support unix socket transport
 		},
+		WriteBufferPool: &wspool,
 	}
 
 	for {
