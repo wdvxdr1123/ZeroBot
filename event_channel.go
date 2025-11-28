@@ -57,31 +57,38 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 //
 // 如果没有取消监听，将不断监听指定事件
 func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
-	// 【修改点1】保留扩容到 100，应对突发消息
-	ch := make(chan *Ctx, 100)
-	matcher := StoreMatcher(&Matcher{
-		Type:     Type(n.Type),
-		Block:    n.Block,
-		Priority: n.Priority,
-		Rules:    n.Rule,
-		Engine:   defaultEngine,
-		Handler: func(ctx *Ctx) {
-			// 【修改点2】使用 go func 异步发送
-			// 只要业务层（Consumer）处理速度基本正常，这就不会阻塞 Bot 核心
-			// 即使业务层处理慢，消息也会先堆积在 goroutine 中，而不会卡死主线程
-			go func() {
-				// 防止 ch 被 close 后写入导致 panic
-				defer func() { _ = recover() }()
-				ch <- ctx
-			}()
-		},
-	})
-
+	// 保留扩容到 100，应对突发消息
+	ch, done := make(chan *Ctx, 100), make(chan struct{})
+	go func() {
+		defer close(ch)
+		in := make(chan *Ctx, 1)
+		matcher := StoreMatcher(&Matcher{
+			Type:     Type(n.Type),
+			Block:    n.Block,
+			Priority: n.Priority,
+			Rules:    n.Rule,
+			Engine:   defaultEngine,
+			Handler: func(ctx *Ctx) {
+				// 只要 Consumer 处理不是极度滞后，这种方式就能防止 Bot 核心被阻塞
+				go func() {
+					defer func() { _ = recover() }()
+					in <- ctx
+				}()
+			},
+		})
+		for {
+			select {
+			case e := <-in:
+				ch <- e
+			case <-done:
+				matcher.Delete()
+				close(in)
+				return
+			}
+		}
+	}()
 	return ch, func() {
-		matcher.Delete()
-		// 防止多次调用 cancel 导致关闭已关闭通道的 panic
-		defer func() { _ = recover() }()
-		close(ch)
+		close(done)
 	}
 }
 
