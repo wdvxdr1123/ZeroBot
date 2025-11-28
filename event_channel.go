@@ -1,7 +1,5 @@
 package zero
 
-import "time"
-
 // FutureEvent 是 ZeroBot 交互式的核心，用于异步获取指定事件
 type FutureEvent struct {
 	Type     string
@@ -36,8 +34,7 @@ func (m *Matcher) FutureEvent(typ string, rule ...Rule) *FutureEvent {
 //
 // 该 chan 必须接收，如需手动取消监听，请使用 Repeat 方法
 func (n *FutureEvent) Next() <-chan *Ctx {
-	// 稍微增加一点缓冲，防止极端情况死锁
-	ch := make(chan *Ctx, 5)
+	ch := make(chan *Ctx, 1)
 	StoreTempMatcher(&Matcher{
 		Type:     Type(n.Type),
 		Block:    n.Block,
@@ -45,14 +42,12 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 		Rules:    n.Rule,
 		Engine:   defaultEngine,
 		Handler: func(ctx *Ctx) {
-			// 使用 select 防止阻塞，虽然 Next 只取一次，但非阻塞是好习惯
-			select {
-			case ch <- ctx:
-			default:
-			}
-			// Next 是一次性的，发送完最好关闭，但由 StoreTempMatcher 机制决定
-			// 这里不手动关闭 ch，避免多次触发 panic，让调用方接收
-			close(ch)
+			// 使用 go func 异步发送，确保不阻塞主线程
+			go func() {
+				defer func() { _ = recover() }()
+				ch <- ctx
+				close(ch)
+			}()
 		},
 	})
 	return ch
@@ -62,61 +57,31 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 //
 // 如果没有取消监听，将不断监听指定事件
 func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
-	// 【核心修改1】大幅增加缓冲区
-	// 100 的缓冲区足够应对你在处理图片(1~3秒)期间群里的消息爆发
+	// 【修改点1】保留扩容到 100，应对突发消息
 	ch := make(chan *Ctx, 100)
-	done := make(chan struct{})
-
-	go func() {
-		defer close(ch)
-		// 内部通道也给足缓冲
-		in := make(chan *Ctx, 100)
-
-		matcher := StoreMatcher(&Matcher{
-			Type:     Type(n.Type),
-			Block:    n.Block,
-			Priority: n.Priority,
-			Rules:    n.Rule,
-			Engine:   defaultEngine,
-			Handler: func(ctx *Ctx) {
-				// 【核心修改2】非阻塞写入
-				// 如果 consumer 处理太慢导致 in 满了，这里会走 default 分支
-				// 从而“丢弃”消息，而不是“卡死”整个 Bot 引擎
-				select {
-				case in <- ctx:
-				default:
-					// 缓冲区已满，丢弃该消息以保护主进程
-				}
-			},
-		})
-
-		// 确保退出时清理 Matcher
-		defer matcher.Delete()
-
-		for {
-			select {
-			case e := <-in:
-				// 将消息转发给用户通道
-				select {
-				case ch <- e:
-				case <-done:
-					// 收到外部取消信号，退出
-					return
-				}
-			case <-done:
-				// 收到外部取消信号，退出
-				return
-			}
-		}
-	}()
+	matcher := StoreMatcher(&Matcher{
+		Type:     Type(n.Type),
+		Block:    n.Block,
+		Priority: n.Priority,
+		Rules:    n.Rule,
+		Engine:   defaultEngine,
+		Handler: func(ctx *Ctx) {
+			// 【修改点2】使用 go func 异步发送
+			// 只要业务层（Consumer）处理速度基本正常，这就不会阻塞 Bot 核心
+			// 即使业务层处理慢，消息也会先堆积在 goroutine 中，而不会卡死主线程
+			go func() {
+				// 防止 ch 被 close 后写入导致 panic
+				defer func() { _ = recover() }()
+				ch <- ctx
+			}()
+		},
+	})
 
 	return ch, func() {
-		// 防止多次调用 cancel 导致 panic
-		select {
-		case <-done:
-		default:
-			close(done)
-		}
+		matcher.Delete()
+		// 防止多次调用 cancel 导致关闭已关闭通道的 panic
+		defer func() { _ = recover() }()
+		close(ch)
 	}
 }
 
@@ -128,16 +93,10 @@ func (n *FutureEvent) Take(num int) <-chan *Ctx {
 	ch := make(chan *Ctx, num)
 	go func() {
 		defer close(ch)
-		defer cancel() // 确保任务完成后取消监听
 		for i := 0; i < num; i++ {
-			select {
-			case e := <-recv:
-				ch <- e
-			case <-time.After(time.Minute * 10):
-				// 加上一个超长超时防止彻底泄露（可选优化）
-				return
-			}
+			ch <- <-recv
 		}
+		cancel()
 	}()
 	return ch
 }
