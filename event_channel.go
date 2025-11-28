@@ -35,7 +35,6 @@ func (m *Matcher) FutureEvent(typ string, rule ...Rule) *FutureEvent {
 // 该 chan 必须接收，如需手动取消监听，请使用 Repeat 方法
 func (n *FutureEvent) Next() <-chan *Ctx {
 	ch := make(chan *Ctx, 1)
-	ch := make(chan *Ctx, 1)
 	StoreTempMatcher(&Matcher{
 		Type:     Type(n.Type),
 		Block:    n.Block,
@@ -58,7 +57,6 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 //
 // 如果没有取消监听，将不断监听指定事件
 func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
-	// 【修改点1】保留扩容到 100，应对突发消息
 	// 【修改点1】保留扩容到 100，应对突发消息
 	ch := make(chan *Ctx, 100)
 	matcher := StoreMatcher(&Matcher{
@@ -96,9 +94,6 @@ func (n *FutureEvent) Take(num int) <-chan *Ctx {
 	go func() {
 		defer close(ch)
 		for i := 0; i < num; i++ {
-			ch <- <-recv
-		}
-		cancel()
 			ch <- <-recv
 		}
 		cancel()
