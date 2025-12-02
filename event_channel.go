@@ -42,8 +42,12 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 		Rules:    n.Rule,
 		Engine:   defaultEngine,
 		Handler: func(ctx *Ctx) {
-			ch <- ctx
-			close(ch)
+			// 使用 go func 异步发送，确保不阻塞主线程
+			go func() {
+				defer func() { _ = recover() }()
+				ch <- ctx
+				close(ch)
+			}()
 		},
 	})
 	return ch
@@ -53,7 +57,8 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 //
 // 如果没有取消监听，将不断监听指定事件
 func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
-	ch, done := make(chan *Ctx, 1), make(chan struct{})
+	// 保留扩容到 100，应对突发消息
+	ch, done := make(chan *Ctx, 100), make(chan struct{})
 	go func() {
 		defer close(ch)
 		in := make(chan *Ctx, 1)
@@ -64,7 +69,11 @@ func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
 			Rules:    n.Rule,
 			Engine:   defaultEngine,
 			Handler: func(ctx *Ctx) {
-				in <- ctx
+				// 只要 Consumer 处理不是极度滞后，这种方式就能防止 Bot 核心被阻塞
+				go func() {
+					defer func() { _ = recover() }()
+					in <- ctx
+				}()
 			},
 		})
 		for {
