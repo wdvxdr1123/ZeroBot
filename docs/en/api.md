@@ -214,7 +214,7 @@ engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
 
 ```go
 // This example responds when the bot is @ed with the message "are you there".
-engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("are you there")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyToMe, zero.FullMatchRule("are you there")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("I am here")
 })
 ```
@@ -223,7 +223,7 @@ engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("are you there")).Handle(fu
 
 ```go
 // This example responds to the private message "hello".
-engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyPrivate, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("hello, nice to meet you!")
 })
 ```
@@ -232,7 +232,7 @@ engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("hello")).Handle(func(ct
 
 ```go
 // This example responds to the group message "hello everyone".
-engine.OnMessage(zero.OnlyGroup(), zero.FullMatchRule("hello everyone")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyGroup, zero.FullMatchRule("hello everyone")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("hello everyone!")
 })
 ```
@@ -274,8 +274,8 @@ engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
 - **`SuperUserPermission(ctx *Ctx) bool`**: Requires the message sender to be a superuser.
 
 ```go
-// This example handles an "admin command" only if the sender is a superuser.
-engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+// This example handles an "admin" command only if the sender is a superuser.
+engine.OnMessage(zero.SuperUserPermission, zero.CommandRule("admin")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, superuser!")
 })
 ```
@@ -283,8 +283,8 @@ engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("admin command")).
 - **`AdminPermission(ctx *Ctx) bool`**: Requires the message sender to be a group admin, owner, or superuser.
 
 ```go
-// This example handles an "admin command" only if the sender has admin-level permissions.
-engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+// This example handles an "admin" command only if the sender has admin-level permissions.
+engine.OnMessage(zero.AdminPermission, zero.CommandRule("admin")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, admin!")
 })
 ```
@@ -292,8 +292,8 @@ engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("admin command")).Hand
 - **`OwnerPermission(ctx *Ctx) bool`**: Requires the message sender to be the group owner or a superuser.
 
 ```go
-// This example handles an "admin command" only if the sender is the group owner or a superuser.
-engine.OnMessage(zero.OwnerPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+// This example handles an "admin" command only if the sender is the group owner or a superuser.
+engine.OnMessage(zero.OwnerPermission, zero.CommandRule("admin")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, owner!")
 })
 ```

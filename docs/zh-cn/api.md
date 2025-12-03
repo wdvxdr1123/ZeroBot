@@ -214,7 +214,7 @@ engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
 
 ```go
 // 这个例子在机器人被 @ 并收到消息 "在吗" 时响应。
-engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("在吗")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyToMe, zero.FullMatchRule("在吗")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("我在")
 })
 ```
@@ -223,7 +223,7 @@ engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("在吗")).Handle(func(ctx 
 
 ```go
 // 这个例子响应私聊消息 "你好"。
-engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("你好")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyPrivate, zero.FullMatchRule("你好")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("你好，很高兴认识你！")
 })
 ```
@@ -232,7 +232,7 @@ engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("你好")).Handle(func(c
 
 ```go
 // 这个例子响应群聊消息 "大家好"。
-engine.OnMessage(zero.OnlyGroup(), zero.FullMatchRule("大家好")).Handle(func(ctx *zero.Ctx) {
+engine.OnMessage(zero.OnlyGroup, zero.FullMatchRule("大家好")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("大家好！")
 })
 ```
@@ -274,8 +274,8 @@ engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
 - **`SuperUserPermission(ctx *Ctx) bool`**: 要求消息发送者是超级用户。
 
 ```go
-// 这个例子仅在发送者是超级用户时处理 "管理命令"。
-engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+// 这个例子仅在发送者是超级用户时处理 "管理" 命令。
+engine.OnMessage(zero.SuperUserPermission, zero.CommandRule("管理")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("你好，超级用户！")
 })
 ```
@@ -283,8 +283,8 @@ engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("管理命令")).H
 - **`AdminPermission(ctx *Ctx) bool`**: 要求消息发送者是群管理员、群主或超级用户。
 
 ```go
-// 这个例子仅在发送者具有管理员级别权限时处理 "管理命令"。
-engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+// 这个例子仅在发送者具有管理员级别权限时处理 "管理" 命令。
+engine.OnMessage(zero.AdminPermission, zero.CommandRule("管理")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("你好，管理员！")
 })
 ```
@@ -292,8 +292,8 @@ engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("管理命令")).Handl
 - **`OwnerPermission(ctx *Ctx) bool`**: 要求消息发送者是群主或超级用户。
 
 ```go
-// 这个例子仅在发送者是群主或超级用户时处理 "管理命令"。
-engine.OnMessage(zero.OwnerPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+// 这个例子仅在发送者是群主或超级用户时处理 "管理" 命令。
+engine.OnMessage(zero.OwnerPermission, zero.CommandRule("管理")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("你好，群主！")
 })
 ```
