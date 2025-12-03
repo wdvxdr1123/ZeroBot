@@ -1,5 +1,7 @@
 [上一步: 介绍](/zh-cn/README.md)
 
+[下一步: 核心 API](/zh-cn/api.md)
+
 # 快速入门
 
 本指南将引导您完成设置和运行第一个 ZeroBot 实例的过程。
@@ -46,11 +48,16 @@ zero.RunAndBlock(&zero.Config{
 package main
 
 import (
-	_ "your/plugin/path" // 在这里导入您的插件
-	"github.com/wdvxdr1123/ZeroBot"
+	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/driver"
 )
 
 func main() {
+	zero.OnCommand("hello").
+		Handle(func(ctx *zero.Ctx) {
+			ctx.Send("world")
+		})
+
 	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
@@ -58,6 +65,10 @@ func main() {
 		Driver: []zero.Driver{
 			// 正向 WS
 			driver.NewWebSocketClient("ws://127.0.0.1:6700", ""),
+			// 反向 WS
+			driver.NewWebSocketServer(16, "ws://127.0.0.1:6701", ""),
+			// HTTP
+			driver.NewHTTPClient("http://127.0.0.1:6701", "", "http://127.0.0.1:6700", ""),
 		},
 	}, nil)
 }

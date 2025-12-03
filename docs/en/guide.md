@@ -48,11 +48,16 @@ Once you have configured your bot, you can create a `main.go` file to run it:
 package main
 
 import (
-	_ "your/plugin/path" // Import your plugins here
-	"github.com/wdvxdr1123/ZeroBot"
+	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/driver"
 )
 
 func main() {
+	zero.OnCommand("hello").
+		Handle(func(ctx *zero.Ctx) {
+			ctx.Send("world")
+		})
+
 	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
@@ -60,6 +65,10 @@ func main() {
 		Driver: []zero.Driver{
 			// Forward WS
 			driver.NewWebSocketClient("ws://127.0.0.1:6700", ""),
+			// Reverse WS
+			driver.NewWebSocketServer(16, "ws://127.0.0.1:6701", ""),
+			// HTTP
+			driver.NewHTTPClient("http://127.0.0.1:6701", "", "http://127.0.0.1:6700", ""),
 		},
 	}, nil)
 }

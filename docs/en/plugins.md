@@ -19,11 +19,8 @@ import (
 )
 
 func init() {
-	engine := zero.New()
-	engine.OnMessage().Handle(func(ctx *zero.Ctx) {
-		if ctx.Event.Message.String() == "hello" {
-			ctx.Send("world")
-		}
+	zero.OnMessage(zero.FullMatch("hello")).Handle(func(ctx *zero.Ctx) {
+		ctx.Send("world")
 	})
 }
 ```
@@ -80,16 +77,11 @@ package main
 import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"strings"
 )
 
 func init() {
-	engine := zero.New()
-	engine.OnMessage(func(ctx *zero.Ctx) bool {
-		return strings.HasPrefix(ctx.Event.Message.String(), "/echo")
-	}).Handle(func(ctx *zero.Ctx) {
-		msg := strings.TrimPrefix(ctx.Event.Message.String(), "/echo ")
-		ctx.Send(msg)
+	zero.OnCommand("echo").Handle(func(ctx *zero.Ctx) {
+		ctx.Send(ctx.Event.Message.String())
 	})
 }
 ```
