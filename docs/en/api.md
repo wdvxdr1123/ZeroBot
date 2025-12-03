@@ -1,3 +1,5 @@
+[Previous: Quick Start](./guide.md)
+
 # Core API
 
 This section provides an overview of the core API provided by ZeroBot.
@@ -136,3 +138,5 @@ ZeroBot provides many built-in `Rule` functions in the `rules.go` file, allowing
 - **`SuperUserPermission(ctx *Ctx) bool`**: Requires the sender to be a superuser.
 - **`AdminPermission(ctx *Ctx) bool`**: Requires the sender to be a group admin, owner, or a superuser.
 - **`OwnerPermission(ctx *Ctx) bool`**: Requires the sender to be a group owner or a superuser.
+
+[Next: Creating Plugins](./plugins.md)

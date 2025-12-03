@@ -1,3 +1,5 @@
+[Previous: Core API](./api.md)
+
 # Creating Plugins
 
 ZeroBot's functionality can be extended through plugins. This guide will show you how to create your first plugin.

@@ -1,3 +1,5 @@
+[上一步: 快速开始](./guide.md)
+
 # 核心 API
 
 本节概述了 ZeroBot 提供的核心 API。
@@ -136,3 +138,5 @@ ZeroBot 在 `rules.go` 文件中提供了许多内置的 `Rule` 函数，让你�
 - **`SuperUserPermission(ctx *Ctx) bool`**: 要求发送者是超级用户。
 - **`AdminPermission(ctx *Ctx) bool`**: 要求发送者是群组管理员、所有者或超级用户。
 - **`OwnerPermission(ctx *Ctx) bool`**: 要求发送者是群组所有者或超级用户。
+
+[下一步: 创建插件](./plugins.md)
