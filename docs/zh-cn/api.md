@@ -75,7 +75,236 @@ ctx.Send("hello", message.Image("https://example.com/image.png"))
 
 `message` 包提供了辅助函数来轻松创建这些段，例如：
 
-### `message.Text(string) MessageSegment`
+### `message.Text(text ...interface{})`
+
+创建一个纯文本消息段。
+
+- `text`: 要发送的文本内容。可以传递多个参数，它们会被转换成字符串并连接起来。
+
+**示例:**
+```go
+ctx.Send(message.Text("Hello, ", "World!")) // 发送 "Hello, World!"
+```
+
+### `message.Face(id int)`
+
+创建一个 QQ 表情消息段。
+
+- `id`: QQ 表情的 ID。
+
+**示例:**
+```go
+ctx.Send(message.Face(123)) // 发送 ID 为 123 的 QQ 表情
+```
+
+### `message.File(file, name string)`
+
+创建一个文件消息段。
+
+- `file`: 文件的 URL、本地路径或 Base64 编码的数据。
+- `name`: 文件的名称。
+
+**示例:**
+```go
+ctx.Send(message.File("file:///C:/example.txt", "example.txt"))
+```
+
+### `message.Image(file string, summary ...interface{})`
+
+创建一个图片消息段。
+
+- `file`: 图片的 URL、本地路径或 Base64 编码的数据。
+- `summary` (可选): 图片的预览文字（LLOneBot 扩展）。
+
+**示例:**
+```go
+ctx.Send(message.Image("https://example.com/image.png"))
+```
+
+### `message.ImageBytes(data []byte)`
+
+通过字节数据创建一个图片消息段。
+
+- `data`: 图片的字节数据。
+
+**示例:**
+```go
+imageData, _ := ioutil.ReadFile("image.jpg")
+ctx.Send(message.ImageBytes(imageData))
+```
+
+### `message.Record(file string)`
+
+创建一个语音消息段。
+
+- `file`: 语音的 URL、本地路径或 Base64 编码的数据。
+
+**示例:**
+```go
+ctx.Send(message.Record("https://example.com/audio.mp3"))
+```
+
+### `message.Video(file string)`
+
+创建一个短视频消息段。
+
+- `file`: 视频的 URL、本地路径或 Base64 编码的数据。
+
+**示例:**
+```go
+ctx.Send(message.Video("https://example.com/video.mp4"))
+```
+
+### `message.At(qq int64)`
+
+创建一个 @ 消息段。
+
+- `qq`: 要 @ 的人的 QQ 号。如果为 `0`，则会创建一个 @全体成员 的消息段。
+
+**示例:**
+```go
+ctx.Send(message.At(123456789)) // @ QQ号为 123456789 的用户
+```
+
+### `message.AtAll()`
+
+创建一个 @全体成员 消息段。
+
+**示例:**
+```go
+ctx.Send(message.AtAll()) // @全体成员
+```
+
+### `message.Music(mType string, id int64)`
+
+创建一个音乐分享消息段。
+
+- `mType`: 音乐平台类型，如 `qq`, `163`。
+- `id`: 音乐的 ID。
+
+**示例:**
+```go
+ctx.Send(message.Music("163", 123456)) // 分享网易云音乐中 ID 为 123456 的歌曲
+```
+
+### `message.CustomMusic(url, audio, title string)`
+
+创建一个自定义音乐分享消息段。
+
+- `url`: 点击分享后跳转的 URL。
+- `audio`: 音乐的 URL。
+- `title`: 音乐的标题。
+
+**示例:**
+```go
+ctx.Send(message.CustomMusic("https://example.com", "https://example.com/audio.mp3", "My Song"))
+```
+
+### `message.Reply(id interface{})`
+
+创建一个回复消息段。
+
+- `id`: 要回复的消息的 ID。
+
+**示例:**
+```go
+// 回复当前收到的消息
+ctx.Send(message.Reply(ctx.Event.MessageID), message.Text("收到！"))
+```
+
+### `message.Forward(id string)`
+
+创建一个合并转发消息段。
+
+- `id`: 合并转发的 ID (通常由 `ctx.UploadGroupForwardMessage` 返回)。
+
+**示例:**
+```go
+// (需要先上传合并转发消息)
+forwardID := "..." // 从上传API获取
+ctx.Send(message.Forward(forwardID))
+```
+
+### `message.Node(id int64)`
+
+创建一个合并转发节点。
+
+- `id`: 消息的 ID。
+
+**示例:**
+```go
+// 通常与 CustomNode 结合使用来构建自定义合并转发消息
+```
+
+### `message.CustomNode(nickname string, userID int64, content interface{})`
+
+创建一个自定义合并转发节点。
+
+- `nickname`: 发送者的昵称。
+- `userID`: 发送者的 QQ 号。
+- `content`: 消息内容，可以是 `string`, `message.Message` 或 `[]message.Segment`。
+
+**示例:**
+```go
+node1 := message.CustomNode("User1", 10001, "Hello")
+node2 := message.CustomNode("User2", 10002, message.Message{message.Image("https://example.com/img.png")})
+forwardMsg, _ := ctx.UploadGroupForwardMessage([]message.Segment{node1, node2})
+ctx.Send(forwardMsg)
+```
+
+### `message.XML(data string)`
+
+创建一个 XML 消息段。
+
+- `data`: XML 数据。
+
+**示例:**
+```go
+xmlData := "<app>content</app>"
+ctx.Send(message.XML(xmlData))
+```
+
+### `message.JSON(data string)`
+
+创建一个 JSON 消息段。
+
+- `data`: JSON 数据。
+
+**示例:**
+```go
+jsonData := `{"key":"value"}`
+ctx.Send(message.JSON(jsonData))
+```
+
+### `message.Gift(userID string, giftID string)`
+
+创建一个群礼物消息段 (已弃用)。
+
+- `userID`: 接收礼物的用户的 QQ 号。
+- `giftID`: 礼物的 ID。
+
+### `message.Poke(userID int64)`
+
+创建一个戳一戳消息段。
+
+- `userID`: 要戳的用户的 QQ 号。
+
+**示例:**
+```go
+// 在群里戳某人
+ctx.SendGroupMessage(ctx.Event.GroupID, message.Poke(123456789))
+```
+
+### `message.TTS(text string)`
+
+创建一个文本转语音消息段。
+
+- `text`: 要转换成语音的文本。
+
+**示例:**
+```go
+ctx.Send(message.TTS("你好，世界"))
+```
 
 创建一个新的文本消息段。
 
@@ -440,6 +669,93 @@ func init() {
 			}
 		})
 }
+```
+
+## 事件类型
+
+ZeroBot 中的所有事件都基于 OneBot v11 标准。核心的 `Event` 结构包含一个 `PostType` 字段，它决定了事件的性质。
+
+### 1. 消息事件 (`post_type: "message"`)
+
+这是最常见的事件类型，用于处理来自用户或群组的消息。使用 `engine.OnMessage(...)` 或更具体的辅助函数（如 `engine.OnCommand(...)`）来处理它们。
+
+- **`message_type`**: 指示消息来源。
+  - `"private"`: 来自用户的私聊消息。
+  - `"group"`: 来自群组的消息。
+
+**使用方法:**
+
+```go
+// 回应任何私聊消息
+engine.OnMessage(zero.OnlyPrivate).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("我收到了你的私聊消息: " + ctx.Event.RawMessage)
+})
+
+// 在群组中回应一个命令
+engine.OnCommand("你好").Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好, " + ctx.Event.Sender.Nickname)
+})
+```
+
+### 2. 通知事件 (`post_type: "notice"`)
+
+通知是关于不需要直接回复的系统级事件。使用 `engine.OnNotice(...)` 来处理它们。
+
+- **`notice_type`**: 指示通知的类型。常见类型包括：
+  - `"group_increase"`: 用户加入群组。
+  - `"group_decrease"`: 用户离开或被踢出群组。
+  - `"group_upload"`: 有人向群组上传了文件。
+  - `"friend_add"`: 你有了一个新好友。
+
+**使用方法:**
+
+```go
+// 欢迎新群成员
+engine.OnNotice(zero.NoticeType("group_increase")).Handle(func(ctx *zero.Ctx) {
+    ctx.SendGroupMessage(
+        ctx.Event.GroupID,
+        "欢迎新成员 " + strconv.FormatInt(ctx.Event.UserID, 10) + "!",
+    )
+})
+```
+
+### 3. 请求事件 (`post_type: "request"`)
+
+请求需要机器人做出回应（同意或拒绝）。使用 `engine.OnRequest(...)` 来处理它们。
+
+- **`request_type`**: 指示请求的类型。
+  - `"friend"`: 用户想要添加机器人为好友。
+  - `"group"`: 用户想要加入机器人所在的群组（或机器人被邀请加入群组）。
+
+**使用方法:**
+
+```go
+// 自动同意所有好友请求
+engine.OnRequest(zero.RequestType("friend")).Handle(func(ctx *zero.Ctx) {
+    ctx.SetFriendAddRequest(ctx.Event.Flag, true, "") // true 表示同意
+})
+
+// 自动同意所有加群请求
+engine.OnRequest(zero.RequestType("group"), zero.SubType("add")).Handle(func(ctx *zero.Ctx) {
+    ctx.SetGroupAddRequest(ctx.Event.Flag, ctx.Event.SubType, true, "") // true 表示同意
+})
+```
+
+### 4. 元事件 (`post_type: "meta_event"`)
+
+这些事件与机器人本身或与 OneBot 服务器的连接有关。使用 `engine.OnMetaEvent(...)` 来处理它们。
+
+- **`meta_event_type`**:
+  - `"lifecycle"`: OneBot 实现正在启动或停止。
+  - `"heartbeat"`: 用于保持连接的心跳事件。
+
+**使用方法:**
+
+```go
+// 在机器人连接时记录日志
+engine.OnMetaEvent(zero.MetaEventType("lifecycle"), zero.SubType("connect")).Handle(func(ctx *zero.Ctx) {
+    logrus.Infoln("机器人已连接!")
+})
 ```
 
 [下一步: 创建插件](/zh-cn/plugins.md)

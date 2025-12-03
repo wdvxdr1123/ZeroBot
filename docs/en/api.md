@@ -75,7 +75,236 @@ Each `Segment` has two fields:
 
 The `message` package provides helper functions to easily create these segments, such as:
 
-### `message.Text(string) MessageSegment`
+### `message.Text(text ...interface{})`
+
+Creates a plain text message segment.
+
+- `text`: The text content to be sent. Multiple arguments can be passed, and they will be converted to strings and concatenated.
+
+**Example:**
+```go
+ctx.Send(message.Text("Hello, ", "World!")) // Sends "Hello, World!"
+```
+
+### `message.Face(id int)`
+
+Creates a QQ emoji message segment.
+
+- `id`: The ID of the QQ emoji.
+
+**Example:**
+```go
+ctx.Send(message.Face(123)) // Sends a QQ emoji with ID 123
+```
+
+### `message.File(file, name string)`
+
+Creates a file message segment.
+
+- `file`: The URL, local path, or Base64 encoded data of the file.
+- `name`: The name of the file.
+
+**Example:**
+```go
+ctx.Send(message.File("file:///C:/example.txt", "example.txt"))
+```
+
+### `message.Image(file string, summary ...interface{})`
+
+Creates an image message segment.
+
+- `file`: The URL, local path, or Base64 encoded data of the image.
+- `summary` (optional): The preview text of the image (LLOneBot extension).
+
+**Example:**
+```go
+ctx.Send(message.Image("https://example.com/image.png"))
+```
+
+### `message.ImageBytes(data []byte)`
+
+Creates an image message segment from byte data.
+
+- `data`: The byte data of the image.
+
+**Example:**
+```go
+imageData, _ := ioutil.ReadFile("image.jpg")
+ctx.Send(message.ImageBytes(imageData))
+```
+
+### `message.Record(file string)`
+
+Creates a voice message segment.
+
+- `file`: The URL, local path, or Base64 encoded data of the voice.
+
+**Example:**
+```go
+ctx.Send(message.Record("https://example.com/audio.mp3"))
+```
+
+### `message.Video(file string)`
+
+Creates a video message segment.
+
+- `file`: The URL, local path, or Base64 encoded data of the video.
+
+**Example:**
+```go
+ctx.Send(message.Video("https://example.com/video.mp4"))
+```
+
+### `message.At(qq int64)`
+
+Creates an @ message segment.
+
+- `qq`: The QQ number of the person to @. If it is `0`, it will create an @all message segment.
+
+**Example:**
+```go
+ctx.Send(message.At(123456789)) // @ user with QQ number 123456789
+```
+
+### `message.AtAll()`
+
+Creates an @all message segment.
+
+**Example:**
+```go
+ctx.Send(message.AtAll()) // @ all members
+```
+
+### `message.Music(mType string, id int64)`
+
+Creates a music sharing message segment.
+
+- `mType`: The type of music platform, such as `qq`, `163`.
+- `id`: The ID of the music.
+
+**Example:**
+```go
+ctx.Send(message.Music("163", 123456)) // Share a song with ID 123456 from NetEase Cloud Music
+```
+
+### `message.CustomMusic(url, audio, title string)`
+
+Creates a custom music sharing message segment.
+
+- `url`: The URL to jump to after clicking the share.
+- `audio`: The URL of the music.
+- `title`: The title of the music.
+
+**Example:**
+```go
+ctx.Send(message.CustomMusic("https://example.com", "https://example.com/audio.mp3", "My Song"))
+```
+
+### `message.Reply(id interface{})`
+
+Creates a reply message segment.
+
+- `id`: The ID of the message to reply to.
+
+**Example:**
+```go
+// Reply to the currently received message
+ctx.Send(message.Reply(ctx.Event.MessageID), message.Text("Got it!"))
+```
+
+### `message.Forward(id string)`
+
+Creates a forward message segment.
+
+- `id`: The ID of the forward message (usually returned by `ctx.UploadGroupForwardMessage`).
+
+**Example:**
+```go
+// (Requires uploading the forward message first)
+forwardID := "..." // Get from the upload API
+ctx.Send(message.Forward(forwardID))
+```
+
+### `message.Node(id int64)`
+
+Creates a forward message node.
+
+- `id`: The ID of the message.
+
+**Example:**
+```go
+// Usually used in conjunction with CustomNode to build custom forward messages
+```
+
+### `message.CustomNode(nickname string, userID int64, content interface{})`
+
+Creates a custom forward message node.
+
+- `nickname`: The nickname of the sender.
+- `userID`: The QQ number of the sender.
+- `content`: The message content, which can be `string`, `message.Message`, or `[]message.Segment`.
+
+**Example:**
+```go
+node1 := message.CustomNode("User1", 10001, "Hello")
+node2 := message.CustomNode("User2", 10002, message.Message{message.Image("https://example.com/img.png")})
+forwardMsg, _ := ctx.UploadGroupForwardMessage([]message.Segment{node1, node2})
+ctx.Send(forwardMsg)
+```
+
+### `message.XML(data string)`
+
+Creates an XML message segment.
+
+- `data`: The XML data.
+
+**Example:**
+```go
+xmlData := "<app>content</app>"
+ctx.Send(message.XML(xmlData))
+```
+
+### `message.JSON(data string)`
+
+Creates a JSON message segment.
+
+- `data`: The JSON data.
+
+**Example:**
+```go
+jsonData := `{"key":"value"}`
+ctx.Send(message.JSON(jsonData))
+```
+
+### `message.Gift(userID string, giftID string)`
+
+Creates a group gift message segment (deprecated).
+
+- `userID`: The QQ number of the user who received the gift.
+- `giftID`: The ID of the gift.
+
+### `message.Poke(userID int64)`
+
+Creates a poke message segment.
+
+- `userID`: The QQ number of the user to poke.
+
+**Example:**
+```go
+// Poke someone in a group
+ctx.SendGroupMessage(ctx.Event.GroupID, message.Poke(123456789))
+```
+
+### `message.TTS(text string)`
+
+Creates a text-to-speech message segment.
+
+- `text`: The text to be converted to speech.
+
+**Example:**
+```go
+ctx.Send(message.TTS("Hello, world"))
+```
 
 Creates a new text message segment.
 
@@ -487,6 +716,93 @@ func init() {
 			}
 		})
 }
+```
+
+## Event Types
+
+All events in ZeroBot are based on the OneBot v11 standard. The core `Event` struct contains a `PostType` field that determines the nature of the event.
+
+### 1. Message Events (`post_type: "message"`)
+
+These are the most common event types, used for handling messages from users or groups. Use `engine.OnMessage(...)` or more specific helpers like `engine.OnCommand(...)` to handle them.
+
+- **`message_type`**: Indicates the source of the message.
+  - `"private"`: A private message from a user.
+  - `"group"`: A message from a group.
+
+**Usage:**
+
+```go
+// Respond to any private message
+engine.OnMessage(zero.OnlyPrivate).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("I received your private message: " + ctx.Event.RawMessage)
+})
+
+// Respond to a command in a group
+engine.OnCommand("hello").Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello to you too, " + ctx.Event.Sender.Nickname)
+})
+```
+
+### 2. Notice Events (`post_type: "notice"`)
+
+Notices are for system-level events that don't require a direct reply. Use `engine.OnNotice(...)` to handle them.
+
+- **`notice_type`**: Indicates the type of notice. Common types include:
+  - `"group_increase"`: A user joined a group.
+  - `"group_decrease"`: A user left or was kicked from a group.
+  - `"group_upload"`: Someone uploaded a file to the group.
+  - `"friend_add"`: You have a new friend.
+
+**Usage:**
+
+```go
+// Welcome a new group member
+engine.OnNotice(zero.NoticeType("group_increase")).Handle(func(ctx *zero.Ctx) {
+    ctx.SendGroupMessage(
+        ctx.Event.GroupID,
+        "Welcome to the group, user " + strconv.FormatInt(ctx.Event.UserID, 10) + "!",
+    )
+})
+```
+
+### 3. Request Events (`post_type: "request"`)
+
+Requests require a response from the bot (approval or rejection). Use `engine.OnRequest(...)` to handle them.
+
+- **`request_type`**: Indicates the type of request.
+  - `"friend"`: A user wants to add the bot as a friend.
+  - `"group"`: A user wants to join a group the bot is in (or the bot has been invited to a group).
+
+**Usage:**
+
+```go
+// Automatically approve all friend requests
+engine.OnRequest(zero.RequestType("friend")).Handle(func(ctx *zero.Ctx) {
+    ctx.SetFriendAddRequest(ctx.Event.Flag, true, "") // true to approve
+})
+
+// Automatically approve all group join requests
+engine.OnRequest(zero.RequestType("group"), zero.SubType("add")).Handle(func(ctx *zero.Ctx) {
+    ctx.SetGroupAddRequest(ctx.Event.Flag, ctx.Event.SubType, true, "") // true to approve
+})
+```
+
+### 4. Meta Events (`post_type: "meta_event"`)
+
+These events are about the bot itself or the connection to the OneBot server. Use `engine.OnMetaEvent(...)` to handle them.
+
+- **`meta_event_type`**:
+  - `"lifecycle"`: The OneBot implementation is starting or stopping.
+  - `"heartbeat"`: A heartbeat event to keep the connection alive.
+
+**Usage:**
+
+```go
+// Log when the bot connects
+engine.OnMetaEvent(zero.MetaEventType("lifecycle"), zero.SubType("connect")).Handle(func(ctx *zero.Ctx) {
+    logrus.Infoln("Bot connected!")
+})
 ```
 
 [Next: Creating Plugins](/en/plugins.md)
