@@ -1,4 +1,4 @@
-[Previous: Core API](./api.md)
+[Previous: Core API](/en/api.md)
 
 # Creating Plugins
 

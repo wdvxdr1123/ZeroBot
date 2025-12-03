@@ -1,4 +1,6 @@
-[Previous: Introduction](./README.md)
+[Previous: Introduction](/en/README.md)
+
+[Next: Core API](/en/api.md)
 
 # Getting Started
 
