@@ -123,6 +123,38 @@ engine.OnMessage(Rule1, Rule2, ...).Handle(func(ctx *zero.Ctx) {
 
 除了 `OnMessage` 和 `OnCommand`，还有 `OnNotice` (处理通知事件)、`OnRequest` (处理请求事件) 等，它们都遵循类似的链式调用模式。
 
+- **`engine.OnNotice(...Rule)`**: 用于处理通知事件。通知事件涵盖了多种情况，例如群成员变动、群文件上传等。你可以使用 `zero.Type()` 规则来精确匹配不同类型的通知。
+
+```go
+// 示例：处理群成员增加的通知
+// 当有新成员加入群聊时，发送欢迎消息。
+engine.OnNotice(zero.Type("notice/group_increase")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("欢迎新成员！")
+})
+
+// 示例：处理群文件上传的通知
+// 当有成员上传文件时，进行提示。
+engine.OnNotice(zero.Type("notice/group_upload")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("有新文件上传，请注意查收。")
+})
+```
+
+- **`engine.OnRequest(...Rule)`**: 用于处理请求事件，主要包括加好友请求和加群请求。
+
+```go
+// 示例：自动同意好友请求
+// 使用 zero.Type() 匹配好友请求，并调用 ctx.Approve() 同意请求。
+engine.OnRequest(zero.Type("request/friend")).Handle(func(ctx *zero.Ctx) {
+    ctx.Approve(ctx.Event.Flag, "很高兴认识你") // 第二个参数为同意后的欢迎消息
+})
+
+// 示例：自动同意加群请求
+// 使用 zero.Type() 匹配加群请求，并调用 ctx.Approve() 同意请求。
+engine.OnRequest(zero.Type("request/group")).Handle(func(ctx *zero.Ctx) {
+    ctx.Approve(ctx.Event.Flag, "") // 同意加群请求，无需额外消息
+})
+```
+
 ## 内置的 `Rule` 函数
 
 ZeroBot 在 `rules.go` 文件中提供了许多内置的 `Rule` 函数，让你可以方便地过滤和匹配事件。
@@ -296,6 +328,118 @@ engine.OnMessage(zero.AdminPermission, zero.CommandRule("管理")).Handle(func(c
 engine.OnMessage(zero.OwnerPermission, zero.CommandRule("管理")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("你好，群主！")
 })
+```
+
+- **`OnShell(command string, model interface{}, rules ...Rule)`**: 解析类 shell 命令，自动提取参数和标志。
+
+  `OnShell` 提供了一种强大的方式来创建类似命令行的交互。它会根据你提供的结构体自动解析标志 (flags) 和参数。
+
+  - 定义一个结构体，其字段对应于命令的标志。必须使用 `flag` 标签来指定标志名称 (例如 `flag:"t"`)。
+  - 支持的字段类型为 `bool`, `int`, `string`, 和 `float64`。
+  - 在处理器内部，你可以从 `ctx.State["flag"]` 访问一个指向已填充结构体实例的指针。
+  - 不属于任何标志的其他参数可在 `ctx.State["args"]` 中作为字符串切片 (`[]string`) 使用。
+
+```go
+// 示例：创建一个 "ping" 命令
+
+// 1. 定义命令结构体
+// 只有带有 `flag` 标签的字段才会被注册。
+type Ping struct {
+	T       bool   `flag:"t"`      // -t
+	Timeout int    `flag:"w"`      // -w <value>
+	Host    string `flag:"host"`   // --host <value>
+}
+
+// 2. 注册 shell 命令处理器
+func init() {
+	zero.OnShell("ping", Ping{}).Handle(func(ctx *zero.Ctx) {
+		// 从 ctx.State 中获取解析后的标志
+		ping := ctx.State["flag"].(*Ping) // 注意：这是一个指针类型
+
+		// 获取非标志参数
+		args := ctx.State["args"].([]string)
+
+		// 使用解析出的数据
+		logrus.Infoln("Ping Host:", ping.Host)
+		logrus.Infoln("Ping Timeout:", ping.Timeout)
+		logrus.Infoln("Ping T-Flag:", ping.T)
+		for i, v := range args {
+			logrus.Infoln("Arg", i, ":", v)
+		}
+
+        // 假设收到的消息是: /ping --host 127.0.0.1 -w 5000 -t other_arg
+        // Host 将是 "127.0.0.1"
+        // Timeout 将是 5000
+        // T 将是 true
+        // args 将是 ["other_arg"]
+	})
+}
+```
+
+## 未来事件监听
+
+ZeroBot 允许你创建临时的、一次性的事件监听器，以处理“未来”的事件。这对于构建对话流或需要等待用户特定输入的有状态交互非常有用。
+
+- **`zero.NewFutureEvent(eventName string, priority int, block bool, rules ...Rule) (<-chan *zero.Ctx, func())`**
+
+  创建一个未来事件监听器。
+
+  - `eventName`: 要监听的事件名称 (例如, `"message"`)。
+  - `priority`: 监听器的优先级。
+  - `block`: 是否阻塞其他处理器。
+  - `rules`: 一组用于过滤事件的 `Rule` 函数。
+
+  **返回值:**
+
+  - `<-chan *zero.Ctx`: 一个当匹配事件发生时会接收到事件上下文的 channel。
+  - `func()`: 一个取消函数，用于在不再需要时停止监听。
+
+- **`ctx.FutureEvent(eventName string, rules ...Rule) (<-chan *zero.Ctx, func())`**
+
+  这是一个 `Ctx` 对象上的辅助方法，是 `NewFutureEvent` 的简化版本。它使用默认的优先级和阻塞行为，并自动包含一个 `ctx.CheckSession()` 规则，以确保只监听来自同一会话（同一用户在同一群组或私聊中）的事件。
+
+### 示例: 复读机模式
+
+`example/repeat/test.go` 中的示例演示了如何使用未来事件来实现一个“复读机”模式，该模式会重复用户发送的所有内容，直到用户说“关闭复读”。
+
+```go
+package repeat
+
+import (
+	zero "github.com/wdvxdr1123/ZeroBot"
+)
+
+func init() {
+	engine := zero.New()
+	engine.OnCommand("开启复读", zero.OnlyToMe).SetBlock(true).SetPriority(10).
+		Handle(func(ctx *zero.Ctx) {
+            // 1. 创建一个监听器，用于监听“关闭复读”命令
+			stop, cancelStop := zero.NewFutureEvent("message", 8, true,
+				zero.CommandRule("关闭复读"), // 关闭指令
+				ctx.CheckSession()).      // 只有开启者可以关闭
+				Repeat()                  // 持续监听，直到成功
+			defer cancelStop() // 确保在函数退出时取消监听
+
+            // 2. 创建一个监听器，用于复读用户的消息
+			echo, cancel := ctx.FutureEvent("message",
+				ctx.CheckSession()). // 只复读当前会话的消息
+				Repeat()             // 持续监听
+			defer cancel() // 确保在函数退出时取消监听
+
+			ctx.Send("已开启复读模式!")
+
+            // 3. 使用 select 等待任一事件发生
+			for {
+				select {
+				case c := <-echo: // 收到需要复读的消息
+					ctx.Send(c.Event.RawMessage)
+				case <-stop: // 收到关闭指令
+                    ctx.Send("已关闭复读模式!")
+					return // 退出处理器
+				}
+			}
+		})
+}
 ```
 
 [下一步: 创建插件](/zh-cn/plugins.md)
