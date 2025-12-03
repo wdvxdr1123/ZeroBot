@@ -79,13 +79,31 @@ ctx.Send("hello", message.Image("https://example.com/image.png"))
 
 创建一个新的文本消息段。
 
+```go
+engine.OnMessage(zero.FullMatchRule("文本示例")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.Text("这是一条文本消息。"))
+})
+```
+
 ### `message.Image(string) MessageSegment`
 
 从 URL 创建一个新的图片消息段。
 
+```go
+engine.OnMessage(zero.FullMatchRule("图片示例")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.Image("https://www.dmoe.cc/random.php"))
+})
+```
+
 ### `message.At(int64) MessageSegment`
 
 创建一个新的 @ 消息段。
+
+```go
+engine.OnMessage(zero.FullMatchRule("at示例")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.At(ctx.Event.UserID), message.Text("\n不要\n@我"))
+})
+```
 
 ## Engine 的链式调用
 
@@ -114,29 +132,145 @@ ZeroBot 在 `rules.go` 文件中提供了许多内置的 `Rule` 函数，让你�
 - **`Type(typeString string)`**: 根据事件的类型字符串进行匹配，格式为 `"post_type/detail_type/sub_type"`。
   - **示例**: `Type("message/group")` 匹配群聊消息。
 
+```go
+engine.OnMessage(zero.Type("message/group"), zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello world")
+})
+```
+
 ### 消息内容匹配
 
 - **`PrefixRule(prefixes ...string)`**: 检查消息是否以指定的前缀开头。将前缀存储在 `ctx.State["prefix"]` 中，其余部分存储在 `ctx.State["args"]` 中。
+
+```go
+engine.OnMessage(zero.PrefixRule("你好")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("世界")
+})
+```
+
 - **`SuffixRule(suffixes ...string)`**: 检查消息是否以指定的后缀结尾。
+
+```go
+engine.OnMessage(zero.SuffixRule("世界")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好")
+})
+```
+
 - **`CommandRule(commands ...string)`**: 检查消息是否是命令，以配置的 `CommandPrefix` 开头。将命令和参数存储在 `ctx.State` 中。
+
+```go
+engine.OnMessage(zero.CommandRule("ping")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("pong")
+})
+```
+
 - **`RegexRule(regexPattern string)`**: 使用正则表达式匹配消息内容。将匹配结果存储在 `ctx.State["regex_matched"]` 中。
+
+```go
+engine.OnMessage(zero.RegexRule(`^你好, (.*)$`)).Handle(func(ctx *zero.Ctx) {
+    matched := ctx.State["regex_matched"].([]string)
+    ctx.Send("你好, " + matched[1])
+})
+```
+
 - **`KeywordRule(keywords ...string)`**: 检查消息是否包含指定的任何关键字。
+
+```go
+engine.OnMessage(zero.KeywordRule("猫", "狗")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("我喜欢宠物！")
+})
+```
+
 - **`FullMatchRule(texts ...string)`**: 要求消息内容与指定的文本之一完全匹配。
+
+```go
+engine.OnMessage(zero.FullMatchRule("嗨")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好")
+})
+```
+
 - **`HasPicture(ctx *Ctx) bool`**: 检查消息是否包含任何图片。将图片 URL 存储在 `ctx.State["image_url"]` 中。
+
+```go
+engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("我看到你发了一张图片！")
+})
+```
 
 ### 消息上下文匹配
 
-- **`OnlyToMe(ctx *Ctx) bool`**: 要求消息是发给机器人的（例如，通过 @提及或昵称）。
+- **`OnlyToMe(ctx *Ctx) bool`**: 要求消息是发给 Bot 的（例如，通过 at Bot）。
+
+```go
+engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("在吗")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("我在")
+})
+```
+
 - **`OnlyPrivate(ctx *Ctx) bool`**: 要求消息是私聊消息。
+
+```go
+engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("你好")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，很高兴认识你！")
+})
+```
+
 - **`OnlyGroup(ctx *Ctx) bool`**: 要求消息是群聊消息。
-- **`ReplyRule(messageID int64)`**: 检查消息是否是对特定消息 ID 的回复。
+
+```go
+engine.OnMessage(zero.OnlyGroup(), zero.FullMatchRule("大家好")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("大家好！")
+})
+```
+
+- **`ReplyRule(ctx *Ctx) bool`**: 要求消息是回复消息。将回复的消息 ID 存储在 `ctx.State["reply_message_id"]` 中。
+
+```go
+engine.OnMessage(zero.ReplyRule()).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你正在回复一条消息！")
+})
+```
 
 ### 用户和权限匹配
 
-- **`CheckUser(userIDs ...int64)`**: 要求消息来自指定的用户之一。
-- **`CheckGroup(groupIDs ...int64)`**: 要求消息来自指定的群组之一。
-- **`SuperUserPermission(ctx *Ctx) bool`**: 要求发送者是超级用户。
-- **`AdminPermission(ctx *Ctx) bool`**: 要求发送者是群组管理员、所有者或超级用户。
-- **`OwnerPermission(ctx *Ctx) bool`**: 要求发送者是群组所有者或超级用户。
+- **`CheckUser(userIDs ...int64)`**: 检查消息是否来自指定的用户 ID 之一。
+
+```go
+engine.OnMessage(zero.CheckUser(123456789)).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，指定的用户！")
+})
+```
+
+- **`CheckGroup(groupIDs ...int64)`**: 检查消息是否来自指定的群组 ID 之一。
+
+```go
+engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，指定的群组！")
+})
+```
+
+- **`SuperUserPermission(ctx *Ctx) bool`**: 要求消息发送者是超级用户。
+
+```go
+engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，超级用户！")
+})
+```
+
+- **`AdminPermission(ctx *Ctx) bool`**: 要求消息发送者是群管理员、群主或超级用户。
+
+```go
+engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，管理员！")
+})
+```
+
+- **`OwnerPermission(ctx *Ctx) bool`**: 要求消息发送者是群主或超级用户。
+
+```go
+engine.OnMessage(zero.OwnerPermission, zero.FullMatchRule("管理命令")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("你好，群主！")
+})
+```
 
 [下一步: 创建插件](/zh-cn/plugins.md)

@@ -79,13 +79,31 @@ The `message` package provides helper functions to easily create these segments,
 
 Creates a new text message segment.
 
+```go
+engine.OnMessage(zero.FullMatchRule("text example")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.Text("This is a text message."))
+})
+```
+
 ### `message.Image(string) MessageSegment`
 
 Creates a new image message segment from a URL.
 
+```go
+engine.OnMessage(zero.FullMatchRule("image example")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.Image("https://www.dmoe.cc/random.php"))
+})
+```
+
 ### `message.At(int64) MessageSegment`
 
 Creates a new @ message segment.
+
+```go
+engine.OnMessage(zero.FullMatchRule("at example")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send(message.At(ctx.Event.UserID))
+})
+```
 
 ## Engine's Chainable Methods
 
@@ -114,29 +132,151 @@ ZeroBot provides many built-in `Rule` functions in the `rules.go` file, allowing
 - **`Type(typeString string)`**: Matches events based on their type string, formatted as `"post_type/detail_type/sub_type"`.
   - **Example**: `Type("message/group")` matches group messages.
 
+```go
+engine.OnMessage(zero.Type("message/group"), zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello world")
+})
+```
+
 ### Message Content Matching
 
 - **`PrefixRule(prefixes ...string)`**: Checks if the message starts with a specified prefix. Stores the prefix in `ctx.State["prefix"]` and the rest in `ctx.State["args"]`.
+
+```go
+engine.OnMessage(zero.PrefixRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("world")
+})
+```
+
 - **`SuffixRule(suffixes ...string)`**: Checks if the message ends with a specified suffix.
+
+```go
+engine.OnMessage(zero.SuffixRule("world")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello")
+})
+```
+
 - **`CommandRule(commands ...string)`**: Checks if the message is a command, starting with the configured `CommandPrefix`. Stores the command and arguments in `ctx.State`.
+
+```go
+engine.OnMessage(zero.CommandRule("ping")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("pong")
+})
+```
+
 - **`RegexRule(regexPattern string)`**: Matches the message content with a regular expression. Stores the match results in `ctx.State["regex_matched"]`.
+
+```go
+engine.OnMessage(zero.RegexRule(`^hello, (.*)$`)).Handle(func(ctx *zero.Ctx) {
+    matched := ctx.State["regex_matched"].([]string)
+    ctx.Send("Hello, " + matched[1])
+})
+```
+
 - **`KeywordRule(keywords ...string)`**: Checks if the message contains any of the specified keywords.
+
+```go
+engine.OnMessage(zero.KeywordRule("cat", "dog")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("I love pets!")
+})
+```
+
 - **`FullMatchRule(texts ...string)`**: Requires the message content to be an exact match to one of the specified texts.
+
+```go
+engine.OnMessage(zero.FullMatchRule("hi")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello")
+})
+```
+
 - **`HasPicture(ctx *Ctx) bool`**: Checks if the message contains any pictures. Stores image URLs in `ctx.State["image_url"]`.
+
+```go
+engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("I see you sent a picture!")
+})
+```
 
 ### Message Context Matching
 
-- **`OnlyToMe(ctx *Ctx) bool`**: Requires the message to be directed at the bot (e.g., via an @-mention or nickname).
+- **`OnlyToMe(ctx *Ctx) bool`**: Requires the message to be directed at the bot (e.g., via @mention or nickname).
+
+```go
+engine.OnMessage(zero.OnlyToMe, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("world")
+})
+```
+
 - **`OnlyPrivate(ctx *Ctx) bool`**: Requires the message to be a private message.
+
+```go
+engine.OnMessage(zero.OnlyPrivate, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("world")
+})
+```
+
 - **`OnlyGroup(ctx *Ctx) bool`**: Requires the message to be a group message.
+
+```go
+engine.OnMessage(zero.OnlyGroup, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("world")
+})
+```
+
 - **`ReplyRule(messageID int64)`**: Checks if the message is a reply to a specific message ID.
+
+```go
+engine.OnMessage(zero.FullMatchRule("track me")).Handle(func(ctx *zero.Ctx) {
+    msg, err := ctx.Send("I will track this message.")
+    if err != nil {
+        return
+    }
+    engine.OnMessage(zero.ReplyRule(msg.MessageID)).Handle(func(ctx *zero.Ctx) {
+        ctx.Send("You replied to the tracked message!")
+    })
+})
+```
 
 ### User and Permission Matching
 
-- **`CheckUser(userIDs ...int64)`**: Requires the message to be from one of the specified users.
-- **`CheckGroup(groupIDs ...int64)`**: Requires the message to be from one of the specified groups.
-- **`SuperUserPermission(ctx *Ctx) bool`**: Requires the sender to be a superuser.
-- **`AdminPermission(ctx *Ctx) bool`**: Requires the sender to be a group admin, owner, or a superuser.
-- **`OwnerPermission(ctx *Ctx) bool`**: Requires the sender to be a group owner or a superuser.
+- **`CheckUser(userIDs ...int64)`**: Checks if the message is from one of the specified user IDs.
+
+```go
+engine.OnMessage(zero.CheckUser(123456789)).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello, specific user!")
+})
+```
+
+- **`CheckGroup(groupIDs ...int64)`**: Checks if the message is from one of the specified group IDs.
+
+```go
+engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello, specific group!")
+})
+```
+
+- **`SuperUserPermission(ctx *Ctx) bool`**: Requires the message sender to be a superuser.
+
+```go
+engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello, superuser!")
+})
+```
+
+- **`AdminPermission(ctx *Ctx) bool`**: Requires the message sender to be a group admin, owner, or superuser.
+
+```go
+engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello, admin!")
+})
+```
+
+- **`OwnerPermission(ctx *Ctx) bool`**: Requires the message sender to be the group owner or a superuser.
+
+```go
+engine.OnMessage(zero.OwnerPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("Hello, owner!")
+})
+```
 
 [Next: Creating Plugins](/en/plugins.md)

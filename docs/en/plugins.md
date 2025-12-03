@@ -31,9 +31,25 @@ func init() {
 Then, in your main.go, import the plugin:
 
 ```go
+package main
+
 import (
-	_ "your/plugin/path"
+	_ "your/plugin/path" // Import your plugins here
+	"github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/driver"
 )
+
+func main() {
+	zero.RunAndBlock(&zero.Config{
+		NickName:      []string{"bot"},
+		CommandPrefix: "/",
+		SuperUsers:    []int64{123456},
+		Driver: []zero.Driver{
+			// Forward WS
+			driver.NewWebSocketClient("ws://127.0.0.1:6700", ""),
+		},
+	}, nil)
+}
 ```
 
 ## Plugin Structure
