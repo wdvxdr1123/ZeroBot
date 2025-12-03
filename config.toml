@@ -1,0 +1,15 @@
+baseURL = "http://docs.wdvxdr.top/"
+languageCode = "zh-cn"
+title = "ZeroBot Document"
+theme = "book"
+
+[params]
+    BookMenuBundle = '/menu'
+    BookSection = 'docs'
+
+[outputs]
+home = ["HTML", "RSS"]
+page = ["HTML"]
+section = ["HTML", "RSS"]
+taxonomy = ["HTML", "RSS"]
+taxonomyTerm = ["HTML"]
