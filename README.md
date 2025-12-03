@@ -43,7 +43,7 @@ func main() {
 
 ## 📖 文档
 
-[**--> 点击这里查看文档 <--**](https://guohuiyuan.github.io/ZeroBot/)
+[**--> 点击这里查看文档 <--**](https://wdvxdr1123.github.io/ZeroBot/)
 
 ## 🎯 特性
 
