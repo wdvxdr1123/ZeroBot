@@ -129,10 +129,10 @@ ZeroBot provides many built-in `Rule` functions in the `rules.go` file, allowing
 
 ### Event Type Matching
 
-- **`Type(typeString string)`**: Matches events based on their type string, formatted as `"post_type/detail_type/sub_type"`.
-  - **Example**: `Type("message/group")` matches group messages.
+- **`Type(typeString string)`**: Matches based on the event's type string, in the format `"post_type/detail_type/sub_type"`.
 
 ```go
+// This example handles group messages that exactly match "hello".
 engine.OnMessage(zero.Type("message/group"), zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("hello world")
 })
@@ -140,9 +140,11 @@ engine.OnMessage(zero.Type("message/group"), zero.FullMatchRule("hello")).Handle
 
 ### Message Content Matching
 
-- **`PrefixRule(prefixes ...string)`**: Checks if the message starts with a specified prefix. Stores the prefix in `ctx.State["prefix"]` and the rest in `ctx.State["args"]`.
+- **`PrefixRule(prefixes ...string)`**: Checks if the message starts with a specified prefix. Stores the prefix in `ctx.State["prefix"]` and the rest of the message in `ctx.State["args"]`.
 
 ```go
+// This example responds to messages starting with "hello".
+// If the message is "hello world", ctx.State["prefix"] will be "hello" and ctx.State["args"] will be "world".
 engine.OnMessage(zero.PrefixRule("hello")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("world")
 })
@@ -151,6 +153,7 @@ engine.OnMessage(zero.PrefixRule("hello")).Handle(func(ctx *zero.Ctx) {
 - **`SuffixRule(suffixes ...string)`**: Checks if the message ends with a specified suffix.
 
 ```go
+// This example responds to messages ending with "world".
 engine.OnMessage(zero.SuffixRule("world")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("hello")
 })
@@ -159,6 +162,8 @@ engine.OnMessage(zero.SuffixRule("world")).Handle(func(ctx *zero.Ctx) {
 - **`CommandRule(commands ...string)`**: Checks if the message is a command, starting with the configured `CommandPrefix`. Stores the command and arguments in `ctx.State`.
 
 ```go
+// Assuming CommandPrefix is "/", this example responds to "/ping".
+// ctx.State["command"] will be "ping".
 engine.OnMessage(zero.CommandRule("ping")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("pong")
 })
@@ -167,31 +172,37 @@ engine.OnMessage(zero.CommandRule("ping")).Handle(func(ctx *zero.Ctx) {
 - **`RegexRule(regexPattern string)`**: Matches the message content with a regular expression. Stores the match results in `ctx.State["regex_matched"]`.
 
 ```go
+// This example responds to messages like "hello, world".
+// ctx.State["regex_matched"] will be a string slice: ["hello, world", "world"].
 engine.OnMessage(zero.RegexRule(`^hello, (.*)$`)).Handle(func(ctx *zero.Ctx) {
     matched := ctx.State["regex_matched"].([]string)
-    ctx.Send("Hello, " + matched[1])
+    ctx.Send("hello, " + matched[1])
 })
 ```
 
 - **`KeywordRule(keywords ...string)`**: Checks if the message contains any of the specified keywords.
 
 ```go
+// This example responds to messages containing "cat" or "dog".
 engine.OnMessage(zero.KeywordRule("cat", "dog")).Handle(func(ctx *zero.Ctx) {
-    ctx.Send("I love pets!")
+    ctx.Send("I like pets!")
 })
 ```
 
-- **`FullMatchRule(texts ...string)`**: Requires the message content to be an exact match to one of the specified texts.
+- **`FullMatchRule(texts ...string)`**: Requires the message content to exactly match one of the specified texts.
 
 ```go
+// This example responds only to the message "hi".
 engine.OnMessage(zero.FullMatchRule("hi")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("hello")
 })
 ```
 
-- **`HasPicture(ctx *Ctx) bool`**: Checks if the message contains any pictures. Stores image URLs in `ctx.State["image_url"]`.
+- **`HasPicture(ctx *Ctx) bool`**: Checks if the message contains any pictures. Stores the picture URLs in `ctx.State["image_url"]`.
 
 ```go
+// This example responds when a message contains a picture.
+// ctx.State["image_url"] will be a slice of strings containing the URLs of the images.
 engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
     ctx.Send("I see you sent a picture!")
 })
@@ -199,41 +210,44 @@ engine.OnMessage(zero.HasPicture).Handle(func(ctx *zero.Ctx) {
 
 ### Message Context Matching
 
-- **`OnlyToMe(ctx *Ctx) bool`**: Requires the message to be directed at the bot (e.g., via @mention or nickname).
+- **`OnlyToMe(ctx *Ctx) bool`**: Requires the message to be directed at the Bot (e.g., by @ing it).
 
 ```go
-engine.OnMessage(zero.OnlyToMe, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
-    ctx.Send("world")
+// This example responds when the bot is @ed with the message "are you there".
+engine.OnMessage(zero.OnlyToMe(), zero.FullMatchRule("are you there")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("I am here")
 })
 ```
 
 - **`OnlyPrivate(ctx *Ctx) bool`**: Requires the message to be a private message.
 
 ```go
-engine.OnMessage(zero.OnlyPrivate, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
-    ctx.Send("world")
+// This example responds to the private message "hello".
+engine.OnMessage(zero.OnlyPrivate(), zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello, nice to meet you!")
 })
 ```
 
 - **`OnlyGroup(ctx *Ctx) bool`**: Requires the message to be a group message.
 
 ```go
-engine.OnMessage(zero.OnlyGroup, zero.FullMatchRule("hello")).Handle(func(ctx *zero.Ctx) {
-    ctx.Send("world")
+// This example responds to the group message "hello everyone".
+engine.OnMessage(zero.OnlyGroup(), zero.FullMatchRule("hello everyone")).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("hello everyone!")
 })
 ```
 
 - **`ReplyRule(messageID int64)`**: Checks if the message is a reply to a specific message ID.
 
 ```go
-engine.OnMessage(zero.FullMatchRule("track me")).Handle(func(ctx *zero.Ctx) {
-    msg, err := ctx.Send("I will track this message.")
-    if err != nil {
-        return
-    }
-    engine.OnMessage(zero.ReplyRule(msg.MessageID)).Handle(func(ctx *zero.Ctx) {
-        ctx.Send("You replied to the tracked message!")
-    })
+// This example listens for a command and then waits for a reply to the bot's response.
+var msgID int64
+engine.OnMessage(zero.CommandRule("hello")).Handle(func(ctx *zero.Ctx) {
+    msgID = ctx.Send("world")
+})
+
+engine.OnMessage(zero.ReplyRule(msgID)).Handle(func(ctx *zero.Ctx) {
+    ctx.Send("You replied to me!")
 })
 ```
 
@@ -242,6 +256,7 @@ engine.OnMessage(zero.FullMatchRule("track me")).Handle(func(ctx *zero.Ctx) {
 - **`CheckUser(userIDs ...int64)`**: Checks if the message is from one of the specified user IDs.
 
 ```go
+// This example responds only to messages from user 123456789.
 engine.OnMessage(zero.CheckUser(123456789)).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, specific user!")
 })
@@ -250,6 +265,7 @@ engine.OnMessage(zero.CheckUser(123456789)).Handle(func(ctx *zero.Ctx) {
 - **`CheckGroup(groupIDs ...int64)`**: Checks if the message is from one of the specified group IDs.
 
 ```go
+// This example responds only to messages from group 987654321.
 engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, specific group!")
 })
@@ -258,6 +274,7 @@ engine.OnMessage(zero.CheckGroup(987654321)).Handle(func(ctx *zero.Ctx) {
 - **`SuperUserPermission(ctx *Ctx) bool`**: Requires the message sender to be a superuser.
 
 ```go
+// This example handles an "admin command" only if the sender is a superuser.
 engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, superuser!")
 })
@@ -266,6 +283,7 @@ engine.OnMessage(zero.SuperUserPermission, zero.FullMatchRule("admin command")).
 - **`AdminPermission(ctx *Ctx) bool`**: Requires the message sender to be a group admin, owner, or superuser.
 
 ```go
+// This example handles an "admin command" only if the sender has admin-level permissions.
 engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, admin!")
 })
@@ -274,6 +292,7 @@ engine.OnMessage(zero.AdminPermission, zero.FullMatchRule("admin command")).Hand
 - **`OwnerPermission(ctx *Ctx) bool`**: Requires the message sender to be the group owner or a superuser.
 
 ```go
+// This example handles an "admin command" only if the sender is the group owner or a superuser.
 engine.OnMessage(zero.OwnerPermission, zero.FullMatchRule("admin command")).Handle(func(ctx *zero.Ctx) {
     ctx.Send("Hello, owner!")
 })
