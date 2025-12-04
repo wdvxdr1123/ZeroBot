@@ -49,9 +49,52 @@ ctx.Send("hello", message.Image("https://example.com/image.png"))
 
 `Ctx` 对象是事件处理程序的上下文。它包含了有关事件的所有信息，例如：
 
-- `Ctx.Event`: 事件的原始数据。
-- `Ctx.Event.Message`: 消息内容。
-- `Ctx.Event.UserID`: 发送者的 QQ 号。
+- `Ctx.Event`: 事件相关信息，是一个 `zero.Event` 类型的指针，包含以下字段：
+  - `Time`: 事件发生的时间戳。
+  - `PostType`: 事件类型，例如 `message`、`notice`、`request`。
+  - `DetailType`: 事件的详细类型，例如 `private`、`group`、`guild`。
+  - `MessageType`: 消息类型，同 `DetailType`。
+  - `SubType`: 事件子类型，例如 `friend`、`group`、`poke`。
+  - `MessageID`: 消息 ID。
+  - `GroupID`: 群号，私聊时为 0。
+  - `ChannelID`: 频道 ID。
+  - `GuildID`: 频道所属的服务器 ID。
+  - `UserID`: 发送者的 QQ 号。
+  - `TargetID`: 被操作者的 QQ 号（例如，被戳一戳的人）。
+  - `SelfID`: 机器人自身的 QQ 号。
+  - `RawMessage`: 原始消息内容。
+  - `Message`: 解析后的消息内容，是一个 `message.Message` 类型的切片。
+  - `Sender`: 发送者信息，是一个 `zero.User` 类型的指针，包含发送者的详细信息。
+  - `IsToMe`: 消息是否是发给机器人的（例如，at 机器人或者私聊）。
+
+  **示例：**
+  ```go
+  package main
+
+  import (
+  	"fmt"
+  	"github.com/wdvxdr1123/ZeroBot"
+  	"github.com/wdvxdr1123/ZeroBot/message"
+  )
+
+  func main() {
+  	zerobot.Run(&zerobot.Config{
+  		NickName:      []string{"ZeroBot"},
+  		CommandPrefix: "/",
+  	})
+
+  	zerobot.OnFullMatch("test").SetBlock(true).Handle(func(ctx *zerobot.Ctx) {
+  		// 获取事件的详细信息
+  		event := ctx.Event
+  		ctx.Send(message.Text(
+  			fmt.Sprintf("事件类型: %s\n", event.PostType),
+  			fmt.Sprintf("详细类型: %s\n", event.DetailType),
+  			fmt.Sprintf("发送者QQ: %d\n", event.UserID),
+  			fmt.Sprintf("消息内容: %s\n", event.RawMessage),
+  		))
+  	})
+  }
+  ```
 - `Ctx.Event.GroupID`: 群号（如果是群消息）。
 
 您可以使用 `Ctx` 对象来获取有关事件的更多信息，并与用户进行交互。
