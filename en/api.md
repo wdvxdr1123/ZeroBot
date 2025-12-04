@@ -49,10 +49,52 @@ ctx.Send("hello", message.Image("https://example.com/image.png"))
 
 The `Ctx` object is the context for an event handler. It contains all the information about the event, such as:
 
-- `Ctx.Event`: The raw event data.
-- `Ctx.Event.Message`: The message content.
-- `Ctx.Event.UserID`: The sender's QQ ID.
-- `Ctx.Event.GroupID`: The group ID (if it's a group message).
+- `Ctx.Event`: Information about the event, which is a pointer to a `zero.Event` type. It contains the following fields:
+  - `Time`: The timestamp of when the event occurred.
+  - `PostType`: The type of event, such as `message`, `notice`, or `request`.
+  - `DetailType`: The detailed type of the event, such as `private`, `group`, or `guild`.
+  - `MessageType`: The type of message, same as `DetailType`.
+  - `SubType`: The subtype of the event, such as `friend`, `group`, or `poke`.
+  - `MessageID`: The ID of the message.
+  - `GroupID`: The group number; it is 0 for private messages.
+  - `ChannelID`: The channel ID.
+  - `GuildID`: The ID of the guild to which the channel belongs.
+  - `UserID`: The QQ number of the sender.
+  - `TargetID`: The QQ number of the person being operated on (e.g., the person being poked).
+  - `SelfID`: The QQ number of the bot itself.
+  - `RawMessage`: The raw content of the message.
+  - `Message`: The parsed message content, which is a slice of `message.Message`.
+  - `Sender`: Information about the sender, which is a pointer to a `zero.User` type, containing detailed information about the sender.
+  - `IsToMe`: Whether the message is addressed to the bot (e.g., by @ing the bot or in a private message).
+
+  **Example:**
+  ```go
+  package main
+
+  import (
+  	"fmt"
+  	"github.com/wdvxdr1123/ZeroBot"
+  	"github.com/wdvxdr1123/ZeroBot/message"
+  )
+
+  func main() {
+  	zerobot.Run(&zerobot.Config{
+  		NickName:      []string{"ZeroBot"},
+  		CommandPrefix: "/",
+  	})
+
+  	zerobot.OnFullMatch("test").SetBlock(true).Handle(func(ctx *zerobot.Ctx) {
+  		// Get detailed information about the event
+  		event := ctx.Event
+  		ctx.Send(message.Text(
+  			fmt.Sprintf("Event Type: %s\n", event.PostType),
+  			fmt.Sprintf("Detailed Type: %s\n", event.DetailType),
+  			fmt.Sprintf("Sender QQ: %d\n", event.UserID),
+  			fmt.Sprintf("Message Content: %s\n", event.RawMessage),
+  		))
+  	})
+  }
+  ```
 
 You can use the `Ctx` object to get more information about an event and to interact with the user.
 
