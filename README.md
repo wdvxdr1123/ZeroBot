@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/wdvxdr1123/ZeroBot.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/wdvxdr1123/ZeroBot/main/LICENSE)
 [![qq group](https://img.shields.io/badge/group-892659456-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=E6Zov6Fi)
 
-文档正在咕咕中, 具体使用可以参考example文件夹。
+
 
 ## ⚡️ 快速使用
 
@@ -40,6 +40,10 @@ func main() {
 	}, nil)
 }
 ```
+
+## 📖 文档
+
+[**--> 点击这里查看文档 <--**](https://wdvxdr1123.github.io/ZeroBot/)
 
 ## 🎯 特性
 
