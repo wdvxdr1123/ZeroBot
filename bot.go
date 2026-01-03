@@ -19,6 +19,11 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
+const (
+	StateKeyPrefixKeep     = "__zerobot_keep_"
+	stateKeyNoLogMseeageID = "__zerobot_no_log_mseeage_id__"
+)
+
 // Config is config of zero bot
 type Config struct {
 	NickName        []string      `json:"nickname"`           // 机器人名称
@@ -140,10 +145,10 @@ type messageLogger struct {
 // CallAPI 记录被触发的回复消息
 func (m *messageLogger) CallAPI(ctx context.Context, request APIRequest) (rsp APIResponse, err error) {
 	noLog := false
-	b, ok := request.Params["__zerobot_no_log_mseeage_id__"].(bool)
+	b, ok := request.Params[stateKeyNoLogMseeageID].(bool)
 	if ok {
 		noLog = b
-		delete(request.Params, "__zerobot_no_log_mseeage_id__")
+		delete(request.Params, stateKeyNoLogMseeageID)
 	}
 	rsp, err = m.caller.CallAPI(ctx, request)
 	if err != nil {
@@ -275,7 +280,9 @@ loop:
 			continue
 		}
 		for k := range ctx.State { // Clear State
-			delete(ctx.State, k)
+			if !strings.HasPrefix(k, StateKeyPrefixKeep) {
+				delete(ctx.State, k)
+			}
 		}
 		m := matcher.copy()
 		ctx.ma = m
