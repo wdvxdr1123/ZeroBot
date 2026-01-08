@@ -362,6 +362,10 @@ loop:
 			}
 		}
 
+		if matcher.Temp { // 已经匹配上, 临时 Matcher 删除
+			matcher.Delete()
+		}
+
 		if m.Handler != nil {
 			c := gohandler(m.Handler)
 			for {
@@ -377,9 +381,6 @@ loop:
 				}
 				break
 			}
-		}
-		if matcher.Temp { // 临时 Matcher 删除
-			matcher.Delete()
 		}
 
 		if m.Engine != nil {
