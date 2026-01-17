@@ -25,7 +25,7 @@ func Test_sortMatcher(t *testing.T) {
 	ctx := &Ctx{}
 	var result []int
 	for _, m := range matcherList {
-		m.Handler(ctx)
+		m.Handler[0](ctx)
 		number, err := strconv.Atoi(ctx.message)
 		if err != nil {
 			// should not happen

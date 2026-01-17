@@ -1001,3 +1001,624 @@ func (ctx *Ctx) SendPoke(groupID, userID int64) {
 		"user_id":  userID,
 	})
 }
+
+// ═══════════════════════════════════════════════════════════
+// NapCat 补充 API — 基于 https://napcat.apifox.cn
+// ═══════════════════════════════════════════════════════════
+
+// ── 文件操作（NapCat 扩展）──
+
+// UploadPrivateFile 上传私聊文件
+//
+// https://napcat.apifox.cn/226658883e0.md
+func (ctx *Ctx) UploadPrivateFile(userID int64, file, name string) string {
+	return ctx.CallAction("upload_private_file", Params{
+		"user_id": userID,
+		"file":    file,
+		"name":    name,
+	}).Data.Get("file_id").Str
+}
+
+// DeleteGroupFile 删除群文件
+//
+// https://napcat.apifox.cn/226658755e0.md
+func (ctx *Ctx) DeleteGroupFile(groupID int64, fileID string) {
+	ctx.CallAction("delete_group_file", Params{
+		"group_id": groupID,
+		"file_id":  fileID,
+	})
+}
+
+// DeleteThisGroupFile 删除本群文件
+func (ctx *Ctx) DeleteThisGroupFile(fileID string) {
+	ctx.DeleteGroupFile(ctx.Event.GroupID, fileID)
+}
+
+// CreateGroupFileFolder 创建群文件目录
+//
+// https://napcat.apifox.cn/226658773e0.md
+func (ctx *Ctx) CreateGroupFileFolder(groupID int64, folderName string) gjson.Result {
+	return ctx.CallAction("create_group_file_folder", Params{
+		"group_id":    groupID,
+		"folder_name": folderName,
+	}).Data
+}
+
+// CreateThisGroupFileFolder 创建本群文件目录
+func (ctx *Ctx) CreateThisGroupFileFolder(folderName string) gjson.Result {
+	return ctx.CreateGroupFileFolder(ctx.Event.GroupID, folderName)
+}
+
+// DeleteGroupFileFolder 删除群文件目录
+//
+// https://napcat.apifox.cn/226658779e0.md
+func (ctx *Ctx) DeleteGroupFileFolder(groupID int64, folderID string) {
+	ctx.CallAction("delete_group_folder", Params{
+		"group_id":  groupID,
+		"folder_id": folderID,
+	})
+}
+
+// DeleteThisGroupFileFolder 删除本群文件目录
+func (ctx *Ctx) DeleteThisGroupFileFolder(folderID string) {
+	ctx.DeleteGroupFileFolder(ctx.Event.GroupID, folderID)
+}
+
+// DownloadFile 下载文件到本地临时目录
+//
+// https://napcat.apifox.cn/226658887e0.md
+func (ctx *Ctx) DownloadFile(url, name, headers string) string {
+	return ctx.CallAction("download_file", Params{
+		"url":     url,
+		"name":    name,
+		"headers": headers,
+	}).Data.Get("file").Str
+}
+
+// GetPrivateFileURL 获取私聊文件下载链接
+//
+// https://napcat.apifox.cn/266151849e0.md
+func (ctx *Ctx) GetPrivateFileURL(fileID string) string {
+	return ctx.CallAction("get_private_file_url", Params{
+		"file_id": fileID,
+	}).Data.Get("url").Str
+}
+
+// MoveGroupFile 移动群文件
+//
+// https://napcat.apifox.cn/283136359e0.md
+func (ctx *Ctx) MoveGroupFile(groupID int64, fileID, parentFolderID, targetFolderID string) {
+	ctx.CallAction("move_group_file", Params{
+		"group_id":         groupID,
+		"file_id":          fileID,
+		"parent_folder_id": parentFolderID,
+		"target_folder_id": targetFolderID,
+	})
+}
+
+// RenameGroupFile 重命名群文件
+//
+// https://napcat.apifox.cn/283136375e0.md
+func (ctx *Ctx) RenameGroupFile(groupID int64, fileID, newName string) {
+	ctx.CallAction("rename_group_file", Params{
+		"group_id": groupID,
+		"file_id":  fileID,
+		"new_name": newName,
+	})
+}
+
+// TransGroupFile 传输群文件
+//
+// https://napcat.apifox.cn/283136366e0.md
+func (ctx *Ctx) TransGroupFile(groupID int64, fileID, targetGroupID string) {
+	ctx.CallAction("trans_group_file", Params{
+		"group_id":        groupID,
+		"file_id":         fileID,
+		"target_group_id": targetGroupID,
+	})
+}
+
+// ── 群公告（NapCat 扩展）──
+
+// SendGroupNotice 发送群公告
+//
+// https://napcat.apifox.cn/226658740e0.md
+func (ctx *Ctx) SendGroupNotice(groupID int64, content, image string, pinned int) {
+	ctx.CallAction("_send_group_notice", Params{
+		"group_id": groupID,
+		"content":  content,
+		"image":    image,
+		"pinned":   pinned,
+	})
+}
+
+// SendThisGroupNotice 发送本群公告
+func (ctx *Ctx) SendThisGroupNotice(content, image string, pinned int) {
+	ctx.SendGroupNotice(ctx.Event.GroupID, content, image, pinned)
+}
+
+// GetGroupNotice 获取群公告列表
+//
+// https://napcat.apifox.cn/226658742e0.md
+func (ctx *Ctx) GetGroupNotice(groupID int64) gjson.Result {
+	return ctx.CallAction("_get_group_notice", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupNotice 获取本群公告列表
+func (ctx *Ctx) GetThisGroupNotice() gjson.Result {
+	return ctx.GetGroupNotice(ctx.Event.GroupID)
+}
+
+// DeleteGroupNotice 删除群公告
+//
+// https://napcat.apifox.cn/226659240e0.md
+func (ctx *Ctx) DeleteGroupNotice(groupID int64, noticeID string) {
+	ctx.CallAction("_del_group_notice", Params{
+		"group_id":  groupID,
+		"notice_id": noticeID,
+	})
+}
+
+// DeleteThisGroupNotice 删除本群公告
+func (ctx *Ctx) DeleteThisGroupNotice(noticeID string) {
+	ctx.DeleteGroupNotice(ctx.Event.GroupID, noticeID)
+}
+
+// ── 好友管理（NapCat 扩展）──
+
+// DeleteFriend 删除好友
+//
+// https://napcat.apifox.cn/227237873e0.md
+func (ctx *Ctx) DeleteFriend(userID int64, tempBlock, tempBothDel bool) {
+	ctx.CallAction("delete_friend", Params{
+		"user_id":       userID,
+		"temp_block":    tempBlock,
+		"temp_both_del": tempBothDel,
+	})
+}
+
+// SetFriendRemark 设置好友备注
+//
+// https://napcat.apifox.cn/298305173e0.md
+func (ctx *Ctx) SetFriendRemark(userID int64, remark string) {
+	ctx.CallAction("set_friend_remark", Params{
+		"user_id": userID,
+		"remark":  remark,
+	})
+}
+
+// GetUnidirectionalFriendList 获取单向好友列表
+//
+// https://napcat.apifox.cn/266151878e0.md
+func (ctx *Ctx) GetUnidirectionalFriendList() gjson.Result {
+	return ctx.CallAction("get_unidirectional_friend_list", Params{}).Data
+}
+
+// GetDoubtFriendsAddRequest 获取可疑好友申请列表
+//
+// https://napcat.apifox.cn/289565516e0.md
+func (ctx *Ctx) GetDoubtFriendsAddRequest() gjson.Result {
+	return ctx.CallAction("get_doubt_friends_add_request", Params{}).Data
+}
+
+// SetDoubtFriendsAddRequest 处理可疑好友申请
+//
+// https://napcat.apifox.cn/289565525e0.md
+func (ctx *Ctx) SetDoubtFriendsAddRequest(flag string, approve bool, remark string) {
+	ctx.CallAction("set_doubt_friends_add_request", Params{
+		"flag":    flag,
+		"approve": approve,
+		"remark":  remark,
+	})
+}
+
+// ── 用户资料（NapCat 扩展）──
+
+// SetQQProfile 设置QQ资料（昵称、个性签名、性别）
+//
+// https://napcat.apifox.cn/226657374e0.md
+//
+// sex: 0=未知, 1=男, 2=女
+func (ctx *Ctx) SetQQProfile(nickname, personalNote string, sex int) {
+	ctx.CallAction("set_qq_profile", Params{
+		"nickname":      nickname,
+		"personal_note": personalNote,
+		"sex":           sex,
+	})
+}
+
+// SetInputStatus 设置输入状态
+//
+// https://napcat.apifox.cn/226659225e0.md
+//
+// eventType: 事件类型
+func (ctx *Ctx) SetInputStatus(userID int64, eventType int) {
+	ctx.CallAction("set_input_status", Params{
+		"user_id":    userID,
+		"event_type": eventType,
+	})
+}
+
+// GetUserStatus 获取用户在线状态
+//
+// https://napcat.apifox.cn/226659292e0.md
+//
+// 返回 data: status(在线状态), ext_status(扩展状态)
+func (ctx *Ctx) GetUserStatus(userID int64) gjson.Result {
+	return ctx.CallAction("nc_get_user_status", Params{
+		"user_id": userID,
+	}).Data
+}
+
+// SetCustomOnlineStatus 设置自定义在线状态
+//
+// https://napcat.apifox.cn/266151905e0.md
+func (ctx *Ctx) SetCustomOnlineStatus(faceID int, faceType int, wording string) {
+	ctx.CallAction("set_custom_online_status", Params{
+		"face_id":   faceID,
+		"face_type": faceType,
+		"wording":   wording,
+	})
+}
+
+// ── 群管理扩展（NapCat 扩展）──
+
+// GetGroupShutList 获取群禁言列表
+//
+// https://napcat.apifox.cn/226659300e0.md
+func (ctx *Ctx) GetGroupShutList(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_shut_list", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupShutList 获取本群禁言列表
+func (ctx *Ctx) GetThisGroupShutList() gjson.Result {
+	return ctx.GetGroupShutList(ctx.Event.GroupID)
+}
+
+// GetGroupInfoEx 获取群详细信息（扩展）
+//
+// https://napcat.apifox.cn/226659229e0.md
+func (ctx *Ctx) GetGroupInfoEx(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_info_ex", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupInfoEx 获取本群详细信息（扩展）
+func (ctx *Ctx) GetThisGroupInfoEx() gjson.Result {
+	return ctx.GetGroupInfoEx(ctx.Event.GroupID)
+}
+
+// SetGroupRemark 设置群备注
+//
+// https://napcat.apifox.cn/283136268e0.md
+func (ctx *Ctx) SetGroupRemark(groupID int64, remark string) {
+	ctx.CallAction("set_group_remark", Params{
+		"group_id": groupID,
+		"remark":   remark,
+	})
+}
+
+// SetThisGroupRemark 设置本群备注
+func (ctx *Ctx) SetThisGroupRemark(remark string) {
+	ctx.SetGroupRemark(ctx.Event.GroupID, remark)
+}
+
+// GetGroupIgnoredNotifies 获取群忽略通知（被忽略的入群申请和邀请）
+//
+// https://napcat.apifox.cn/226659323e0.md
+func (ctx *Ctx) GetGroupIgnoredNotifies(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_ignored_notifies", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetThisGroupIgnoredNotifies 获取本群忽略通知
+func (ctx *Ctx) GetThisGroupIgnoredNotifies() gjson.Result {
+	return ctx.GetGroupIgnoredNotifies(ctx.Event.GroupID)
+}
+
+// SetGroupAddOption 设置群加群选项
+//
+// https://napcat.apifox.cn/301542178e0.md
+func (ctx *Ctx) SetGroupAddOption(groupID int64, addOption int) {
+	ctx.CallAction("set_group_add_option", Params{
+		"group_id":   groupID,
+		"add_option": addOption,
+	})
+}
+
+// SetGroupSearchOption 设置群搜索选项
+//
+// https://napcat.apifox.cn/301542170e0.md
+func (ctx *Ctx) SetGroupSearchOption(groupID int64, enabled bool) {
+	ctx.CallAction("set_group_search_option", Params{
+		"group_id": groupID,
+		"enabled":  enabled,
+	})
+}
+
+// GroupKickBatch 批量踢出群成员
+//
+// https://napcat.apifox.cn/301542209e0.md
+func (ctx *Ctx) GroupKickBatch(groupID int64, userIDs []int64, rejectAddRequest bool) {
+	ctx.CallAction("set_group_kick", Params{
+		"group_id":           groupID,
+		"user_ids":           userIDs,
+		"reject_add_request": rejectAddRequest,
+	})
+}
+
+// SetGroupTodo 设置群待办
+//
+// https://napcat.apifox.cn/395460568e0.md
+func (ctx *Ctx) SetGroupTodo(groupID, messageID int64) {
+	ctx.CallAction("set_group_todo", Params{
+		"group_id":   groupID,
+		"message_id": messageID,
+	})
+}
+
+// SetThisGroupTodo 设置本群待办
+func (ctx *Ctx) SetThisGroupTodo(messageID int64) {
+	ctx.SetGroupTodo(ctx.Event.GroupID, messageID)
+}
+
+// ── 群相册（NapCat 扩展）──
+
+// GetGroupAlbumList 获取群相册列表
+//
+// https://napcat.apifox.cn/395460287e0.md
+func (ctx *Ctx) GetGroupAlbumList(groupID int64) gjson.Result {
+	return ctx.CallAction("get_group_album_list", Params{
+		"group_id": groupID,
+	}).Data
+}
+
+// GetGroupAlbumMediaList 获取群相册媒体列表
+//
+// https://napcat.apifox.cn/395459066e0.md
+func (ctx *Ctx) GetGroupAlbumMediaList(groupID int64, albumID string) gjson.Result {
+	return ctx.CallAction("get_group_album_media_list", Params{
+		"group_id": groupID,
+		"album_id": albumID,
+	}).Data
+}
+
+// UploadGroupAlbum 上传图片到群相册
+//
+// https://napcat.apifox.cn/395459739e0.md
+func (ctx *Ctx) UploadGroupAlbum(groupID int64, albumID, file string) gjson.Result {
+	return ctx.CallAction("upload_group_album", Params{
+		"group_id": groupID,
+		"album_id": albumID,
+		"file":     file,
+	}).Data
+}
+
+// DeleteGroupAlbumMedia 删除群相册媒体
+//
+// https://napcat.apifox.cn/395455119e0.md
+func (ctx *Ctx) DeleteGroupAlbumMedia(groupID int64, albumID, mediaID string) {
+	ctx.CallAction("delete_group_album_media", Params{
+		"group_id": groupID,
+		"album_id": albumID,
+		"media_id": mediaID,
+	})
+}
+
+// LikeGroupAlbumMedia 点赞群相册媒体
+//
+// https://napcat.apifox.cn/395457331e0.md
+func (ctx *Ctx) LikeGroupAlbumMedia(groupID int64, albumID, mediaID string) {
+	ctx.CallAction("like_group_album_media", Params{
+		"group_id": groupID,
+		"album_id": albumID,
+		"media_id": mediaID,
+	})
+}
+
+// ── 消息扩展（NapCat 扩展）──
+
+// SendGroupMusic 发送群聊音乐卡片
+//
+// https://napcat.apifox.cn
+//
+// musicType: "qq", "163", "custom"
+func (ctx *Ctx) SendGroupMusic(groupID int64, musicType string, id int64) int64 {
+	rsp := ctx.CallAction("send_group_msg", Params{
+		"group_id": groupID,
+		"message":  message.Message{message.Music(musicType, id)},
+	}).Data.Get("message_id")
+	if rsp.Exists() {
+		return rsp.Int()
+	}
+	return 0
+}
+
+// SendGroupCustomMusic 发送群聊自定义音乐卡片
+func (ctx *Ctx) SendGroupCustomMusic(groupID int64, url, audio, title string) int64 {
+	rsp := ctx.CallAction("send_group_msg", Params{
+		"group_id": groupID,
+		"message":  message.Message{message.CustomMusic(url, audio, title)},
+	}).Data.Get("message_id")
+	if rsp.Exists() {
+		return rsp.Int()
+	}
+	return 0
+}
+
+// GetEmojiLikeList 获取消息表情点赞列表
+//
+// https://napcat.apifox.cn/410334663e0.md
+func (ctx *Ctx) GetEmojiLikeList(messageID interface{}, emojiID string, count int) gjson.Result {
+	return ctx.CallAction("get_msg_emoji_like_list", Params{
+		"message_id": messageID,
+		"emoji_id":   emojiID,
+		"count":      count,
+	}).Data
+}
+
+// GetMiniAppArk 获取小程序 Ark
+//
+// https://napcat.apifox.cn/227738594e0.md
+func (ctx *Ctx) GetMiniAppArk(appID, title, desc, iconURL, webURL string) gjson.Result {
+	return ctx.CallAction("get_mini_app_ark", Params{
+		"app_id":   appID,
+		"title":    title,
+		"desc":     desc,
+		"icon_url": iconURL,
+		"web_url":  webURL,
+	}).Data
+}
+
+// ── 系统 / 安全（NapCat 扩展）──
+
+// CheckURLSafely 检查URL安全性
+//
+// https://napcat.apifox.cn/228534361e0.md
+//
+// 返回安全等级: 1=安全, 2=未知, 3=危险
+func (ctx *Ctx) CheckURLSafely(url string) int64 {
+	return ctx.CallAction("check_url_safely", Params{
+		"url": url,
+	}).Data.Get("level").Int()
+}
+
+// CanSendImage 检查是否可以发送图片
+//
+// https://napcat.apifox.cn/226657071e0.md
+func (ctx *Ctx) CanSendImage() bool {
+	return ctx.CallAction("can_send_image", Params{}).Data.Get("yes").Bool()
+}
+
+// CanSendRecord 检查是否可以发送语音
+//
+// https://napcat.apifox.cn/226657080e0.md
+func (ctx *Ctx) CanSendRecord() bool {
+	return ctx.CallAction("can_send_record", Params{}).Data.Get("yes").Bool()
+}
+
+// GetCSRFToken 获取 CSRF Token
+//
+// https://napcat.apifox.cn/226657044e0.md
+func (ctx *Ctx) GetCSRFToken() int64 {
+	return ctx.CallAction("get_csrf_token", Params{}).Data.Get("token").Int()
+}
+
+// GetCredentials 获取登录凭证（Cookies + CSRF Token）
+//
+// https://napcat.apifox.cn/226657054e0.md
+func (ctx *Ctx) GetCredentials(domain string) gjson.Result {
+	return ctx.CallAction("get_credentials", Params{
+		"domain": domain,
+	}).Data
+}
+
+// GetCookies 获取指定域名的 Cookies
+//
+// https://napcat.apifox.cn/226657041e0.md
+func (ctx *Ctx) GetCookies(domain string) string {
+	return ctx.CallAction("get_cookies", Params{
+		"domain": domain,
+	}).Data.Get("cookies").Str
+}
+
+// GetClientKey 获取当前登录帐号的 ClientKey
+//
+// https://napcat.apifox.cn/250286915e0.md
+func (ctx *Ctx) GetClientKey() string {
+	return ctx.CallAction("get_clientkey", Params{}).Data.Get("clientkey").Str
+}
+
+// GetStatus 获取运行状态
+//
+// https://napcat.apifox.cn/226657083e0.md
+func (ctx *Ctx) GetStatus() gjson.Result {
+	return ctx.CallAction("get_status", Params{}).Data
+}
+
+// CleanCache 清理缓存
+//
+// https://napcat.apifox.cn/298305106e0.md
+func (ctx *Ctx) CleanCache() {
+	ctx.CallAction("clean_cache", Params{})
+}
+
+// Restart 重启服务
+//
+// https://napcat.apifox.cn/410334662e0.md
+func (ctx *Ctx) Restart() {
+	ctx.CallAction("set_restart", Params{})
+}
+
+// GetPacketStatus 获取Packet状态
+//
+// https://napcat.apifox.cn/226659280e0.md
+func (ctx *Ctx) GetPacketStatus() gjson.Result {
+	return ctx.CallAction("get_packet_status", Params{}).Data
+}
+
+// Logout 退出登录
+//
+// https://napcat.apifox.cn/283136399e0.md
+func (ctx *Ctx) Logout() {
+	ctx.CallAction("nc_logout", Params{})
+}
+
+// ── 频道（NapCat 扩展）──
+
+// GetGuildList 获取频道列表
+//
+// https://napcat.apifox.cn/226659311e0.md
+func (ctx *Ctx) GetGuildList() gjson.Result {
+	return ctx.CallAction("get_guild_list", Params{}).Data
+}
+
+// GetGuildServiceProfile 获取频道个人信息
+//
+// https://napcat.apifox.cn/226659317e0.md
+func (ctx *Ctx) GetGuildServiceProfile() gjson.Result {
+	return ctx.CallAction("get_guild_service_profile", Params{}).Data
+}
+
+// ── RKey（NapCat 扩展）──
+
+// GetRKey 获取 RKey
+//
+// https://napcat.apifox.cn/226659297e0.md
+func (ctx *Ctx) GetRKey() gjson.Result {
+	return ctx.CallAction("get_rkey", Params{}).Data
+}
+
+// NcGetRKey 获取扩展RKey
+//
+// https://napcat.apifox.cn/283136230e0.md
+func (ctx *Ctx) NcGetRKey() gjson.Result {
+	return ctx.CallAction("nc_get_rkey", Params{}).Data
+}
+
+// GetRKeyServer 获取RKey服务器
+//
+// https://napcat.apifox.cn/283136236e0.md
+func (ctx *Ctx) GetRKeyServer() gjson.Result {
+	return ctx.CallAction("get_rkey_server", Params{}).Data
+}
+
+// ── 其他（NapCat 扩展）──
+
+// ClickInlineKeyboardButton 点击内联键盘按钮
+//
+// https://napcat.apifox.cn/266151864e0.md
+func (ctx *Ctx) ClickInlineKeyboardButton(groupID int64, botAppid string, buttonID, callbackData string) {
+	ctx.CallAction("click_inline_keyboard_button", Params{
+		"group_id":      groupID,
+		"bot_appid":     botAppid,
+		"button_id":     buttonID,
+		"callback_data": callbackData,
+	})
+}
