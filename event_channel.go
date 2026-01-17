@@ -41,14 +41,14 @@ func (n *FutureEvent) Next() <-chan *Ctx {
 		Priority: n.Priority,
 		Rules:    n.Rule,
 		Engine:   defaultEngine,
-		Handler: func(ctx *Ctx) {
+		Handler: []Handler{func(ctx *Ctx) {
 			// 使用 go func 异步发送，确保不阻塞主线程
 			go func() {
 				defer func() { _ = recover() }()
 				ch <- ctx
 				close(ch)
 			}()
-		},
+		}},
 	})
 	return ch
 }
@@ -68,13 +68,13 @@ func (n *FutureEvent) Repeat() (recv <-chan *Ctx, cancel func()) {
 			Priority: n.Priority,
 			Rules:    n.Rule,
 			Engine:   defaultEngine,
-			Handler: func(ctx *Ctx) {
+			Handler: []Handler{func(ctx *Ctx) {
 				// 只要 Consumer 处理不是极度滞后，这种方式就能防止 Bot 核心被阻塞
 				go func() {
 					defer func() { _ = recover() }()
 					in <- ctx
 				}()
-			},
+			}},
 		})
 		for {
 			select {

@@ -31,7 +31,7 @@ type Matcher struct {
 	// Rules 匹配规则
 	Rules []Rule
 	// Handler 处理事件的函数
-	Handler Handler
+	Handler []Handler
 	// Engine 注册 Matcher 的 Engine，Engine可为一系列 Matcher 添加通用 Rule 和 其他钩子
 	Engine *Engine
 }
@@ -140,7 +140,7 @@ func (m *Matcher) copy() *Matcher {
 }
 
 // Handle 直接处理事件
-func (m *Matcher) Handle(handler Handler) *Matcher {
+func (m *Matcher) Handle(handler ...Handler) *Matcher {
 	m.Handler = handler
 	return m
 }
