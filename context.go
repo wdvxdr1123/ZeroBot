@@ -110,16 +110,15 @@ func (ctx *Ctx) Send(msg interface{}) message.ID {
 			return message.NewMessageIDFromInteger(
 				ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int(),
 			)
-		default:
-			if event.GroupID != 0 {
-				return message.NewMessageIDFromInteger(
-					ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int(),
-				)
-			}
+		}
+		if event.GroupID != 0 {
 			return message.NewMessageIDFromInteger(
-				ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int(),
+				ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int(),
 			)
 		}
+		return message.NewMessageIDFromInteger(
+			ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int(),
+		)
 	}
 
 	if event.DetailType == "guild" {
@@ -137,16 +136,15 @@ func (ctx *Ctx) Send(msg interface{}) message.ID {
 		return message.NewMessageIDFromInteger(
 			ctx.SendPrivateMessage(event.UserID, msg),
 		)
-	default:
-		if event.GroupID != 0 {
-			return message.NewMessageIDFromInteger(
-				ctx.SendGroupMessage(event.GroupID, msg),
-			)
-		}
+	}
+	if event.GroupID != 0 {
 		return message.NewMessageIDFromInteger(
-			ctx.SendPrivateMessage(event.UserID, msg),
+			ctx.SendGroupMessage(event.GroupID, msg),
 		)
 	}
+	return message.NewMessageIDFromInteger(
+		ctx.SendPrivateMessage(event.UserID, msg),
+	)
 }
 
 // SendChain 快捷发送消息/合并转发-消息链
