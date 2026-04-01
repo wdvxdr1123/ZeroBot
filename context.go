@@ -90,13 +90,13 @@ func (ctx *Ctx) Send(msg interface{}) message.ID {
 	event := ctx.Event
 
 	m, ok := msg.(message.Message)
-	        if !ok {
-                var p *message.Message
-                p, ok = msg.(*message.Message)
-                if ok {
-                        m = *p
-                }
-        }
+	if !ok {
+		var p *message.Message
+		p, ok = msg.(*message.Message)
+		if ok {
+			m = *p
+		}
+	}
 
 	// 合并转发
 	if ok && len(m) > 0 && m[0].Type == "node" && event.DetailType != "guild" {
