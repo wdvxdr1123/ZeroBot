@@ -88,6 +88,7 @@ func (ctx *Ctx) CheckSession() Rule {
 // Send 快捷发送消息/合并转发
 func (ctx *Ctx) Send(msg interface{}) message.ID {
 	event := ctx.Event
+
 	m, ok := msg.(message.Message)
 	if !ok {
 		var p *message.Message
@@ -96,19 +97,55 @@ func (ctx *Ctx) Send(msg interface{}) message.ID {
 			m = *p
 		}
 	}
+
+	// 合并转发
 	if ok && len(m) > 0 && m[0].Type == "node" && event.DetailType != "guild" {
-		if event.GroupID != 0 {
-			return message.NewMessageIDFromInteger(ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int())
+
+		switch event.MessageType {
+		case "group":
+			return message.NewMessageIDFromInteger(
+				ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int(),
+			)
+
+		case "private":
+			return message.NewMessageIDFromInteger(
+				ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int(),
+			)
 		}
-		return message.NewMessageIDFromInteger(ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int())
+		if event.GroupID != 0 {
+			return message.NewMessageIDFromInteger(
+				ctx.SendGroupForwardMessage(event.GroupID, m).Get("message_id").Int(),
+			)
+		}
+		return message.NewMessageIDFromInteger(
+			ctx.SendPrivateForwardMessage(event.UserID, m).Get("message_id").Int(),
+		)
 	}
+
 	if event.DetailType == "guild" {
-		return message.NewMessageIDFromString(ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg))
+		return message.NewMessageIDFromString(
+			ctx.SendGuildChannelMessage(event.GuildID, event.ChannelID, msg),
+		)
+	}
+
+	switch event.MessageType {
+	case "group":
+		return message.NewMessageIDFromInteger(
+			ctx.SendGroupMessage(event.GroupID, msg),
+		)
+	case "private":
+		return message.NewMessageIDFromInteger(
+			ctx.SendPrivateMessage(event.UserID, msg),
+		)
 	}
 	if event.GroupID != 0 {
-		return message.NewMessageIDFromInteger(ctx.SendGroupMessage(event.GroupID, msg))
+		return message.NewMessageIDFromInteger(
+			ctx.SendGroupMessage(event.GroupID, msg),
+		)
 	}
-	return message.NewMessageIDFromInteger(ctx.SendPrivateMessage(event.UserID, msg))
+	return message.NewMessageIDFromInteger(
+		ctx.SendPrivateMessage(event.UserID, msg),
+	)
 }
 
 // SendChain 快捷发送消息/合并转发-消息链
