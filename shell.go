@@ -98,7 +98,7 @@ func ParseShell(s string) []string {
 }
 
 // ShellRule 定义shell-like规则
-func ShellRule(cmd string, model interface{}) Rule {
+func ShellRule(cmd string, model any) Rule {
 	cmdRule := CommandRule(cmd)
 	t := reflect.TypeOf(model)
 	return func(ctx *Ctx) bool {

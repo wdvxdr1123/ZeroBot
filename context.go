@@ -44,7 +44,7 @@ type dec struct {
 var decoderCache = sync.Map{}
 
 // Parse 将 Ctx.State 映射到结构体
-func (ctx *Ctx) Parse(model interface{}) (err error) {
+func (ctx *Ctx) Parse(model any) (err error) {
 	var (
 		rv       = reflect.ValueOf(model).Elem()
 		t        = rv.Type()
@@ -86,7 +86,7 @@ func (ctx *Ctx) CheckSession() Rule {
 }
 
 // Send 快捷发送消息/合并转发
-func (ctx *Ctx) Send(msg interface{}) message.ID {
+func (ctx *Ctx) Send(msg any) message.ID {
 	event := ctx.Event
 
 	m, ok := msg.(message.Message)

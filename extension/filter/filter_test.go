@@ -10,7 +10,7 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	e := map[string]interface{}{
+	e := map[string]any{
 		"post_type": "notice",
 		"user_id":   "notice",
 	}

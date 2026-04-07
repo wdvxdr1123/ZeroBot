@@ -10,7 +10,7 @@ Rule 是ZeroBot过滤事件的核心,其定义如下所示
 
 ```golang
 // State store the context of a matcher.
-type State map[string]interface{}
+type State map[string]any
 // Rule filter the event
 type Rule func(event *Event, state State) bool
 ```

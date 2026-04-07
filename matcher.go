@@ -50,7 +50,7 @@ var (
 )
 
 // State store the context of a matcher.
-type State map[string]interface{}
+type State map[string]any
 
 func sortMatcher() {
 	sort.SliceStable(matcherList, func(i, j int) bool { // 按优先级排序

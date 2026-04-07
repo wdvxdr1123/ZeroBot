@@ -87,7 +87,7 @@ func NotEqual(str string) Func {
 }
 
 // In ...
-func In(i ...interface{}) Func {
+func In(i ...any) Func {
 	ss := make([]string, 0)
 	for _, v := range i {
 		ss = append(ss, fmt.Sprint(v))

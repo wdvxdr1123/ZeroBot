@@ -24,7 +24,7 @@ func (m mockAPICaller) CallAPI(_ context.Context, _ APIRequest) (APIResponse, er
 	}, nil
 }
 func fakeCtx(msg message.Message) *Ctx {
-	ctx := &Ctx{Event: &Event{Message: msg}, State: map[string]interface{}{}, caller: &messageLogger{
+	ctx := &Ctx{Event: &Event{Message: msg}, State: map[string]any{}, caller: &messageLogger{
 		msgid:  message.NewMessageIDFromInteger(12345),
 		caller: mockAPICaller{},
 	}}

@@ -14,7 +14,7 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 )
 
-// Map is like a Go map[interface{}]interface{} but is safe for concurrent use
+// Map is like a Go map[any]any but is safe for concurrent use
 // by multiple goroutines without additional locking or coordination.
 // Loads, stores, and deletes run in amortized constant time.
 //
@@ -76,7 +76,7 @@ var expungedSeqSyncMap = unsafe.Pointer(new(chan<- zero.APIResponse))
 
 // An entry is a slot in the map corresponding to a particular key.
 type entrySeqSyncMap struct {
-	// p points to the interface{} value stored for the entry.
+	// p points to the any value stored for the entry.
 	//
 	// If p == nil, the entry has been deleted and m.dirty == nil.
 	//
@@ -94,7 +94,7 @@ type entrySeqSyncMap struct {
 	// p != expunged. If p == expunged, an entry's associated value can be updated
 	// only after first setting m.dirty[key] = e so that lookups using the dirty
 	// map find the entry.
-	p unsafe.Pointer // *interface{}
+	p unsafe.Pointer // *any
 }
 
 func newEntrySeqSyncMap(i chan<- zero.APIResponse) *entrySeqSyncMap {

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc64"
+	"os"
 	"strconv"
 	"strings"
 
@@ -165,7 +166,7 @@ func (m Message) String() string {
 
 // Text 纯文本
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E7%BA%AF%E6%96%87%E6%9C%AC
-func Text(text ...interface{}) Segment {
+func Text(text ...any) Segment {
 	return Segment{
 		Type: "text",
 		Data: map[string]string{
@@ -188,13 +189,29 @@ func Face(id int) Segment {
 // File 文件
 // https://llonebot.github.io/zh-CN/develop/extends_api
 func File(file, name string) Segment {
-	return Segment{
+	m := Segment{
 		Type: "file",
 		Data: map[string]string{
 			"file": file,
 			"name": name,
 		},
 	}
+	if forceBase64File {
+		if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			data, err := dl(file)
+			if err != nil {
+				return Text("[image dl err: ", err, "]")
+			}
+			m.Data["file"] = "base64://" + base64.StdEncoding.EncodeToString(data)
+			return m
+		}
+		data, err := os.ReadFile(strings.TrimPrefix(file, "file:///"))
+		if err == nil {
+			m.Data["file"] = "base64://" + base64.StdEncoding.EncodeToString(data)
+			return m
+		}
+	}
+	return m
 }
 
 // Image 普通图片
@@ -204,7 +221,20 @@ func File(file, name string) Segment {
 // https://llonebot.github.io/zh-CN/develop/extends_api
 //
 // summary: LLOneBot的扩展字段：图片预览文字
-func Image(file string, summary ...interface{}) Segment {
+func Image(file string, summary ...any) Segment {
+	if forceBase64File {
+		if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			data, err := dl(file)
+			if err != nil {
+				return Text("[image dl err: ", err, "]")
+			}
+			return ImageBytes(data, summary...)
+		}
+		data, err := os.ReadFile(strings.TrimPrefix(file, "file:///"))
+		if err == nil {
+			return ImageBytes(data, summary...)
+		}
+	}
 	m := Segment{
 		Type: "image",
 		Data: map[string]string{
@@ -219,18 +249,35 @@ func Image(file string, summary ...interface{}) Segment {
 
 // ImageBytes 普通图片
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%BE%E7%89%87
-func ImageBytes(data []byte) Segment {
-	return Segment{
+func ImageBytes(data []byte, summary ...any) Segment {
+	m := Segment{
 		Type: "image",
 		Data: map[string]string{
 			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
 		},
 	}
+	if len(summary) > 0 {
+		m.Data["summary"] = fmt.Sprint(summary...)
+	}
+	return m
 }
 
 // Record 语音
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E8%AF%AD%E9%9F%B3
 func Record(file string) Segment {
+	if forceBase64File {
+		if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			data, err := dl(file)
+			if err != nil {
+				return Text("[record dl err: ", err, "]")
+			}
+			return RecordBytes(data)
+		}
+		data, err := os.ReadFile(strings.TrimPrefix(file, "file:///"))
+		if err == nil {
+			return RecordBytes(data)
+		}
+	}
 	return Segment{
 		Type: "record",
 		Data: map[string]string{
@@ -239,13 +286,48 @@ func Record(file string) Segment {
 	}
 }
 
+// RecordBytes 语音
+// https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E8%AF%AD%E9%9F%B3
+func RecordBytes(data []byte) Segment {
+	return Segment{
+		Type: "record",
+		Data: map[string]string{
+			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
+		},
+	}
+}
+
 // Video 短视频
 // https://github.com/botuniverse/onebot-11/blob/master/message/segment.md#%E7%9F%AD%E8%A7%86%E9%A2%91
 func Video(file string) Segment {
+	if forceBase64File {
+		if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			data, err := dl(file)
+			if err != nil {
+				return Text("[video dl err: ", err, "]")
+			}
+			return VideoBytes(data)
+		}
+		data, err := os.ReadFile(strings.TrimPrefix(file, "file:///"))
+		if err == nil {
+			return VideoBytes(data)
+		}
+	}
 	return Segment{
 		Type: "video",
 		Data: map[string]string{
 			"file": file,
+		},
+	}
+}
+
+// VideoBytes 短视频
+// https://github.com/botuniverse/onebot-11/blob/master/message/segment.md#%E7%9F%AD%E8%A7%86%E9%A2%91
+func VideoBytes(data []byte) Segment {
+	return Segment{
+		Type: "video",
+		Data: map[string]string{
+			"file": "base64://" + base64.StdEncoding.EncodeToString(data),
 		},
 	}
 }
@@ -349,7 +431,7 @@ func (m ID) ID() int64 {
 
 // Reply 回复
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%9B%9E%E5%A4%8D
-func Reply(id interface{}) Segment {
+func Reply(id any) Segment {
 	s := ""
 	switch i := id.(type) {
 	case int64:
@@ -359,7 +441,7 @@ func Reply(id interface{}) Segment {
 	case string:
 		s = i
 	case float64:
-		s = strconv.Itoa(int(i)) // json 序列化 interface{} 默认为 float64
+		s = strconv.Itoa(int(i)) // json 序列化 any 默认为 float64
 	case fmt.Stringer:
 		s = i.String()
 	}
@@ -395,7 +477,7 @@ func Node(id int64) Segment {
 
 // CustomNode 自定义合并转发节点
 // https://github.com/botuniverse/onebot-11/tree/master/message/segment.md#%E5%90%88%E5%B9%B6%E8%BD%AC%E5%8F%91%E8%87%AA%E5%AE%9A%E4%B9%89%E8%8A%82%E7%82%B9
-func CustomNode(nickname string, userID int64, content interface{}) Segment {
+func CustomNode(nickname string, userID int64, content any) Segment {
 	var str string
 	switch c := content.(type) {
 	case string:
@@ -479,7 +561,7 @@ func TTS(text string) Segment {
 }
 
 // Add 为 MessageSegment 的 Data 增加一个字段
-func (m Segment) Add(key string, val interface{}) Segment {
+func (m Segment) Add(key string, val any) Segment {
 	switch val := val.(type) {
 	case string:
 		m.Data[key] = val
@@ -504,6 +586,6 @@ func (m Segment) Chain(data map[string]string) Segment {
 }
 
 // ReplyWithMessage returns a reply message
-func ReplyWithMessage(messageID interface{}, m ...Segment) Message {
+func ReplyWithMessage(messageID any, m ...Segment) Message {
 	return append(Message{Reply(messageID)}, m...)
 }

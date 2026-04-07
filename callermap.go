@@ -12,7 +12,7 @@ import (
 	"unsafe"
 )
 
-// Map is like a Go map[interface{}]interface{} but is safe for concurrent use
+// Map is like a Go map[any]any but is safe for concurrent use
 // by multiple goroutines without additional locking or coordination.
 // Loads, stores, and deletes run in amortized constant time.
 //
@@ -74,7 +74,7 @@ var expungedCallerMap = unsafe.Pointer(new(APICaller))
 
 // An entry is a slot in the map corresponding to a particular key.
 type entryCallerMap struct {
-	// p points to the interface{} value stored for the entry.
+	// p points to the any value stored for the entry.
 	//
 	// If p == nil, the entry has been deleted and m.dirty == nil.
 	//
@@ -92,7 +92,7 @@ type entryCallerMap struct {
 	// p != expunged. If p == expunged, an entry's associated value can be updated
 	// only after first setting m.dirty[key] = e so that lookups using the dirty
 	// map find the entry.
-	p unsafe.Pointer // *interface{}
+	p unsafe.Pointer // *any
 }
 
 func newEntryCallerMap(i APICaller) *entryCallerMap {

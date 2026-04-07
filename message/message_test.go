@@ -19,7 +19,7 @@ func TestMessageID(t *testing.T) {
 		t.Fail()
 	}
 	id = NewMessageIDFromInteger(-1008611)
-	paras := map[string]interface{}{}
+	paras := map[string]any{}
 	paras["message_id"] = id
 	data, err = json.Marshal(&paras)
 	if err != nil {
@@ -30,7 +30,7 @@ func TestMessageID(t *testing.T) {
 		t.Fail()
 	}
 	id = NewMessageIDFromString("test case")
-	paras = map[string]interface{}{}
+	paras = map[string]any{}
 	paras["message_id"] = id
 	data, err = json.Marshal(&paras)
 	if err != nil {
